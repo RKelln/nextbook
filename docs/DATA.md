@@ -9,7 +9,8 @@ trusting: the markup and the payload keys change without notice.
 `https://tpl.bibliocommons.com/robots.txt`, read 2026-11-03, for `User-agent: *`:
 
 - **`Crawl-delay: 120`.** One request every two minutes. This decides how the slice is built: a record page gives
-  one work per request, a search page gives about twenty, so **the slice is built from search pages**, not record
+  one work per request, a search page gives about twenty, so **the adapter reads search pages** (for a person's find,
+  and for a batch slice if one is ever built, T8.11), not record
   pages.
 - `Disallow` includes `/item/read_alike_list/` (the NoveList panel), `/v2/availability/`, `/item/full_record/`,
   `/item/syndetics_reviews` and `/bib/match/`. The adapter fetches only `/v2/search` and `/v2/browse/titles/new`, and
@@ -103,7 +104,8 @@ normaliser, `adapters/bibliocommons/normalise.py`, applies these in order, each 
 9. **Drop singletons.** After the whole slice is built, a facet on only one work is removed, and the report says how
    many were.
 
-The report `build_slice.py` prints is the acceptance test for this: works, facets kept, singletons dropped, the
+The same rules turn a found book's record into facets (`tools/find.py`). For a batch slice (T8.11), the report
+`build_slice.py` prints is the acceptance test: works, facets kept, singletons dropped, the
 median facets per work, the share of works with at least three facets, and the share with at least one section. A
 slice where most works have fewer than three facets will give thin reasons; widen the queries before tuning the
 weights.
