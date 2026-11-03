@@ -22,15 +22,23 @@ Nothing at run time talks to the library. It cannot: the catalogue sends no CORS
 
 ## The data files
 
-All three are canonical JSON in `data/`, validated by `data/*.schema.json`, and turned into
+Canonical JSON in `data/` (`slice`, `tags`, `practice`, and when present `found` and `events`), validated by
+`data/*.schema.json`, and turned into
 `app/data/<name>.js` (`Nextbook.data.put('<name>', {...})`) by `tools/gen_data.py` so the folder works from
 `file://`. `tools/build.py` inlines them as `<script type="application/json" id="nb-<name>">` blocks instead.
 `Nextbook.data.get(name)` reads whichever is present, inside `try`/`catch`, and returns `null` on failure; the shell
 then shows a plain sentence ("The book list did not load. The rest of the app still works.").
 
-### `slice.json`, the catalogue cut down
+### `slice.json`, the starting list
 
-Produced by `adapters/bibliocommons/build_slice.py`. Never edited by hand.
+**For now (D28) it is made from the W13 pack** by `adapters/pack/pack_to_slice.py`: 30 real books with our own facets,
+search links instead of record links (`library.recordUrl` is `null`), `section:` and `contentType` derived from the
+pack's genres through one table, and `formats: []`. Every mode on the menu runs on it. Real catalogue records join it
+when a person's helper finds books (`found.json`, below), and a found record of a pack book enriches that book (its
+record id, call number, formats, subjects) instead of adding a second copy.
+
+**Later (T8.11)** a batch slice from catalogue search pages has the same shape, built by
+`adapters/bibliocommons/build_slice.py`. The example below is that shape. Never edited by hand, either way.
 
 ```json
 {
@@ -123,15 +131,34 @@ Open Library lookup (`BUILD.md` T8.10).
 ### `practice.json`, the practice shelf
 
 A list of shelf entries (shape below) pointing at slice works, with states and ratings already set, so the app has
-something to show in its first second. Built from the W13 pack's books as matched into the slice.
+something to show in its first second. Twelve of the W13 pack's books.
+
+### `events.json`, the events snapshot (last in priority, D30)
+
+A dated snapshot of one branch's events from the library's feed, made ahead by `adapters/bibliocommons/events.py`
+(the feed has no CORS either): `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual,
+categories, summary, url}]}`. `summary` is the library's own event text, at most 300 characters, shown with a link to
+the event page. The app always shows the snapshot's date and never calls it live.
 
 ## The shelf
 
-Kept in `localStorage`. Two keys, never mixed:
+Kept in `localStorage`. Three keys, never mixed:
 
 - `nextbook-own-v1`, the person's own shelf.
 - `nextbook-practice-v1`, the practice shelf: filled from `practice.json` on first use, with a banner that says it is
-  practice, a switch to the own shelf, and a reset that refills it. Reset never touches the own key.
+  practice, a switch to the own shelf, and a reset that refills it. Reset never touches the other keys.
+- `nextbook-others-v1`, friends' shelves: each an exported shelf file added with "Add a friend's shelf" and a name.
+  Never merged into the person's own; swap and club season read them as `ctx.others`.
+
+**In a workshop copy** (`app/data/workshop.js` sets the flag) the practice shelf is the only shelf: the switch is
+replaced by "On this computer, use the practice shelf. Your own books go in at home, on your own computer.", and the
+library import is off. The app says this itself, so the rule does not depend on the agent's brief.
+
+**When storage fails** (some browsers on `file://`, private windows), the store keeps the shelf in memory and the page
+says "This browser is not saving. Export before you close it." It never shows a blank page.
+
+Each mode's last inputs and its shuffle seed are kept too, so blind date shows the same three after a reload until
+"Shuffle".
 
 ```json
 {
@@ -332,9 +359,14 @@ The memory B is updated to L on every import, whatever the person decides, so a 
 Optional everywhere. The app is complete with the box never touched. No keys and no API calls: the route is copy a
 prompt, paste it into any chat, paste the answer back. Two jobs, one guard.
 
-1. **Argue between finalists.** `finalistsPrompt(result, profile)` writes the six as lines of
-   `id | title | author | year | facet labels | the rule's reason`, plus the profile's top five facet labels, and asks
-   for exactly two lines back: `<id>: <one sentence>`. **The shelf's titles are not in the prompt.**
+1. **Argue between finalists.** `finalistsPrompt(result, profile)` writes the candidates as lines of
+   `id | title | author | year | facet labels | facts`, where `facts` is `factsClause()`: the same evidence as the
+   reason, in words that name no shelf book. **Never `reason()`**, which may name one ("Shares the Earthsea series
+   with A Wizard of Earthsea, which you loved"): the reason is for the person's eyes. Plus the profile's top five
+   facet labels. It asks for exactly two lines back, `<id>: <one sentence>`, and ends "Answer with two lines. Do not
+   change any files.", because the prompt may be pasted into an agent's tab rather than a chat. **No title from the
+   shelf is ever in a prompt**, so the room's "do not type your reading history into an AI" and the app tell the same
+   truth.
 2. **Text to facets.** `labelsPrompt(text, facetLabels)` asks a model to choose up to four labels **from the slice's
    own facet list** for a piece of text (an event, a headline, a wish). Event hook and news diet use it.
 
@@ -347,8 +379,8 @@ with nothing valid says so. Titles, authors, years and links in the answer are i
 - A work in the slice: `library.recordUrl` with `{id}`. That page holds availability, formats, the hold button, and
   the library's own suggestions, and the app says so once, near the results.
 - A typed book: `library.searchUrl` with `{q}` = title and author, URL-encoded.
-- A work in a slice whose `library.recordUrl` is `null` (the fallback slice built from the W13 pack, D18): the search
-  URL, as for a typed book.
+- A pack work (`library.recordUrl` is `null`): the search URL, as for a typed book, until a find enriches it with a
+  `recordId`, and then the record URL.
 
 Never stored; always derived.
 
@@ -360,14 +392,16 @@ Three screens behind the address hash, so a link or a reload lands in the same p
   second), the list with state and rating controls, export and import.
 - `#find` (the default): the loaded modes as cards, the chosen mode's inputs, its result, the model box.
 - `#selftest`: runs every loaded mode's checks and the standard shelves in the browser, and lists data load status.
+- `#events` (when the snapshot is there): the branch's events with the snapshot's date.
 
 ## Packing
 
 - `tools/build.py` writes `dist/nextbook.html`: one file, every script and style inlined, data in JSON blocks, no
   network request of any kind.
-- `tools/build.py --starter` writes `dist/starter/`, the workshop folder: the app with only the example mode listed,
-  the contract, the mode briefs, and the tools a participant needs (check, build, serve). The exact list is
-  `BUILD.md` T5.2. The session's own brief is added by the workshop kit, not by this repo.
+- `tools/build.py --starter` writes `dist/starter/`, the workshop folder: the app with only the example mode listed
+  and the workshop flag set, no found books, the contract, the mode briefs, and the tools a participant needs (check,
+  build, serve, find). The exact list is `BUILD.md` T5.2, and what the kit may rely on is `BUILD.md`, "What the
+  starter guarantees the kit". The session's own brief is added by the workshop kit, not by this repo.
 - `tools/build.py --demo` writes `dist/demo.html` with the reference modes loaded, for the projector.
 
 ## Hosted copy (later)

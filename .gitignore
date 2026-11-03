@@ -4,6 +4,10 @@ data/raw/
 *.tmp
 *.part
 
+# A person's own searches, from tools/find.py. Never committed.
+data/found.json
+app/data/found.js
+
 # Built copies are made by tools/build.py, never edited, never committed.
 dist/
 

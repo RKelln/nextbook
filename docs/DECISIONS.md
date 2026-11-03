@@ -230,3 +230,47 @@ different, even if it's robots making them." The batch slice build still waits t
 the one unattended, index-like job here and its slowness costs nothing. An on-demand search a person asked for goes one
 request at a time, at least 5 s apart, at most 3 pages per command, cached. Disallowed paths stay refused for both.
 Revises the pacing part of D12.
+
+## D28. No batch catalogue slice for now; the pack is the starting list (2026-11-03, Ryan)
+
+"I thought we decided against the slice for now?" The app starts from the 30-book W13 pack, made into the slice's shape
+with sections and fiction/non-fiction derived from its genres, so every mode on the menu runs on it. Real catalogue
+records arrive only when a person asks their helper to find books (D26), and stay in their own copy. Supersedes the
+batch-slice parts of D12 and D18; the batch builder becomes a later task (T8.11), with the open question of whether a
+public repo may carry catalogue records in bulk (`DATA.md`).
+
+## D29. The pack's books and notes are kept (2026-11-03, Ryan)
+
+The residency material is a placeholder, but the pack's 30 books and their hand-written mood, pace and one-line notes
+are the only source of words the catalogue does not carry (D15). They seed the starting list, `tags.json` and the
+practice shelf. Replacing them later changes data, not code.
+
+## D30. Events are in for Nov 7, last in priority (2026-11-03, Ryan)
+
+"Events can be last but they are basically done" across Search Desk, the DDT finder and the kit's `fetch_events.py`.
+A dated snapshot for one branch, `ctx.events` for modes, an events screen, and "Books for this event" when event hook
+is loaded. The library's own event text is kept as `summary` (short, linked, dated); rule 4 is about publisher blurbs
+on book records, and there is no field named `description` anywhere.
+
+## D31. The room uses the practice shelf only (2026-11-03, Ryan)
+
+A workshop copy shows the practice shelf only and says why in its own words; the own shelf, friends' shelves from real
+people and the library import are for home. The welcome copy and the "describe it for one reader" step never invite a
+real reading history. The take-home copy's words say the own shelf goes in at home, on a computer the person owns.
+
+## D32. From Ryan's design review (2026-11-03)
+
+Folded in from `docs/HANDOFF.md` (committed as written, then removed once its points were in the docs):
+
+- **Prompts never carry a reason sentence**, because a reason may name a shelf book. They carry the candidates' own
+  facts and a facts clause that names no shelf book, and end "Answer with two lines. Do not change any files."
+- **Friends' shelves have a home**: a third storage key and "Add a friend's shelf", never merged into the own shelf.
+  A seventh standard shelf includes one.
+- **The check is a lint, and says so.** It reads code with comments and quoted words left out, matches call-shaped
+  tokens, and names the word, the place and what to do instead.
+- **`check.sh` is never cut.** Node is in the workshop image, but where it sits on the PATH is untested.
+- **The build is continuous** (Hermes, once locked), so the plan is a dependency order with a priority list, not a
+  calendar; the human checks run early, on the Mac mini, in a fresh standard user.
+- **"Up to six"** everywhere the product is described; fewer with a reason is a full answer.
+- **The residency repo's starter, kit and event file are placeholders.** Port code from them, never requirements.
+- **The starter's interface to the kit is written down** (`BUILD.md`), and the kit relies on nothing else.

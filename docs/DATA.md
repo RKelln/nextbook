@@ -126,10 +126,18 @@ weights.
 
 ## What we may and may not do with it
 
-- **Catalogue records** (title, author, subjects, genre, audience, year, ISBN, call number) are the library's
-  bibliographic data, published openly through Z39.50 under the City of Toronto Open Government Licence. Using them
-  to rank and to link is the intended use.
+- **Catalogue records** (title, author, subjects, genre, audience, year, ISBN, call number) are bibliographic facts.
+  Reading them to rank books for one person and link to the library is the use the catalogue is for. **We have not
+  verified a licence for republishing them in bulk.** TPL's Z39.50 server is a protocol, not a dataset on the City's
+  open data portal, so the City's Open Government Licence cannot be assumed to cover it, and the repo's MIT licence
+  does not grant data it does not own. That is why there is no batch slice in the repo for now (D28): the pack is our
+  own, and found records live only in the person's own copy (`data/found.json` is gitignored). Decide before
+  committing any catalogue data (T8.11).
 - **The publisher blurb** is copyrighted marketing copy. Not stored, not shown, not in fixtures.
+- **A person's found books** (`data/found.json`) carry the words they searched for. They stay in their copy: the
+  file is gitignored and the starter ships without one.
+- **Event text** is the library's own description of its own event, kept short (`summary`, at most 300 characters)
+  beside a link to the event page, with the snapshot's date.
 - **Covers** (Syndetics) are licensed. Not stored, not shown.
 - **NoveList** is licensed to the library. Not fetched, not copied, not cached. A link to the record page is fine.
 

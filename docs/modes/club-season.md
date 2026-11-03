@@ -6,7 +6,8 @@
 
 ## The rule
 
-1. Members: your shelf plus every shelf in `ctx.others` (at least one).
+1. Members: your shelf plus every shelf in `ctx.others` (at least one; people add them on the shelf screen with
+   "Add a friend's shelf").
 2. Fold the members' profiles into one by adding them. Keep each member's profile too.
 3. **Week 1** is the work with the best *lowest* score across members: the one nobody minds.
 4. Each next week is the work most `similar` to the week before, among works no member has on their shelf, preferring

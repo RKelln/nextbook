@@ -9,7 +9,7 @@ A small web app that helps one person decide what to read next from their public
 to the library's own page for the book. It runs from a folder in a browser, with no install, no server and no network.
 
 The app has a **finished foundation** (the shelf, the data, the scoring core, the reason sentences, the model seam, the
-links) and a **slot for modes**. A mode is one file that chooses six books and says why. The repo ships one example
+links) and a **slot for modes**. A mode is one file that chooses up to six books and says why. The repo ships one example
 mode on purpose and leaves the menu of modes as written briefs in `docs/modes/`, so that workshop participants build
 them. The menu is documentation for people and agents, not part of the app. Reference builds live in `reference/`.
 
@@ -18,14 +18,16 @@ them. The menu is documentation for people and agents, not part of the app. Refe
 When two conflict, the earlier one wins.
 
 1. **The person's shelf never leaves their browser.** No accounts, no server storage, no analytics, no telemetry. The
-   model prompt carries the six candidates and facet words, never the shelf's titles.
+   model prompt carries the candidates' own titles and facet words, never a title from the person's shelf, so it
+   is never built from a reason sentence (which may name one).
 2. **Never read NoveList with code.** The record page's "You may also like" is licensed to the library. Link to the
    record page; never fetch, parse, cache or copy the list. The catalogue's `robots.txt` disallows
    `/item/read_alike_list/` too.
 3. **Never build a catalogue mirror.** Fetch search pages for a fixed list of queries, keep what comes back, cache by
    record id. Honour `robots.txt`: never a disallowed path; the batch slice build waits its `Crawl-delay: 120`; a
    search a person asked for is paced as in `docs/DATA.md` "Pacing". Never crawl to own a copy.
-4. **Never store publisher blurbs.** No field named `description` in any file that ships, fixtures included. The blurb
+4. **Never store publisher blurbs.** A book record's `description` is the publisher's; no file that ships, fixtures
+   included, has a field by that name. (An event's own text from the library is kept as `summary`.) The blurb
    is seen on the library's page only.
 5. **A model only ever chooses among things that exist.** Its answer is checked against the shortlist (or the facet
    list) before display. Anything it invents is dropped and named. Titles, authors, dates and links never come from a
@@ -94,7 +96,10 @@ Most of this repo is built by models working one task at a time. These rules are
    questions" at the bottom of `docs/BUILD.md`. Do not guess at a design call.
 6. Never invent a catalogue field. `docs/DATA.md` lists what the library returns. Never invent a book in a fixture: use
    records from the slice or the adapter's fixtures.
-7. Tick the task's box in `docs/BUILD.md` in the same commit as the work. Commit message: `T<id>: <what, and why>`.
+7. **Escapes can be eaten.** Some edit tools turn a written `\` + `u003c` sequence into the character `<` on the way
+   to disk. When code needs a JSON escape like that, build it from pieces (`'\\' + 'u003c'` in Python) and check the
+   saved file with `grep`.
+8. Tick the task's box in `docs/BUILD.md` in the same commit as the work. Commit message: `T<id>: <what, and why>`.
    Small commits. Do not push.
 
 ## Words on the page

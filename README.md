@@ -8,8 +8,8 @@ Working name. The product name and the domain are Ryan's call, not this file's.
 ## The shape in five lines
 
 1. The person keeps a shelf: what they have read, are reading, want, and how they rated it.
-2. A mode narrows the library's list to six candidates with a cheap rule, and says why for each.
-3. A model argues for two of the six, in one sentence each, using only the six it was given.
+2. A mode narrows the list to up to six candidates with a cheap rule, and says why for each.
+3. Optionally, a model argues for two of them, one sentence each, using only the candidates it was given.
 4. The person decides.
 5. Every candidate links out to the library's record page, where availability, formats, the hold button and the
    library's own read-alike suggestions live.

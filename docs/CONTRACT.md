@@ -1,8 +1,9 @@
 # The mode contract
 
 This file is all you need to write a nextbook mode. A mode is one file that looks at a person's shelf, chooses up to
-six books from the library's list, and says why for each one. If the file follows these rules, it cannot break the
-rest of the app, and the app can check it.
+six books from the library's list, and says why for each one. The app checks every answer before showing it, and the
+check catches the common ways a mode breaks the page. It is a safety net, not a wall: a file written to get around
+it can, so follow the rules rather than testing them.
 
 ## 1. What a mode is
 
@@ -83,7 +84,7 @@ The file does nothing when it loads except call `Nextbook.mode`. That is what le
 | `picks` | at most six. Each `id` is a work id from `ctx.works`. No repeats. |
 | `why` | one sentence, at most 200 characters, that **names its evidence**: a subject, a book, an author, a part of the library, or the rule. "Similar to your taste" is not a reason. |
 | `group` | optional words to group cards under ("For you", "For your neighbour"). Swap uses it. |
-| `step` | optional words for a step in a path ("Week 1", "Step 3: the stretch"). Path modes use it. |
+| `step` | optional words for a step in a path ("Week 1", "Step 3: the stretch"). Without one, the app writes "Step 1", "Step 2", and so on. |
 | `note` | a plain sentence shown above the cards: what the mode skipped, or why it found nothing. **Required when `picks` is empty.** |
 
 The app checks the answer before showing it. It **drops and names** any pick whose id is not in the list, any pick
@@ -113,8 +114,9 @@ them, for journeys, ladders and seasons.
 | `facets` | every facet in the list: `{facet: {label, kind, works}}` |
 | `tagsOf(work)` | our own words for a work, `{mood, pace, note}`, or `null`. Most works have none: say how many you skipped |
 | `sections()` | the parts of the library: `[{facet, label, works: [...]}]`, from the call numbers |
-| `others` | shelves imported for swap or club: `[{name, entries}]`, each entry shaped like `shelf` |
-| `random()` | a number from 0 to 1, the same sequence every run until the person presses "Shuffle". Never use `Math.random` |
+| `others` | friends' shelves, added on the shelf screen with "Add a friend's shelf" (an exported file and a name): `[{name, entries}]`, each entry shaped like `shelf`. Empty until someone adds one: say how in `note` |
+| `events` | the library's events from the snapshot, `[{id, title, start, end, branch, categories, summary, url}]`, or `[]`. `eventsFetched` is its date |
+| `random()` | a number from 0 to 1. The same sequence every time, even after a reload, until the person presses "Shuffle" (the app keeps the seed for each mode). Never use `Math.random` |
 | `t(key, vars)` | this mode's strings, then the app's. `{name}` is filled from `vars` |
 
 ### Inputs
@@ -141,18 +143,20 @@ Until every input has a value, `choose` is not called and the app asks for it.
 ## 5. The rules, word for word
 
 1. **Talk to the app only through `ctx`.** No globals of your own, no other mode's code.
-2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document`, `window`, `eval`, `new Function`,
-   `fetch`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random`, `Date`, `setTimeout` or `setInterval`. The
-   check scans every function in the mode for these words (comments are ignored, words inside quotes count) and fails
-   the mode if it finds one.
+2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.`, `window.`, `eval(`, `new Function`,
+   `fetch(`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(` or
+   `setInterval(`. The check reads every function in the mode as code, with comments and the words inside quotes left
+   out, so a sentence like "The library could not fetch this." is fine. A failure names the word, where it is, and
+   what to use instead.
 3. **Pure helpers go in `logic`**, and the check file tests them.
 4. **Words people see go in `strings`.** About grade 6. Short sentences.
 5. **Nothing invented.** Every pick is a work in `ctx.works`. No titles, authors, years or links of your own.
 6. **Say what you did.** If the rule skipped books, or found fewer than six, say so in `note`. Six weak picks are worse
    than three good ones and an honest sentence.
 7. **The same shelf gives the same six.** Break ties by `id`. Randomness only through `ctx.random()`.
-8. **One file and its check.** `app/modes/<id>.js` and `app/modes/<id>.check.js`. Nothing else changes, except one
-   line in `app/modes/list.js`.
+8. **One file and its check.** `app/modes/<id>.js` and `app/modes/<id>.check.js`, plus one line in
+   `app/modes/list.js` (without it the app does not show the mode, and the check warns you) and your plan in words in
+   `app/PLAN.md`. Nothing else changes.
 
 ## 6. The check file
 
@@ -182,7 +186,8 @@ Every mode is also run, with no check file needed, against these shelves built f
 3. every book rated "not for me";
 4. only books typed in, none of them in the list;
 5. the practice shelf;
-6. the practice shelf again, which must give the same answer as 5.
+6. the practice shelf again, which must give the same answer as 5;
+7. the practice shelf with one friend's shelf added (a copy of the practice shelf with every rating flipped).
 
 For each one the mode must not crash, and its answer must pass the checks in section 3. A mode that needs inputs gets
 a sensible default for each (the first loved book, the first work not on the shelf, the most common subject, a short

@@ -1,88 +1,107 @@
 # Build plan
 
-Written 2026-11-03 for implementing agents (Sonnet, Haiku or similar) working **one task per session**. Each task
-says what to read, what to make, what to port from Search Desk, and a check that can fail. The design is
-`ARCHITECTURE.md`; the data is `DATA.md`; the mode contract is `CONTRACT.md`.
+For the builder (Hermes, continuously, or agents one task at a time). Each task says what to read, what to make,
+what to port, and a check that can fail. The design is `ARCHITECTURE.md`; the data is `DATA.md`; the mode contract is
+`CONTRACT.md`. Rewritten 2026-11-03 after Ryan's design review: a dependency order instead of a calendar, the human
+checks at the front, and a priority order instead of a cut list.
 
-**Target: the W13 starter, in the room on Sat Nov 7, 11:00.** The kit is published Fri Nov 6 evening, so the build is
-done **Fri Nov 6, noon**, with the afternoon for the Mac walk-through and fixes. There is no fallback to the old
-starter: if a gate is missed, cut from the list below and keep going. The fallback *slice* (T1.0) stays, because it is
-data every lane needs on day one, not a second app.
+**Target:** the W13 starter, in the room on Sat Nov 7, 11:00; the kit is published Fri Nov 6 evening. There is no
+fallback to the old starter (D21). If time runs short, stop at a line in the priority order and say what was left.
 
-**Where it lives:** `github.com/RKelln/nextbook` (branch `main`), published at `nextbook.ryankelln.com` the way Search
-Desk is at `searchdesk.ryankelln.com` (D22).
+**Where it lives:** `github.com/RKelln/nextbook` (branch `main`), published at `nextbook.ryankelln.com` (D22).
 
-## How to work (read before any task)
+**What the app starts with (D28):** the 30-book W13 pack, turned into the slice by T1.0. There is no batch catalogue
+slice for now. Real catalogue records arrive when a person asks their agent to find books (T1.8).
 
-1. Read `AGENTS.md`, then the "Read first" list of your task. Nothing else large.
-2. One task. Anything else you find goes under "Found while working", in your lane's part.
+## How to work
+
+1. Read `AGENTS.md`, then the "Read first" list of the task. Nothing else large.
+2. One task per commit: `T<id>: <what, and why>`, with its box ticked in the same commit. Do not push.
 3. Pure functions get a unit test in the same commit. Node: `tests/<name>.test.js`, run with
    `node --test tests/*.test.js`. Python: `tests/test_<name>.py`, run with
    `python3 -m unittest discover -s tests -p 'test_*.py'`.
-4. **Port, don't reinvent.** Where a task names a Search Desk file (`~/Documents/Projects/searchdesk/`), read it,
-   keep what applies, rename `Desk` to `Nextbook`, drop what does not apply, and put one line at the top:
-   `// Ported from searchdesk/<path> (MIT, same author).` Do not copy its features, only the named file.
-5. End by running the task's "Done when" checks and pasting the summary lines into your report.
-6. Commit per task: `T<id>: <what, and why>`, ticking the box here in the same commit. Do not push.
-7. A design call the docs do not make is not yours: write it under "Open questions" and stop.
+4. **Port, don't reinvent.** "Port:" names a file and the repo it is in. Two repos are used:
+   - `searchdesk/...` means `~/Documents/Projects/searchdesk/...`
+   - `kit/...` means `~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/...` (the residency repo)
 
-Size: **S** under an hour of agent work, **M** a session. Model: **H** is fine for Haiku-class, **S** wants
-Sonnet-class (judgement on messy data or on the page's behaviour).
+   Read the file, keep what applies, rename `Desk` to `Nextbook`, and put one line at the top:
+   `// Ported from <repo>/<path> (MIT, same author).` Port the named file only, never its features. The residency
+   material is a placeholder from before this design: port code from it, never requirements.
+5. Run the task's "Done when" checks and paste the summary lines in the commit body.
+6. A design call the docs do not make is not yours: write it under "Open questions" and stop that task.
+7. Anything else you notice goes under "Found while working", in its lane's part.
+
+Size: **S** under an hour, **M** a few hours. Model: **H** is fine for Haiku-class, **S** wants Sonnet-class.
 
 ## Lanes
 
-Five lanes own separate files, so several agents can work at once without touching each other's work. Run each lane
-in its own worktree (`git worktree add ../nextbook-<lane> -b lane-<lane>`), and after each task rebase onto `main`
-and fast-forward `main` to it. A task that needs another lane's file waits for that task's tick.
+Lanes own separate files, so parallel workers never collide. A task that needs another lane's file waits for that
+task's tick. With one worker, ignore the lanes and follow the order below.
 
 | Lane | Owns |
 |---|---|
-| **A, data** (Python) | `adapters/`, `data/*.json`, `data/*.schema.json`, `tools/gen_data.py`, `app/data/`, `tests/test_*.py`, `tests/fixtures/tpl/` |
-| **B, core** (pure JS) | `app/core/` except `shell.js`; `tests/*.test.js`; `tests/_load.js`; `tests/fixtures/slice-small.json` |
+| **A, data** (Python) | `adapters/`, `data/*.json`, `data/*.schema.json`, `tools/gen_data.py`, `tools/find.py`, `app/data/`, `tests/test_*.py`, `tests/fixtures/tpl/` |
+| **B, core** (pure JS) | `app/core/` except `shell.js`; `tests/*.test.js`; `tests/_load.js`; `tests/fixtures/*.json` |
 | **C, page** | `app/index.html`, `app/core/shell.js`, `app/nextbook.css` |
-| **D, tools** | `tools/` except `gen_data.py`; `.claude/commands/` |
+| **D, tools** | `tools/` except `gen_data.py` and `find.py`; `tools/commands/`; `.claude/commands/`; `.github/` |
 | **E, modes** | `app/modes/`, `reference/modes/` |
 
-### Starting a lane
+A kickoff for a worker:
 
-Paste this into a fresh agent session, with the lane letter and the next unticked task filled in:
+> You are building nextbook, lane **<A–E>**. Read `AGENTS.md`, then "How to work" and "Lanes" in `docs/BUILD.md`.
+> Do the next unticked task in the order below whose dependencies are ticked, and nothing else. Touch only your
+> lane's files. Run its "Done when" checks, paste the summary lines in the commit body, tick its box, commit. Do not
+> push. If the docs do not decide something, write it under "Open questions" and move to another task.
 
-> You are building lane **<A–E>** of nextbook. Read `AGENTS.md`, then the "How to work" and "Lanes" parts of
-> `docs/BUILD.md`, then do task **<T-id>** and nothing else. Work in the worktree `../nextbook-<lane>` (make it if it
-> is missing). Touch only the files your lane owns. Run the task's "Done when" checks, paste their summary lines, tick
-> the box, commit with `T<id>: <what, and why>`, then rebase onto `main` and fast-forward `main`. Do not push. If the
-> docs do not decide something, write it under "Open questions" and stop.
+## Order of work
 
-Start lane A first: T0.1 is the scaffold every other lane builds on. Lane B can start as soon as T0.1 is ticked.
+Dependencies, not dates. Anything on the same line can run in parallel.
 
-## Timeline and gates
+1. **T0.1** (the scaffold everything builds on).
+2. **T1.0**, **T1.1**, **T2.1**.
+3. **T1.2**, **T1.3**, **T1.7**, **T2.2**, **T2.3**, **T2.4**, **T2.5**.
+4. **T1.8**, **T2.6**, **T2.7**, **T2.8**, **T3.1**.
+5. **T4.1**, **T4.2**, **T3.2**, **T3.3a**, **T3.4**, **T5.1**, **T5.2**, **T5.5a**.
+6. **T7.1 on the Mac mini, as soon as `dist/starter/` opens.** Every finding becomes a task before more features land.
+7. **T6.1**, **T5.5b**, **T5.3**, **T3.3b**, **T5.4**, **T6.2**, **T6.3**, **T6.4**, **T3.5**, **T7.2**.
+8. **T1.9**, **T2.9**, **T3.6** (events, last).
+9. **T5.6** (the hosted copy), then the stretch, **T8.8**.
+10. The kit, **K1** to **K5**, and **T7.1 again** on the installed kit before publishing.
 
-| When | Lane A | Lane B | Lane C | Lane D | Lane E |
-|---|---|---|---|---|---|
-| **Tue Nov 3, evening** | T0.1, then T1.0, T1.1, T1.2, **start the fetch (T1.5a)** | T2.1, T2.2, T2.3 | | | |
-| **Wed Nov 4** | T1.3, T1.4, T1.5b, T1.6, T1.7 | T2.4, T2.5, T2.6, T2.7, T2.8 | T3.1 | T4.2 | |
-| **Wed 18:00, gate 1** | the slice report meets T1.5b's numbers, or Saturday uses the fallback slice (D18) | | | | |
-| **Thu Nov 5** | T1.8, then fixes | (fixes) | T3.2, T3.3, T3.4 | T5.1, T5.2, T5.3, T5.4, T5.5 | T4.1, then T6.1, T6.2, T6.3 |
-| **Thu 18:00, gate 2** | `dist/starter/` opens, the example mode gives six with reasons, `#selftest` is green, two reference modes pass. If not, cut from the list below and say what was cut. | | | | |
-| **Thu Nov 5, after gate 2** | | T8.8a, T8.8b (stretch) | | | |
-| **Fri Nov 6, morning** | | | T3.5, then T8.8c (stretch) | T5.6 | |
-| **Fri Nov 6, afternoon** | K1–K5 (the kit, in the residency repo), T7.1 Ryan on a workshop Mac, T7.2 a first-timer, fixes, publish | | | | |
+## Priority order
 
-### If it slips, cut in this order
+If time runs out, everything above a line ships and everything below it waits. Never below the line: the result check
+in T2.6, the standard shelves, the practice shelf and its reset, practice-only in the workshop copy, the offline
+property, `check.sh`, and "the shelf's titles never go in a prompt".
 
-1. T8.8, the library shelf sync (stretch; it is off in the workshop copy anyway).
-2. T5.6 the hosted copy (the take-home file works without it).
-3. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
-4. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
-5. T1.8 find on request (the app is complete on the slice; this is what makes it reach further).
-6. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
-   hand.
-7. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
-8. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
-   links.
+1. The foundation: T0.1, T1.0, T1.7, T2.1 to T2.8, T3.1, T3.2, T3.4, T4.1, T4.2, T5.1, T5.2, T5.5a.
+2. The human check, T7.1, and its fixes.
+3. Survey as the facilitator's demo: T6.1, T5.3.
+4. The commands for the Code tab: T5.5b.
+5. Find on request: T1.2, T1.3, T1.1, T1.8.
+6. The model box, finalists half: T3.3a.
+7. Live reload: T5.4.
+8. The model box, "from some words" half: T3.3b.
+9. More reference modes and the menu timings: T6.2, T6.3, T6.4.
+10. Words, keyboard, phone: T3.5. A first-timer: T7.2.
+11. Events: T1.9, T2.9, T3.6.
+12. The hosted copy: T5.6.
+13. Stretch: the library shelf sync, T8.8.
 
-**Never cut:** the result check in T2.6 (ids exist, a reason on every pick, an empty result says why), the standard
-shelves, the practice shelf's reset, the offline property, or "the shelf's titles never go in a prompt".
+## What the starter guarantees the kit
+
+The kit is rebuilt after this lock and may rely on these, and nothing else:
+
+- `app/index.html` opens in Chrome from `file://` with nothing installed, and works with the network off.
+- The practice shelf is the default and the only shelf in a workshop copy; reset puts it back.
+- `node tools/check-mode.js <id>` and `bash tools/check.sh <id>` run a mode's checks; `#selftest` does the same in
+  the browser.
+- A mode is `app/modes/<id>.js`, its check, one line in `app/modes/list.js`, and the person's plan in `app/PLAN.md`.
+- `python3 tools/find.py "<words>"` is the only thing that reaches the network, and only when a person asks. It
+  prints what it is about to send before it sends it.
+- `python3 tools/build.py` makes a one-file take-home copy.
+- Data in `app/data/` is generated, never hand-edited.
+- `/new-mode`, `/check` and `/find-books` exist in `.claude/commands/`.
 
 ---
 
@@ -92,195 +111,224 @@ shelves, the practice shelf's reset, the offline property, or "the shelf's title
   `searchdesk/tests/unit/_load.js` as `tests/_load.js`.
   Make the tree in `AGENTS.md` with stub files. `app/index.html` loads, in order: `core/base.js`, `core/slice.js`,
   `core/score.js`, `core/reason.js`, `core/links.js`, `core/contract.js`, `core/seam.js`, `core/store.js`,
-  `data/slice.js`, `data/tags.js`, `data/practice.js`, `modes/list.js`, `core/shell.js`. The shell loads each mode
-  in `Nextbook.modes` (and its `.check.js`) with a `<script>` tag, as `searchdesk/core/desk.js` does around line 677.
-  `app/nextbook.css` empty. One trivial test in `tests/scaffold.test.js`.
+  `data/slice.js`, `data/tags.js`, `data/practice.js`, `data/found.js`, `data/events.js`, `modes/list.js`,
+  `core/shell.js`. A data file that is missing is fine (the page says what it lacks). The shell loads each mode in
+  `Nextbook.modes` (and its `.check.js`) with a `<script>` tag, as `searchdesk/core/desk.js` does around line 677.
+  `app/nextbook.css` empty. `.gitignore` gains `data/found.json` and `app/data/found.js` (a person's own searches).
+  One trivial test in `tests/scaffold.test.js`.
   *Done when:* `node --test tests/*.test.js` passes 1 test; `app/index.html` opens from `file://` with no console
   errors and shows "nextbook".
 
 ## Phase 1: data (lane A)
 
-All Python, standard library only. Every network call goes through `adapters/bibliocommons/fetch.py`.
+Python, standard library only. Every network call goes through `adapters/bibliocommons/fetch.py`.
 
-- [ ] **T1.0 The fallback slice, first** (A, S, H). Read first: `ARCHITECTURE.md` "The data files", decision D18.
-  `adapters/pack/pack_to_slice.py`: reads the W13 pack
-  (`~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/seed_src/pack/books.json`) and writes
-  `data/slice.json` in the slice schema: `id` is the pack id, `groupKey` is `pack:<id>`, facets come from the pack's
-  `genre` (`genre:`), `themes` (`topic:`) and `audience`; `library.recordUrl` is `null`; `searchUrl` as in
-  `ARCHITECTURE.md`; `idPattern` `^[a-z0-9-]+$`. Also writes `data/tags.json` (mood, pace, note) and
-  `data/practice.json` (as T1.6). This gives lanes B, C and E real data on day one, and it is Saturday's safety net.
-  *Done when:* the three files exist, every work has at least two facets, and the facets dictionary has labels.
+- [ ] **T1.0 The starting list, from the pack** (A, M, S). Read first: `ARCHITECTURE.md` "The data files", D28,
+  D29. Port from: `kit/seed_src/pack/books.json` (the data, not code).
+  `adapters/pack/pack_to_slice.py` and `adapters/pack/config.json` write `data/slice.json`, `data/tags.json`,
+  `data/practice.json`, and their schemas (`data/*.schema.json`, with a small hand-written validator in
+  `adapters/validate.py`: required keys and types; no `description`, `jacket` or `rating` in any book).
+  - Works: `id` is the pack id, `groupKey` is `pack:<id>`, `library.recordUrl` is `null`, `searchUrl` and the rest of
+    `library` as in `ARCHITECTURE.md`, `idPattern` `^[a-z0-9-]+$`.
+  - Facets: `genre:` from the pack's genres, `topic:` from its themes, and **`section:` from its genre**, through a
+    table in `config.json` that maps each genre to a shelf the library really has (for example `speculative` to
+    `section:science-fiction`, "the science fiction shelves"; `history` to `section:900`, "the history shelves
+    (900s)"; `nature` to `section:500`). Several genres may share a section.
+  - `contentType` from genre through the same table (`literary`, `speculative`, `fantasy`, `mystery`, `horror`,
+    `romance` are `FICTION`; `history`, `true`, `nature`, `ideas` are `NONFICTION`). `audience` from the pack
+    (`either` becomes `ADULT`). `formats: []`, written out, so time-box can say "no audiobook copies in this list".
+  - `tags.json`: the pack's `mood`, `pace` and `note`, unchanged, keyed by `groupKey`.
+  - `practice.json`: twelve pack books with a spread (four loved, three liked, one ok, one not-for-me, one stopped,
+    one reading, one want).
+  *Done when:* the validator passes all three files; every work has at least three facets including a `section:`;
+  `sections()` would give at least six sections (print them); the notes are the pack's words unchanged.
 
-- [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "The four surfaces".
-  `adapters/bibliocommons/fetch.py`: `get(url) -> str`, with the host built from the library's `subdomain` (no
-  hostname written anywhere else). Reads `robots.txt` once per run and refuses (raises) any path that is
-  not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; paces requests by kind (`DATA.md` "Pacing": batch waits the
-  `Crawl-delay`, at least 120 s; on demand waits at least 5 s and stops at 3 pages); sends `User-Agent: nextbook-slice/1.0 (+https://github.com/RKelln/nextbook)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
-  A cache hit makes no request and does not wait. `--dry-run` prints the URLs and the time it would take.
-  *Done when:* tests (with `urllib.request.urlopen` replaced by a fake and the clock faked) show: a disallowed path
-  raises; a `/v2/record/...` path raises; two uncached gets wait the delay; a cached get makes no call; an on-demand fourth page is refused; the robots
-  parser reads the real text saved as `tests/fixtures/tpl/robots.txt`.
+- [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "Pacing".
+  `adapters/bibliocommons/fetch.py`: `get(url, kind)` with `kind` `on-demand` or `batch`, the host built from
+  `adapters/bibliocommons/libraries/tpl.json` (`subdomain`, `name`). Reads `robots.txt` once per run; refuses any
+  path not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; paces by kind (`batch`
+  waits the `Crawl-delay`, at least 120 s; `on-demand` waits at least 5 s and refuses a fourth page in one command);
+  sends `User-Agent: nextbook/1.0 (+https://github.com/RKelln/nextbook)`; caches bodies in
+  `.cache/tpl/<sha1 of url>.html`; a cache hit makes no request and does not wait.
+  *Done when:* tests with `urlopen` and the clock faked: a disallowed path raises; a `/v2/record/...` path raises;
+  two uncached batch gets wait the delay; on-demand waits 5 s and refuses a fourth page; a cached get makes no call;
+  the robots parser reads the real text saved as `tests/fixtures/tpl/robots.txt`.
 
 - [ ] **T1.2 Parse a page, and the fixtures** (A, S, H). Read first: `DATA.md` "The record, field by field".
-  `adapters/bibliocommons/parse.py`: `briefs(html) -> list[dict]`, the `briefInfo` of every bib, with `description`, `jacket`
-  and `rating` **removed** here so they never travel further. Fetch one real page (`le guin`) through `fetch.py` and
-  write `tests/fixtures/tpl/briefs-le-guin.json`.
+  `adapters/bibliocommons/parse.py`: `briefs(html) -> list[dict]`, the `briefInfo` of every bib, with
+  `description`, `jacket` and `rating` **removed** here so they never travel further. Fetch one real page
+  (`le guin`) on demand and write `tests/fixtures/tpl/briefs-le-guin.json`.
   *Done when:* the fixture has 63 entries and 20 `groupKey`s (or the live numbers, corrected in `RESEARCH.md`);
   `grep -c description tests/fixtures/tpl/*.json` prints 0 for each file; a test parses a tiny hand-made page.
 
-- [ ] **T1.5a Start the real fetch, tonight** (A, S, H). Write `adapters/bibliocommons/libraries/tpl.json` with
-  `subdomain` (`tpl`), `name`, and `queries`: one query per pack book
-  (`"<title> <author>"`), plus `canadian history`, `cooking`, `gardening`, `poetry`, `graphic novels`,
-  `climate change`, `toronto`, `mystery`, `memoir`, `astronomy`, `music`, `indigenous`, `romance`, `philosophy`.
-  `adapters/bibliocommons/fetch_all.py --library tpl` fetches page 1 of each into the cache, nothing
-  else. Run it in the background (about 90 minutes). It parses nothing, so the normaliser can be written while it
-  runs, and re-run on the cache as often as needed with no network.
-  *Done when:* the cache holds one page per query, and the run's log lists each URL with its size.
-
 - [ ] **T1.3 The normaliser** (A, M, S). Read first: `DATA.md` "From headings to facets", all of it.
-  `adapters/bibliocommons/normalise.py` and `adapters/bibliocommons/config.json` (form subdivisions, genre words, Dewey hundreds labels,
-  fiction shelf words). One pure function per rule 1 to 7, plus `facets_for(brief) -> set`, `slug()`,
-  `author_display("Le Guin, Ursula K., 1929-2018") -> "Ursula K. Le Guin"`, `author_key()`.
+  `adapters/bibliocommons/normalise.py` and `adapters/bibliocommons/config.json` (form subdivisions, genre words,
+  Dewey hundreds labels, fiction shelf words). One pure function per rule 1 to 8, plus `facets_for(brief) -> set`,
+  `work_from(briefs) -> work` (rule 8's merge, the format preference for the record id), `slug()`,
+  `author_display("Le Guin, Ursula K., 1929-2018") -> "Ursula K. Le Guin"`, `author_key()`. Section labels use the
+  same words as `adapters/pack/config.json`, so a found book and a pack book on the same shelf share a section.
   *Done when:* one test per rule, from headings in the fixture ("Wizards Juvenile fiction." gives `topic:wizards`;
   "FICTION / Science Fiction / Action & Adventure bisacsh" gives `bisac:science-fiction`; "SCIENCE FICTION LEG" gives
   `section:science-fiction`; "813.54 L2453.109" gives `section:800`; "Kimmerer, Robin Wall, 1953-" gives nothing; a
-  ` fast` heading gives nothing; `Fiction` alone gives nothing); and `facets_for` over the fixture prints a table a
-  person can read.
+  ` fast` heading gives nothing; `Fiction` alone gives nothing); `work_from` over the fixture gives 20 works.
 
-- [ ] **T1.4 The slice builder** (A, M, S). Read first: `ARCHITECTURE.md` "`slice.json`", `DATA.md` rules 8 and 9.
-  `adapters/bibliocommons/build_slice.py --library tpl --out data/slice.json`, reading **only the cache**
-  (`--offline <fixture.json>` for tests). Keep `BK`, `LPRINT`, `EBOOK`, `EAUDIOBOOK`; merge bibs by `groupKey`;
-  choose the record id by format preference; drop singleton facets; build the `facets` dictionary; write `library`,
-  `fetched`, `sources`. `data/slice.schema.json` and a small hand-written validator (required keys and types; no
-  `description`, `jacket` or `rating` anywhere). Print the report from `DATA.md`.
-  *Done when:* `--offline` on the fixture writes a valid slice of 20 works with no singleton facets; tests cover the
-  merge, the format preference and the validator; `grep -c '"description"' data/slice.json` prints 0.
-
-- [ ] **T1.5b Build the real slice** (A, S, H). Run `build_slice.py` on the cache. Commit `data/slice.json`. Copy the
-  report into `RESEARCH.md` with the date. Spot-check three ids by opening `library.recordUrl` in a browser.
-  *Done when:* at least 400 works, a median of at least 4 facets per work, at least 70 % of works with 3 or more
-  facets, at least 12 sections. If not, add queries, fetch only the new ones, rebuild, and write down what changed.
-  **Gate 1** is this task: if it is not done by Wed 18:00, the fallback slice is Saturday's, and this lands later.
-
-- [ ] **T1.6 Tags and the practice shelf, on the real slice** (A, S, H). Read first: `ARCHITECTURE.md` "`tags.json`"
-  and "`practice.json`". `adapters/bibliocommons/pack_to_data.py`: match each pack book to a slice work by normalised title
-  and author key; write `mood`, `pace` and `note` into `data/tags.json` under the work's `groupKey`; write
-  `data/practice.json` with about twelve matched books (four loved, three liked, one ok, one not-for-me, one stopped,
-  one reading, one want). Print the books that did not match.
-  *Done when:* at least 25 of the 30 match; the unmatched are named in the commit message; the notes are the pack's
-  words unchanged.
-
-- [ ] **T1.7 Data for the browser** (A, S, H). `tools/gen_data.py` writes `app/data/<name>.js` for `slice`, `tags`
-  and `practice` as `Nextbook.data.put('<name>', <json>);`, with `<`, `>` and `&` escaped as `<` and so on, so
-  no text can end the script (the residency kit's `build_app.py` `safe()` does exactly this). `--check` exits
-  non-zero if a generated file is stale. Run it after T1.0 too.
-  *Done when:* `--check` passes after a run and fails after editing `data/tags.json`; a test shows a title
-  containing `</script>` survives.
+- [ ] **T1.7 Data for the browser** (A, S, H). Port: `kit/seed_src/app/build_app.py`, its `safe()`.
+  `tools/gen_data.py` writes `app/data/<name>.js` for `slice`, `tags`, `practice`, `found` and `events` (each only if
+  its JSON exists) as `Nextbook.data.put('<name>', <json>);`, with every `<`, `>` and `&` written as the JSON
+  escapes `\u003c`, `\u003e` and `\u0026` (six characters each: backslash, u, four hex digits), so no text can end
+  the script. `--check` exits non-zero if
+  a generated file is stale.
+  *Done when:* `--check` passes after a run and fails after editing `data/tags.json`; a test shows a title containing
+  `</script>` survives the round trip; the generated file contains no literal `<`.
 
 - [ ] **T1.8 Find on request** (A, M, S). Read first: `ARCHITECTURE.md` "`found.json`", `DATA.md` "Pacing". Needs
-  T1.1 to T1.4. `tools/find.py "<words>"` and `tools/find.py --title "<t>" --author "<a>"`: one on-demand search
-  through `fetch.py`, records parsed and normalised by the slice's code, merged into `data/found.json` (no duplicates
-  of slice works or earlier finds; no `description` anywhere), then `gen_data.py` for `found` only. It prints, in plain
-  words, how many books it added and the three strongest subjects among them. `--clear` empties the file.
-  *Done when:* tests with the fetcher faked: a search adds works with facets; running it twice adds nothing new; a
-  title search that matches a slice work adds nothing and says so; `grep -c description data/found.json` prints 0.
+  T1.1 to T1.3 and T1.7. `tools/find.py "<words>"` and `tools/find.py --title "<t>" --author "<a>"`: **first prints
+  the exact search it is about to send and the address**, then one on-demand search (up to 3 pages with `--pages`),
+  parsed and normalised by the adapter, merged into `data/found.json` (no duplicates of earlier finds; no
+  `description` anywhere), then `gen_data.py` for `found`. It prints, in plain words, how many books it added, how
+  many were already known, and the three strongest subjects among them. `--clear` empties the file.
+  *Done when:* tests with the fetcher faked: the query line is printed before the fake is called; a search adds works
+  with facets; running it twice adds nothing; `grep -c description data/found.json` prints 0; `git check-ignore
+  data/found.json` succeeds.
+
+- [ ] **T1.9 Events snapshot** (A, M, S). Last in priority. Read first: `RESEARCH.md` "TPL events feed", D30. Port:
+  `kit/seed_src/tools/fetch_events.py`; read `~/Documents/Projects/tpl-finder-3/feed.py` for the feed's traps.
+  `adapters/bibliocommons/events.py --branch CL --days 21` writes `data/events.json`:
+  `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual, categories, summary, url}]}`.
+  `summary` is the library's own event text, tags stripped, at most 300 characters; there is no field named
+  `description`. Batch pacing, cached.
+  *Done when:* tests on a saved feed page: dates in local time, cancelled events dropped, a wrong branch code says it
+  found nothing rather than writing an empty snapshot.
 
 ## Phase 2: the core (lane B, pure, tested in Node)
 
 Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Until T1.7 lands, test against
-`tests/fixtures/slice-small.json` (ten works copied from the fallback slice).
+`tests/fixtures/slice-small.json` (ten works copied from T1.0's output, or hand-made in its shape).
 
-- [ ] **T2.1 Base** (B, S, H). Port: `searchdesk/core/h.js` and `searchdesk/core/strings.js`.
+- [ ] **T2.1 Base** (B, S, H). Port: `searchdesk/core/h.js`, `searchdesk/core/strings.js`.
   `core/base.js`: the `Nextbook` namespace; `h(tag, attrs, ...children)` (text and attributes only, the link rules
   kept); `norm(text)` (lower case, strip accents and punctuation, collapse spaces, drop a leading the/a/an);
   `data.put(name, value)` and `data.get(name)` (from `put`, else a `#nb-<name>` JSON block parsed in `try`/`catch`,
-  else `null`); the core `strings` table and `t(key, vars)`.
+  else `null`); the core `strings` table and `t(key, vars)`; `workshop()`, true when `data.get('workshop')` is set.
   *Done when:* tests for `h` (text-only children, `javascript:` links dropped), `norm`, `t`, and `data.get` with a
   good block, a broken block (`null`, no throw) and no block.
 
-- [ ] **T2.2 Slice** (B, S, H). `core/slice.js`: `load()` joins slice and tags (tags become `mood:`/`pace:` facets
-  with labels "quiet books", "a slow pace"), indexes by `id` and `groupKey`; `match(title, author)` for typed books;
-  `search(text)` over title and author for the add box; `sections()`; `labelOf()`. A missing slice gives
-  `{ok: false, message}` with a plain sentence. Also loads `found` when present (missing is fine): its works join
-  the pool marked `found`, its facets join the dictionary, slice works are never duplicated.
-  *Done when:* tests on `slice-small.json`, plus a small `found` fixture that adds two works and one new facet.
+- [ ] **T2.2 The pool** (B, M, S). Read first: `ARCHITECTURE.md` "The data files". `core/slice.js`: `load()` joins
+  slice, tags and found:
+  - tags become `mood:`/`pace:` facets with labels ("quiet books", "a slow pace");
+  - **a found work that matches a slice work** (same `norm(title)` and `authorKey`) enriches it rather than
+    duplicating it: facets are joined, and `recordId`, `formats`, `callNumber` and `contentType` are taken from the
+    record; a found work with no match joins the pool marked `found`;
+  - indexes by `id` and `groupKey`; `match(title, author)` for typed books; `search(text)` for the add box;
+    `sections()`; `labelOf()`. A missing slice gives `{ok: false, message}` with a plain sentence.
+  *Done when:* tests: a `found` fixture adds two new works and enriches one existing work; **a typed book whose title
+  and author match a work gets that work's `groupKey` and moves the profile**; `sections()` on the pack gives
+  sections.
 
-- [ ] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Reuse the shape of
-  `profile`/`scoreAgainst` in the residency kit's `seed_src/app/discovery.js`, with the changes the architecture
-  names (square-root normalisation, parts kept, kind weights). `core/score.js`: `weightOf(entry)`,
-  `profile(entries)`, `score(work, profile)`, `similar(a, b)`, `kindWeight`.
-  *Done when:* tests: loved weighs 3; not-for-me is negative; want is 0; a typed book adds nothing; more facets do not
-  win on count alone; ties keep `id` order; `similar` is symmetric.
+- [ ] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Port the shape of
+  `profile`/`scoreAgainst` from `kit/seed_src/app/discovery.js`, with the changes the architecture names
+  (square-root normalisation, parts kept, kind weights). `core/score.js`: `weightOf(entry)`, `profile(entries)`,
+  `score(work, profile)`, `similar(a, b)`, `kindWeight`.
+  *Done when:* tests: loved weighs 3; not-for-me is negative; want is 0; a typed book with no match adds nothing; more
+  facets do not win on count alone; ties keep `id` order; `similar` is symmetric.
 
 - [ ] **T2.4 Reasons** (B, S, H). Read first: `ARCHITECTURE.md` "Reasons". `core/reason.js`: `reason(parts, opts)`,
-  `isReason(text)`.
+  `isReason(text)`, and `factsClause(parts)`, the same evidence in words that name **no shelf book** ("matches books
+  about wizards and science fiction"), for prompts.
   *Done when:* a test per sentence shape in `ARCHITECTURE.md`; `isReason` rejects `""`, `"A small match."` and 201
-  characters.
+  characters; `factsClause` on parts whose evidence is a shelf book contains no shelf title.
 
-- [ ] **T2.5 Links** (B, S, H). `core/links.js`: `linkFor(entryOrWork, library)`: record URL for a work when
-  `recordUrl` is set, otherwise the search URL with title and author (`encodeURIComponent`, spaces as `+`).
-  *Done when:* tests for a work, a typed book, a fallback-slice work, and a title with `&` and `#`;
-  `grep -r bibliocommons app/core app/modes` finds nothing.
+- [ ] **T2.5 Links** (B, S, H). `core/links.js`: `linkFor(entryOrWork, library)`: the record URL when the work has a
+  `recordId` (or an `id` and `library.recordUrl` is set), otherwise the search URL with title and author
+  (`encodeURIComponent`, spaces as `+`).
+  *Done when:* tests for a pack work, a pack work enriched by a find, a found work, a typed book, and a title with
+  `&` and `#`; `grep -r bibliocommons app/core app/modes` finds nothing.
 
-- [ ] **T2.6 The contract** (B, M, S). Read first: `CONTRACT.md`, all of it. Port: `searchdesk/core/contract.js`
-  (the scan, `strip`, `scanFeature`, `same`, `runCheck`, `check`), with the banned list from `CONTRACT.md` section 5.
+- [ ] **T2.6 The contract** (B, M, S). Read first: `CONTRACT.md`, all of it. Port: `searchdesk/core/contract.js` (the
+  scan, `strip`, `scanFeature`, `same`, `runCheck`, `check`), changed as `CONTRACT.md` section 5 says: comments **and
+  the contents of quoted strings** are stripped before matching, and the banned list matches call-shaped tokens
+  (`fetch(`, `document.`, `window.`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(`,
+  `setInterval(`, `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `eval(`, `new Function`, `XMLHttpRequest`,
+  `import(`). A failure names the word, the function and the line, and says what to do instead.
   Add: `Nextbook.mode(def)` (register; a repeat id warns and replaces); `validate(result, ctx, def)` returning
-  `{picks, dropped: [{id, why}], error}`; `makeCtx(slice, shelf, others, seed)` with everything in `CONTRACT.md`
-  section 4; a seeded `random()` (mulberry32); the six standard shelves; `runModeChecks(id)` that runs the scan, the
-  mode's check and the standard shelves, with defaults for every input kind.
+  `{picks, dropped: [{id, why}], error}` (a `path` pick with no `step` gets "Step 1", "Step 2", ...);
+  `makeCtx({pool, shelf, others, events, seed})` with everything in `CONTRACT.md` section 4; a seeded `random()`
+  (mulberry32); the **seven** standard shelves; `runModeChecks(id)` that runs the scan, the mode's check and the
+  standard shelves, with defaults for every input kind, and the same seed for shelves 5 and 6.
   *Done when:* tests: an unknown id is dropped and named; a missing `why` is dropped; a seventh pick is dropped; a
-  shelf book is dropped unless `allowShelf`; an empty result with no note is an error; the scan catches every banned
-  word inside a function and ignores it in a comment; the same seed gives the same sequence.
+  shelf book is dropped unless `allowShelf`; an empty result with no note is an error; a path with no steps gets
+  labels; the scan catches each banned token in code, **ignores "could not fetch" inside a string** and ignores a
+  comment; the same seed gives the same sequence.
 
 - [ ] **T2.7 The model seam** (B, M, S). Read first: `ARCHITECTURE.md` "The model seam". Port the tolerant parsing
-  ideas (code fences, bullets, JSON or lines) from `searchdesk/core/reply.js`; not its recipes. `core/seam.js`:
-  `finalistsPrompt(result, profile, works)`, `parseFinalists(answer, result, idPattern)`, `labelsPrompt(text,
-  facets)`, `parseLabels(answer, facets)`.
-  *Done when:* tests: the prompt holds the six ids and no shelf title; one good id plus one invented keeps one and
-  names the other; a fenced, JSON or bulleted answer parses; no valid id says so; a title in the answer is ignored;
-  `parseLabels` keeps only labels in the list, matched by `norm()`.
+  (code fences, bullets, JSON or lines) from `searchdesk/core/reply.js`; not its recipes. `core/seam.js`:
+  `finalistsPrompt(result, profile, pool)`, `parseFinalists(answer, result, idPattern)`, `labelsPrompt(text,
+  facets)`, `parseLabels(answer, facets)`. The finalists prompt is built from each candidate's own id, title, author,
+  year and facet labels, plus `factsClause()`, **never from `reason()`**, and the profile's top five facet labels.
+  Both prompts end with: "Answer with two lines. Do not change any files."
+  *Done when:* tests: **a result whose reason names a shelf book gives a prompt without that title**; the last line is
+  as above; one good id plus one invented keeps one and names the other; a fenced, JSON or bulleted answer parses; no
+  valid id says so; a title in the answer is ignored; `parseLabels` keeps only labels in the list, by `norm()`.
 
 - [ ] **T2.8 The store** (B, M, S). Read first: `ARCHITECTURE.md` "The shelf". Port the merge rule and its report
-  from `searchdesk/core/merge.js` (newer `updated` wins; on a tie, the one here stays). `core/store.js`, with storage
-  passed in (tests use a plain object): two shelves; `add`, `update`, `remove`; `practiceReset()`; `exportShelf()`;
-  `importShelf(text)` with a `{added, changed, kept, skipped}` report; remembered inputs per mode. A file that is not
-  a shelf is refused with a sentence.
-  *Done when:* tests: practice reset leaves the own shelf untouched; export then import round-trips; newer wins; a tie
-  keeps ours; a broken file is refused, not thrown; unknown keys on an entry (`from`, `stars`, anything) survive import
-  and export.
+  from `searchdesk/core/merge.js` (newer `updated` wins; a tie keeps ours). `core/store.js`, storage passed in (tests
+  use a plain object):
+  - the own shelf (`nextbook-own-v1`), the practice shelf (`nextbook-practice-v1`), `practiceReset()`;
+  - **friends' shelves** (`nextbook-others-v1`): `addOther(text, name)` appends an exported shelf under a name and
+    never merges it into the person's own; `removeOther(name)`; a second file with the same name replaces the first;
+  - `exportShelf()`; `importShelf(text)` into the shelf in use, with a `{added, changed, kept, skipped}` report;
+  - per mode: the last inputs and the shuffle seed (so blind date survives a reload and changes only on "Shuffle");
+  - **storage that throws or is missing** (some browsers on `file://`, private windows): fall back to memory and set
+    `persistent: false`, so the page can say "This browser is not saving. Export before you close it."
+  *Done when:* tests: practice reset leaves the own shelf and friends' shelves untouched; a friend's file never
+  changes the own shelf; export then import round-trips; newer wins; a tie keeps ours; a broken file is refused, not
+  thrown; unknown keys on an entry survive; a storage object that throws on every call still works, in memory.
+
+- [ ] **T2.9 Events in the core** (B, S, H). Last in priority; needs T1.9. `ctx.events` (the snapshot's events, or
+  `[]`) and `ctx.eventsFetched` (its date). The event-hook mode reads them.
+  *Done when:* tests with a two-event fixture.
 
 ## Phase 3: the page (lane C)
 
 Checked by opening the page. Each task says what to click. All words go in the strings table, about grade 6. Put a
 `data-test` name on every control a later browser test would press, and list them in `tests/DATA-TEST.md`.
 
-- [ ] **T3.1 The shelf screen** (C, M, S). Needs T2.1, T2.2, T2.8 (stub them if they are not ticked yet).
-  `core/shell.js` and `nextbook.css`: the hash router (`#find` default, `#shelf`, `#selftest`); the practice banner
-  ("Practice shelf. Try anything. Reset puts it back.") with the switch and a reset that asks first; "Add a book"
-  that searches the slice by title or author as you type, with "Not in the list? Add it by name"; the list with state
-  and rating controls; remove; export and import with the report in words.
-  *Click:* add from the list; add a typed one; rate; reload (kept); switch to own (empty), add one, switch back, reset
-  practice, switch to own (still there); export, clear, import (back); break `app/data/slice.js` on purpose (a
-  sentence, not a blank page).
+- [ ] **T3.1 The shelf screen** (C, M, S). Needs T2.1, T2.2, T2.8. `core/shell.js` and `nextbook.css`: the hash
+  router (`#find` default, `#shelf`, `#selftest`); the practice banner ("Practice shelf. Try anything. Reset puts it
+  back.") with a reset that asks first; the switch to the own shelf, **except in a workshop copy**, where it says
+  "On this computer, use the practice shelf. Your own books go in at home, on your own computer."; "Add a book" that
+  searches the list by title or author as you type, with "Not in the list? Add it by name"; the list with state and
+  rating controls; remove; export and import with the report in words; **"Add a friend's shelf"** (choose their
+  exported file, give it a name; listed with remove) kept apart from import; the not-saving sentence when the store
+  says `persistent: false`; "Your helper found N books for '<words>'" with Clear, when there are found books.
+  *Click:* add from the list; type a book that **is** in the list (it links, and shows its subjects); type one that is
+  not; rate; reload (kept); reset practice (the own shelf and friends untouched); export, clear, import (back); add the
+  export as a friend's shelf (the own shelf unchanged); block storage in the browser (the sentence, not a blank page);
+  break `app/data/slice.js` on purpose (a sentence, not a blank page); the same page with `workshop` data set (no own
+  shelf, the sentence instead).
 
 - [ ] **T3.2 The find screen** (C, M, S). Needs T2.6. Mode cards from `Nextbook.modes` only; a card for a mode that
   did not load; the chosen mode's inputs (every kind in `CONTRACT.md` section 4), remembered; the result as cards
   (`list`) or an ordered path (`path`, with `step` words), grouped by `group` when present; on each card the title,
-  author, year, formats in words, the reason, our note if any, the library link, "Want to read" and "Read it"; the
-  dropped-picks notice; the note; "Shuffle"; and one line under the results: "Holds, copies, your library shelves
-  and the library's own suggestions are on the library's page." The slice's `fetched` date in the footer.
-  *Click:* with the example mode, the practice shelf gives picks with reasons; "Want to read" moves the six; the own
-  empty shelf shows the mode's note; a typed book's link opens the library's search.
+  author, year, formats in words, the reason, our note if any, "found for '<words>'" if it was found, the library
+  link, "Want to read" and "Read it"; the dropped-picks notice; the note; "Shuffle"; and one line under the results:
+  "Holds, copies, your library shelves and the library's own suggestions are on the library's page."
+  *Click:* with the example mode, the practice shelf gives picks with reasons; "Want to read" moves the six; an empty
+  shelf shows the mode's note; a typed book's link opens the library's search.
 
-- [ ] **T3.3 The model box** (C, S, S). Needs T2.7. Under any result: "Want a second opinion? Copy this into any AI
-  chat." A copy button, a paste box, and the checked answer as two highlighted cards with the model's sentence marked
-  as the model's. The same box as "From some words" inside a `facets` input.
-  *Click:* paste an answer with an invented id (named as dropped); paste nonsense (says so); never touch it (the app
-  is complete).
+- [ ] **T3.3a The model box: second opinion** (C, S, S). Needs T2.7. Under any result: "Want a second opinion? Copy
+  this into any AI chat." Copy, paste box, and the checked answer as two highlighted cards, the model's sentence
+  marked as the model's.
+  *Click:* paste an answer with an invented id (named as dropped); paste nonsense (says so); never touch it (the app is
+  complete).
 
-- [ ] **T3.4 The self-test screen** (C, S, H). Port the screen's shape from `searchdesk/core/selftest.js`. `#selftest`:
-  data status with counts and the slice's `fetched` date; a Run button that calls `runModeChecks` for every loaded
-  mode and prints passes and failures in plain words.
+- [ ] **T3.3b The model box: from some words** (C, S, S). The same box inside a `facets` input: paste words, copy
+  the prompt, paste the answer, see the kept subjects and the dropped ones named.
+  *Click:* an answer with one real subject and one invented keeps one and names the other.
+
+- [ ] **T3.4 The self-test screen** (C, S, H). Port the screen's shape from `searchdesk/core/selftest.js`.
+  `#selftest`: data status with counts and dates; a Run button that calls `runModeChecks` for every loaded mode and
+  prints passes and failures in plain words; whether the browser is saving.
   *Click:* green with the example mode; break its check on purpose and see it fail by name.
 
 - [ ] **T3.5 Words, keyboard and phone** (C, S, S). Every control reachable by keyboard with a visible focus; no
@@ -288,139 +336,163 @@ Checked by opening the page. Each task says what to click. All words go in the s
   the app cannot make ("recommends", "knows you", "learns").
   *Done when:* the commit message lists what changed and says it was checked at 360 px and 1280 px, light and dark.
 
+- [ ] **T3.6 The events screen** (C, S, H). Last in priority; needs T2.9. `#events`: the snapshot's events with date,
+  time, title, the summary, a link to the library's event page, and "Snapshot taken <date>. Check the library's page
+  before you go."; a "Books for this event" button when the event-hook mode is loaded.
+
 ## Phase 4: the example and the checks
 
 - [ ] **T4.1 The example mode** (E, S, H). Needs T2.6. Copy `more-by` from `CONTRACT.md` into
   `app/modes/more-by.js`, its check into `app/modes/more-by.check.js`, and list it in `app/modes/list.js`.
-  *Done when:* `node tools/check-mode.js more-by` passes (once T4.2 lands) and `#selftest` is green.
+  *Done when:* `node tools/check-mode.js more-by` passes and `#selftest` is green.
 
 - [ ] **T4.2 The command-line check** (D, S, S). Needs T2.6. Port: `searchdesk/checks/run.js` as
-  `tools/check-mode.js` (keep its Node-or-osascript host split), loading the pure core files, the mode, its check,
-  and the real `app/data/` files, then `runModeChecks`. `--all` runs every id in `app/modes/list.js`; `--dir` points
-  at `reference/modes/`. It also scans the whole mode file's source, not only its functions.
-  *Done when:* `more-by` passes; a copy with `innerHTML` fails by name; a copy that returns no picks and no note fails
-  by name; exit codes 0, 1 and 2 as in Search Desk.
+  `tools/check-mode.js`, keeping its Node-or-osascript host split, loading the pure core files, the mode, its check
+  and the real `app/data/` files, then `runModeChecks`. The scan is the same as the browser's (functions, strings
+  stripped), plus a failure for any code in the file outside the one `Nextbook.mode(...)` call. `--all` runs every id
+  in `app/modes/list.js`; `--dir` points at `reference/modes/`. **A mode file that exists but is not in `list.js`
+  gets a warning:** "This mode is not in app/modes/list.js, so the app will not show it."
+  *Done when:* `more-by` passes; a copy with `innerHTML` in code fails by name; a copy with "could not fetch" in a
+  string passes; a copy that returns no picks and no note fails by name; an unlisted copy warns; exit codes 0, 1 and 2
+  as in Search Desk.
 
 ## Phase 5: packing and the workshop tools (lane D)
 
 - [ ] **T5.1 One file** (D, M, S). Port: `searchdesk/tools/build.py` (its `inline()` and escaping). `tools/build.py`:
   reads `app/index.html`, inlines every local script and stylesheet in order, turns the data scripts into
-  `<script type="application/json" id="nb-<name>">` blocks, writes `dist/nextbook.html`. Fails if a `src` or `href`
-  points off the folder.
+  `<script type="application/json" id="nb-<name>">` blocks, writes `dist/nextbook.html`. Includes `found` when the
+  folder has one (a participant's take-home keeps what their helper found). Fails if a `src` or `href` points off the
+  folder.
   *Done when:* the file opens from `file://` with the network off and passes `#selftest`; a test asserts the output
-  holds no `http` outside the slice's `library` templates and `sources`.
+  holds no `http` outside the data's `library` templates and links.
 
 - [ ] **T5.2 The starter folder** (D, S, H). `tools/build.py --starter` writes `dist/starter/`: `app/` (only the
-  example mode listed), `docs/CONTRACT.md`, `docs/modes/`, `tools/check-mode.js`, `tools/check.sh`, `tools/build.py`
-  (so a participant can make their own one-file take-home), `tools/serve.py`, `.claude/commands/`, `LICENSE`, and a
-  `tools/find.py` with `adapters/bibliocommons/` (fetch, parse, normalise, the `tpl` settings; not the slice builder's
-  query list), `tools/gen_data.py`, and a short `README.md`. Not `reference/`, `research/`, `tests/` or
-  `docs/BUILD.md`.
-  *Done when:* inside `dist/starter/`, `node tools/check-mode.js --all` passes, `python3 tools/build.py` makes a
-  working one-file copy, and `grep -rl reference dist/starter` finds nothing.
+  example mode listed, `app/data/workshop.js` setting the workshop flag, **no `found.js`**), an empty `app/PLAN.md`
+  with its headings (the mode in a sentence, the output, the rule, two ways to test it, still broken), `data/` (no
+  `found.json`), `docs/CONTRACT.md`, `docs/modes/`, `tools/check-mode.js`, `tools/check.sh`, `tools/build.py`,
+  `tools/serve.py`, `tools/gen_data.py`, `tools/find.py`, `adapters/bibliocommons/` (fetch, parse, normalise,
+  `libraries/tpl.json`), `.claude/commands/`, `LICENSE`, and a short `README.md`. Not `reference/`, `research/`,
+  `tests/`, `docs/BUILD.md` or `.cache/`.
+  *Done when:* inside `dist/starter/`, `node tools/check-mode.js --all` and `bash tools/check.sh more-by` pass,
+  `python3 tools/build.py` makes a working one-file copy, and `grep -rl reference dist/starter` and
+  `ls dist/starter/data/found.json` find nothing.
 
 - [ ] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
   reference modes loaded too. For the projector, and for the room if the network drops.
   *Done when:* the reference modes show and `#selftest` is green.
 
 - [ ] **T5.4 Live reload** (D, M, S). Port: `searchdesk/tools/serve.py`, only its serving, reload and `.dev-go`
-  parts, not the mirror or the inbox. Fix two bugs Search Desk recorded while porting: inject the workshop line
-  inside a `<script>` tag, and keep a `.dev-go` note until a page reports it was shown, not until the first request.
-  *Done when:* saving `app/modes/more-by.js` reloads an open tab; writing `find` to `.dev-go` moves it to `#find`.
+  parts. **Binds `127.0.0.1` only.** Fix two bugs Search Desk recorded: inject the workshop line inside a `<script>`
+  tag, and keep a `.dev-go` note until a page reports it was shown.
+  *Done when:* saving `app/modes/more-by.js` reloads an open tab; writing `find` to `.dev-go` moves it to `#find`; the
+  server is not reachable from another machine.
 
-- [ ] **T5.5 Commands and the no-Node check** (D, S, H). Port: `searchdesk/checks/check.sh` as `tools/check.sh`, and
-  `searchdesk/tools/commands/new-feature.md` and `check.md` as `tools/commands/new-mode.md` and `check.md`, copied
-  into `.claude/commands/`, plus `find-books.md`: runs `python3 tools/find.py` with the person's words, then tells
-  them in plain words what was added and that the page will show it. The new-mode command reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in
-  `docs/modes/`, builds `app/modes/<id>.js` and its check, and ends with the check run, in plain words.
-  *Done when:* `bash tools/check.sh more-by` passes on a Mac (or is marked untested on Linux under "Found while
-  working"), and `/new-mode` in the Code tab starts from the contract.
+- [ ] **T5.5a The no-Node check** (D, S, H). Never cut. Port: `searchdesk/checks/check.sh` as `tools/check.sh`,
+  running `tools/check-mode.js` through `osascript -l JavaScript`. Bash 3.2 and BSD-safe: no associative arrays, no
+  `${var,,}`, `sed -i ''`, no `grep -P`, no `timeout`, `shasum -a 256`.
+  *Done when:* `bash tools/check.sh more-by` passes on the Mac mini in a standard user (T7.1).
+
+- [ ] **T5.5b The commands** (D, S, H). Port: `searchdesk/tools/commands/new-feature.md` and `check.md` as
+  `tools/commands/new-mode.md` and `check.md`, plus `find-books.md`, copied into `.claude/commands/`.
+  - `new-mode` reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in `docs/modes/`; writes or updates
+    `app/PLAN.md` first; builds `app/modes/<id>.js` and its check; adds the line to `list.js`; ends with the check run,
+    in plain words.
+  - `find-books` runs `python3 tools/find.py` with the person's words, shows them the search line before it runs, and
+    then says what was added and that the page will show it.
+  *Done when:* `/new-mode` in the Code tab starts from the contract and writes `app/PLAN.md`; `/find-books birds`
+  adds books on the Mac mini.
 
 - [ ] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
-  then `python3 tools/build.py`, then publish `dist/nextbook.html` as `index.html` with a `CNAME` of
-  `nextbook.ryankelln.com`). Ryan does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
-  *Done when:* a push to `main` publishes, and the browser's network panel shows no request beyond the page itself.
-  Cut before T5.4 if Friday is tight: the take-home file works without it.
+  `python3 tools/build.py`, publish `dist/nextbook.html` as `index.html` with a `CNAME` of `nextbook.ryankelln.com`).
+  Ryan does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
+  *Done when:* a push to `main` publishes, and the network panel shows no request beyond the page itself.
 
 ## Phase 6: reference modes (lane E, never in the starter)
 
-Built to their briefs in `reference/modes/`, with checks. They prove the contract carries each mechanism and give the
-facilitator a demo. Each must be buildable in the session's 26 minutes by someone who knows the contract; if one is
-not, the brief is too big, and say so.
+Built to their briefs in `reference/modes/`, with checks, on the pack data. They prove the contract carries each
+mechanism, give the facilitator a demo, and time the briefs.
 
-- [ ] **T6.1 Survey** (E, S, S). `docs/modes/survey.md`. The facilitator's demo: build it first.
+- [ ] **T6.1 Survey** (E, S, S). `docs/modes/survey.md`. The facilitator's demo.
 - [ ] **T6.2 Journey** (E, M, S). `docs/modes/journey.md`.
 - [ ] **T6.3 Challenge** (E, M, S). `docs/modes/challenge.md`.
 
-*Done when (each):* `node tools/check-mode.js --dir reference/modes <id>` passes, and a person reads the six reasons
-on the practice shelf and finds each one true.
+*Done when (each):* `node tools/check-mode.js --dir reference/modes <id>` passes, a person reads the six reasons on
+the practice shelf and finds each one true, and the commit says how long the build took.
 
-## Phase 7: the human checks (Fri Nov 6, afternoon)
+- [ ] **T6.4 Re-time the menu** (E, S, S). From T6.1 to T6.3's times and T7.1's build, set each brief's size in
+  `docs/modes/README.md` to what a beginner with an agent really needs, against the session's 26-minute build block.
+  A brief that does not fit is cut down (fewer done-when lines) or its card says so.
 
-- [ ] **T7.1 Ryan on a workshop Mac.** Open the starter as the kit installs it, rate three books, get six from the
-  example mode, click out to the library (this is also the first check of the catalogue link in a real browser on
-  that machine), build survey from its brief with the agent in the Code tab, check the take-home build. Fixes become
-  tasks under "Found while working".
-- [ ] **T7.2 A first-timer.** Someone who has never seen the app opens it, rates three books, gets six and clicks out
-  without help.
+## Phase 7: the human checks (early, on the Mac mini)
 
-## Stretch: the last thing before Saturday, only if it fits
+Run in a **fresh standard (non-admin) user** on the Mac mini: the Mini's own account has developer tools and a newer
+Python, so it does not show what a workshop account sees.
 
-Started only when gate 2 is green, and the first thing cut. It is not for the room (the import is off in a workshop
-copy); it is for anyone who takes the app home or opens the hosted copy and already keeps shelves at the library. The
-hand-made test page follows the shape in `DATA.md`, "A person's own shelf page", with a made-up user.
+- [ ] **T7.1 The baseline** (Ryan, or Hermes on the Mini). As soon as `dist/starter/` opens, and again on the
+  installed kit before publishing. Record each line in `RESEARCH.md` with the date:
+  - `node -v` in a new Terminal, nothing exported by hand;
+  - `python3 --version`;
+  - `bash tools/check.sh more-by`;
+  - `app/index.html#selftest` in Chrome from `file://`;
+  - a catalogue link from a card opens the right page;
+  - `/new-mode` builds survey from its brief in the Code tab, and `/find-books birds` adds books;
+  - `python3 tools/build.py` makes a take-home that opens.
+  Every finding becomes a task under "Found while working" before more features land.
+- [ ] **T7.2 A first-timer.** Someone who has never seen the app opens it, rates three books, gets up to six with
+  reasons, and clicks out to the library without help.
 
-- [ ] **T8.8 One-way sync from a saved library shelf.** It gives a person's own
-  books real subjects, which ends the empty-profile problem for books outside the slice. Spec: `ARCHITECTURE.md`,
-  "Bringing in the library's shelf". Split in three:
-  - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, a pure function, taking
-    `entities.shelves` and the matching `briefInfo` only (facets by the slice rules, ported from `normalise.py`).
-    Tests use a hand-made page with a made-up user; a test asserts no key from `users`, `accounts` or `auth` comes out.
+## Stretch: the library shelf sync
+
+After everything above. Not for the room (the import is off in a workshop copy); for anyone who takes the app home or
+opens the hosted copy and already keeps shelves at the library. The hand-made test page follows the shape in
+`DATA.md`, "A person's own shelf page", with a made-up user.
+
+- [ ] **T8.8 One-way sync from a saved library shelf.** Spec: `ARCHITECTURE.md`, "Bringing in the library's shelf".
+  - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
+    `entities.shelves` and the matching `briefInfo` only (facets by the adapter's rules, ported to JS). A test asserts
+    no key from `users`, `accounts` or `auth` comes out.
   - **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
     "stopped". Pure, in `core/sync.js`.
   - **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
-    "Leave it" remembered, the last-imported date, switched off on the practice shelf and in a workshop copy.
+    "Leave it" remembered, the last-imported date, off on the practice shelf and in a workshop copy.
 
 ## The kit (residency repo, not this repo)
 
-Listed here so the order is visible. The work and its words live in
-`~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/`; this repo never holds them.
+The work and its words live in `kit/`; this repo never holds them. The kit relies only on "What the starter guarantees
+the kit", above.
 
-- [ ] **K1** `assemble.py` takes the app from `nextbook/dist/starter/` instead of `seed_src/assets/app/`.
-- [ ] **K2** The kit's `AGENTS.md`: "Where things go" and "The data" rewritten for the new layout (a mode is
-  `app/modes/<id>.js` plus its check, the contract is `docs/CONTRACT.md`, the menu is `docs/modes/`, run the check
-  after every change). "What not to do on this machine" gains one exception: `python3 tools/find.py` when the person
-  asks to find books (it fetches one library search; nothing else reaches the network). The loop, the tone and the "what not to do" sections stay.
-- [ ] **K3** `menu.md` replaced by `docs/modes/README.md` from the starter; the projected menu is that list, shuffled.
-- [ ] **K4** `show.sh` runs `python3 tools/serve.py --workshop` if T5.4 landed, else opens the file as now.
-  `check_set.py` checks the new paths. Ryan's laptop gets `dist/demo.html`.
+- [ ] **K1** `assemble.py` takes the app from `nextbook/dist/starter/`.
+- [ ] **K2** The kit's `AGENTS.md` rewritten for the new layout (a mode is `app/modes/<id>.js` plus its check and
+  `app/PLAN.md`; the contract is `docs/CONTRACT.md`; the menu is `docs/modes/`; run the check after every change).
+  "What not to do on this machine" gains one exception: `python3 tools/find.py` when the person asks to find books.
+  The practice-shelf rule is said in the brief **and** shown by the app; do not rely on a Code-tab announcement.
+- [ ] **K3** The projected menu is `docs/modes/README.md`, shuffled, with T6.4's sizes.
+- [ ] **K4** `show.sh` runs `python3 tools/serve.py --workshop` if T5.4 landed, else opens the file. `check_set.py`
+  checks the new paths. Ryan's laptop gets `dist/demo.html`.
 - [ ] **K5** Publish the set (`publish_payload.py --push`). **Needs Ryan's go.**
 
 ---
 
-## P1, after Saturday
+## Later
 
-- [ ] **T8.1 Events snapshot.** Port the kit's `fetch_events.py` to `adapters/bibliocommons/events.py`, write
-  `data/events.json` with a `fetched` date, an `#events` screen, `ctx.events` for modes, and a "Books for this event"
-  button for event hook.
-- [ ] **T8.10 Look further, with Open Library** (future, D26). For the hosted copy, where there is no agent: a "Look
-  further" button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never
-  shelf titles; maps its subjects to ours by `norm()`; shows results as found works with library search links. Off by
-  default; says what it will send before it sends it; caches in the browser. Replaces the old "Open Library fallback".
+- [ ] **T8.11 The batch catalogue slice** (D28, deferred). The original slice builder: `fetch_all.py` over a query
+  list at batch pace, `build_slice.py` from the cache, the report in `DATA.md`, real record ids and sections for a few
+  hundred works. Needs a decision on whether a public repo carries it (`DATA.md`, "What we may and may not do").
+- [ ] **T8.10 Look further, with Open Library** (D26). For the hosted copy, where there is no agent: a "Look further"
+  button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never shelf
+  titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off
+  by default; says what it will send before it sends it; caches in the browser.
 - [ ] **T8.4 Browser tests.** Playwright, development only, using the `data-test` names.
-- [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take, for a
-  machine with no agent.
-- [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
-- [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03 by Ryan and Claude; the answer is in `DATA.md`, "A person's
-  own shelf page".
-- [ ] **T8.9 Import a Goodreads or StoryGraph export.** Their CSV exports, matched to the slice by ISBN first, then by
-  normalised title and author; unmatched rows become typed books with search links.
+- [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take.
+- [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03; the answer is in `DATA.md`, "A person's own shelf page".
+- [ ] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
+  unmatched rows become typed books with search links. Same merge as T8.8b.
 
 ## Open questions
 
 Write here; do not guess. Each one is Ryan's to answer.
 
-1. Product name (D11, D22). The domain is settled; the name `nextbook` is still a working name.
+1. Product name (D11, D22). The domain is settled; `nextbook` is still a working name.
 
 ## Found while working
 

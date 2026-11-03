@@ -19,7 +19,7 @@ time for.
 **Narrow.** Arithmetic over the person's shelf against the library's own subject terms. Cheap, offline, explainable.
 No model, no vendor, no network at runtime.
 
-**Argue.** A model takes the six candidates and makes a case for two, one sentence each. This is where a model earns
+**Argue.** A model takes the candidates (up to six) and makes a case for two, one sentence each. This is where a model earns
 its place: not choosing from a catalogue, but choosing between finalists, with a reason a person can accept or reject.
 
 **Route.** One click to the library record page: availability, formats, the hold button, the library's own suggestions.
@@ -30,7 +30,8 @@ The order matters. A model over the whole catalogue is unaffordable and unaudita
 
 Every mode ends in the same artifact, which is why ten people can build ten different things and still compare notes:
 
-- **Six candidates**, each with `id`, title, author, year, a one-line reason, and a link to the record page.
+- **Up to six candidates**, each with `id`, title, author, year, a one-line reason, and a link to the library's page.
+  Fewer, with a sentence saying why, is a full answer; six weak picks are not.
 - **Two of them argued for** by the model, with a sentence each.
 - **One decision**, made by the person, and one click out to the library.
 

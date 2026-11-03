@@ -6,8 +6,10 @@
 
 ## The rule
 
-1. Input: `about` (`facets`). The person picks the event's subjects by hand, or pastes the event's text and uses
-   "From some words" (the app's model box turns words into subjects **from the list** and drops anything else).
+1. Input: `about` (`facets`). The person picks the event's subjects by hand, or uses "From some words" on the event's
+   text (the app's model box turns words into subjects **from the list** and drops anything else). If the app has
+   the events snapshot, `ctx.events` holds this branch's events, and the event's `title`, `categories` and `summary`
+   are the words to start from; without it, the person pastes the text from the library's event page.
 2. Build a profile from the chosen facets (weight 3 each), plus the shelf's own profile at half weight, so the shelf
    breaks ties but does not take over.
 3. Score every work, take the top six.
@@ -31,8 +33,8 @@
 The event text is a schedule, not a subject ("Tuesday, 2pm, room 3"). If no subject fits, say so and let the person
 pick by hand.
 
-**Out of scope:** fetching events (the catalogue's feed has no CORS; a dated events snapshot is a later task in
-`docs/BUILD.md`).
+**Out of scope:** fetching events from inside the mode (the snapshot is made ahead, with its date, by the app's
+tools).
 
 **Ideas for after:** once the events snapshot lands, a "Books for this event" button on each event; a "before" list
 and an "after" list.
