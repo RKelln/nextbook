@@ -244,7 +244,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   *Done when:* tests for a pack work, a pack work enriched by a find, a found work, a typed book, and a title with
   `&` and `#`; `grep -r bibliocommons app/core app/modes` finds nothing.
 
-- [ ] **T2.6 The contract** (B, M, S). Read first: `CONTRACT.md`, all of it. Port: `searchdesk/core/contract.js` (the
+- [x] **T2.6 The contract** (B, M, S). Read first: `CONTRACT.md`, all of it. Port: `searchdesk/core/contract.js` (the
   scan, `strip`, `scanFeature`, `same`, `runCheck`, `check`), changed as `CONTRACT.md` section 5 says: comments **and
   the contents of quoted strings** are stripped before matching, and the banned list matches call-shaped tokens
   (`fetch(`, `document.`, `window.`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(`,

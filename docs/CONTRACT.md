@@ -145,9 +145,13 @@ Until every input has a value, `choose` is not called and the app asks for it.
 1. **Talk to the app only through `ctx`.** No globals of your own, no other mode's code.
 2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.`, `window.`, `eval(`, `new Function`,
    `fetch(`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(` or
-   `setInterval(`. The check reads every function in the mode as code, with comments and the words inside quotes left
-   out, so a sentence like "The library could not fetch this." is fine. A failure names the word, where it is, and
+   `setInterval(`. The check reads every function in the mode as code, with comments and the words inside quotes
+   left out, so a sentence like "The library could not fetch this." is fine. A failure names the word, where it is, and
    what to use instead.
+   **The check is a lint, not a wall.** It reads names as they are written, so a name built from pieces
+   (`'fe' + 'tch'`), a name inside a template interpolation, or a call written `fetch?.(` is not seen. It is there to
+   catch the accident, not to defend against a file written to get around it. Follow the rules rather than testing
+   them: in a workshop, the check is what tells a beginner the page went blank for a reason.
 3. **Pure helpers go in `logic`**, and the check file tests them.
 4. **Words people see go in `strings`.** About grade 6. Short sentences.
 5. **Nothing invented.** Every pick is a work in `ctx.works`. No titles, authors, years or links of your own.
