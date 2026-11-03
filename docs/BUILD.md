@@ -270,7 +270,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   as above; one good id plus one invented keeps one and names the other; a fenced, JSON or bulleted answer parses; no
   valid id says so; a title in the answer is ignored; `parseLabels` keeps only labels in the list, by `norm()`.
 
-- [ ] **T2.8 The store** (B, M, S). Read first: `ARCHITECTURE.md` "The shelf". Port the merge rule and its report
+- [x] **T2.8 The store** (B, M, S). Read first: `ARCHITECTURE.md` "The shelf". Port the merge rule and its report
   from `searchdesk/core/merge.js` (newer `updated` wins; a tie keeps ours). `core/store.js`, storage passed in (tests
   use a plain object):
   - the own shelf (`nextbook-own-v1`), the practice shelf (`nextbook-practice-v1`), `practiceReset()`;
