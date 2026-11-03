@@ -24,7 +24,7 @@ number, the line is corrected in place and says what changed.
 **CORS:** none of the catalogue pages send `access-control-allow-origin`. A page on another origin, or opened from a
 file, cannot fetch them. This is the single fact that decides the architecture.
 
-**Crawl-delay:** 120 seconds. A slice of about 600 works from search pages is roughly 30 to 40 requests, so about an
+**Crawl-delay:** 120 seconds, applied to the batch slice build; on-demand searches are paced per D27. A slice of about 600 works from search pages is roughly 30 to 40 requests, so about an
 hour and a quarter, run once and cached. The same slice from record pages would take about twenty hours.
 
 ## TPL events feed

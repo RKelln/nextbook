@@ -213,3 +213,20 @@ re-import can tell "changed there" (follow it), "changed here" (list it to tidy 
 
 Forecloses: automatic background sync (every import is the person's action, with a date and an Undo), and deleting
 anything because it is missing from a file that might be incomplete.
+
+## D26. Real requests through the agent in the workshop; Open Library later (2026-11-03, Ryan)
+
+The browser cannot read the catalogue (no CORS), so a context-driven request has to be made by something else. In a
+folder copy, that is the person's agent: they ask "find me books about birds" or "find this book", the agent runs
+`tools/find.py`, the books land in `data/found.json`, and the page reloads with them. The slice stays as the warm cache
+that makes the app work before anyone asks. The hosted copy, with no agent, gets an Open Library "look further" later
+(T8.10). A relay server and a bookmarklet were considered and not taken: the first would be a service hitting the
+library for everyone and needs the library's agreement; the second is clumsy and fragile.
+
+## D27. Pacing: crawl-delay for the batch, a person's pace for a person's search (2026-11-03, Ryan)
+
+"The 120 crawl delay is for robots making indexes; searches for particular books that happen occasionally are entirely
+different, even if it's robots making them." The batch slice build still waits the full `Crawl-delay`, because it is
+the one unattended, index-like job here and its slowness costs nothing. An on-demand search a person asked for goes one
+request at a time, at least 5 s apart, at most 3 pages per command, cached. Disallowed paths stay refused for both.
+Revises the pacing part of D12.

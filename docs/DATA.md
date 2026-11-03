@@ -19,6 +19,17 @@ trusting: the markup and the payload keys change without notice.
 The adapter reads `robots.txt` at the start of every run and stops if `/v2/search` is disallowed or the delay has gone
 up.
 
+### Pacing (D27)
+
+`Crawl-delay` is addressed to robots that walk a site to index it. Two kinds of request here, paced differently:
+
+| Kind | What | Pace |
+|---|---|---|
+| **Batch** | `build_slice.py` fetching its query list, unattended | the full `Crawl-delay` (120 s), one at a time |
+| **On demand** | `tools/find.py`, one search a person asked for through their agent | one request at a time, at least 5 s apart, at most 3 pages per command, every page cached by URL |
+
+Both send the identifying user agent, both refuse disallowed paths, and neither ever runs in a loop on its own.
+
 ## The four surfaces
 
 **A record.** `https://tpl.bibliocommons.com/v2/record/<recordId>`, for example `S234C4805630`. About 581 KB of HTML,

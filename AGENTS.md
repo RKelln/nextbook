@@ -23,7 +23,8 @@ When two conflict, the earlier one wins.
    record page; never fetch, parse, cache or copy the list. The catalogue's `robots.txt` disallows
    `/item/read_alike_list/` too.
 3. **Never build a catalogue mirror.** Fetch search pages for a fixed list of queries, keep what comes back, cache by
-   record id. Honour `robots.txt`, including its `Crawl-delay: 120`. Never crawl to own a copy.
+   record id. Honour `robots.txt`: never a disallowed path; the batch slice build waits its `Crawl-delay: 120`; a
+   search a person asked for is paced as in `docs/DATA.md` "Pacing". Never crawl to own a copy.
 4. **Never store publisher blurbs.** No field named `description` in any file that ships, fixtures included. The blurb
    is seen on the library's page only.
 5. **A model only ever chooses among things that exist.** Its answer is checked against the shortlist (or the facet
@@ -43,7 +44,7 @@ app/                    the app. Open app/index.html in a browser. Nothing to in
 data/                   the canonical data: slice.json, tags.json, practice.json, and their schemas
 adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
                         file in libraries/ (tpl.json: subdomain, name, slice queries)
-tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py
+tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py
 .claude/commands/       new-mode and check, for the Code tab (written once in tools/commands/)
 tests/                  unit tests for core (Node) and the adapter (Python)
 reference/modes/        finished demo modes. Never copied into the starter.
@@ -66,6 +67,7 @@ node tools/check-mode.js <id>            # one mode: its own checks plus the sta
 node tools/check-mode.js --all           # every loaded mode
 bash tools/check.sh <id>                 # the same, on a Mac with no Node (osascript)
 python3 tools/serve.py --workshop        # serve app/ with live reload, for a workshop or a demo
+python3 tools/find.py "birds toronto"    # fetch one catalogue search a person asked for, add the books to the app
 python3 tools/build.py                   # dist/nextbook.html, one file
 python3 tools/build.py --starter         # dist/starter/, the workshop folder
 ```

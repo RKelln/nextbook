@@ -62,7 +62,7 @@ Start lane A first: T0.1 is the scaffold every other lane builds on. Lane B can 
 | **Tue Nov 3, evening** | T0.1, then T1.0, T1.1, T1.2, **start the fetch (T1.5a)** | T2.1, T2.2, T2.3 | | | |
 | **Wed Nov 4** | T1.3, T1.4, T1.5b, T1.6, T1.7 | T2.4, T2.5, T2.6, T2.7, T2.8 | T3.1 | T4.2 | |
 | **Wed 18:00, gate 1** | the slice report meets T1.5b's numbers, or Saturday uses the fallback slice (D18) | | | | |
-| **Thu Nov 5** | (fixes) | (fixes) | T3.2, T3.3, T3.4 | T5.1, T5.2, T5.3, T5.4, T5.5 | T4.1, then T6.1, T6.2, T6.3 |
+| **Thu Nov 5** | T1.8, then fixes | (fixes) | T3.2, T3.3, T3.4 | T5.1, T5.2, T5.3, T5.4, T5.5 | T4.1, then T6.1, T6.2, T6.3 |
 | **Thu 18:00, gate 2** | `dist/starter/` opens, the example mode gives six with reasons, `#selftest` is green, two reference modes pass. If not, cut from the list below and say what was cut. | | | | |
 | **Thu Nov 5, after gate 2** | | T8.8a, T8.8b (stretch) | | | |
 | **Fri Nov 6, morning** | | | T3.5, then T8.8c (stretch) | T5.6 | |
@@ -74,10 +74,11 @@ Start lane A first: T0.1 is the scaffold every other lane builds on. Lane B can 
 2. T5.6 the hosted copy (the take-home file works without it).
 3. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
 4. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
-5. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
+5. T1.8 find on request (the app is complete on the slice; this is what makes it reach further).
+6. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
    hand.
-6. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
-7. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
+7. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
+8. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
    links.
 
 **Never cut:** the result check in T2.6 (ids exist, a reason on every pick, an empty result says why), the standard
@@ -113,11 +114,11 @@ All Python, standard library only. Every network call goes through `adapters/bib
 - [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "The four surfaces".
   `adapters/bibliocommons/fetch.py`: `get(url) -> str`, with the host built from the library's `subdomain` (no
   hostname written anywhere else). Reads `robots.txt` once per run and refuses (raises) any path that is
-  not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; waits the `Crawl-delay` (at
-  least 120 s) between real requests; sends `User-Agent: nextbook-slice/1.0 (+https://github.com/RKelln/nextbook)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
+  not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; paces requests by kind (`DATA.md` "Pacing": batch waits the
+  `Crawl-delay`, at least 120 s; on demand waits at least 5 s and stops at 3 pages); sends `User-Agent: nextbook-slice/1.0 (+https://github.com/RKelln/nextbook)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
   A cache hit makes no request and does not wait. `--dry-run` prints the URLs and the time it would take.
   *Done when:* tests (with `urllib.request.urlopen` replaced by a fake and the clock faked) show: a disallowed path
-  raises; a `/v2/record/...` path raises; two uncached gets wait the delay; a cached get makes no call; the robots
+  raises; a `/v2/record/...` path raises; two uncached gets wait the delay; a cached get makes no call; an on-demand fourth page is refused; the robots
   parser reads the real text saved as `tests/fixtures/tpl/robots.txt`.
 
 - [ ] **T1.2 Parse a page, and the fixtures** (A, S, H). Read first: `DATA.md` "The record, field by field".
@@ -176,6 +177,14 @@ All Python, standard library only. Every network call goes through `adapters/bib
   *Done when:* `--check` passes after a run and fails after editing `data/tags.json`; a test shows a title
   containing `</script>` survives.
 
+- [ ] **T1.8 Find on request** (A, M, S). Read first: `ARCHITECTURE.md` "`found.json`", `DATA.md` "Pacing". Needs
+  T1.1 to T1.4. `tools/find.py "<words>"` and `tools/find.py --title "<t>" --author "<a>"`: one on-demand search
+  through `fetch.py`, records parsed and normalised by the slice's code, merged into `data/found.json` (no duplicates
+  of slice works or earlier finds; no `description` anywhere), then `gen_data.py` for `found` only. It prints, in plain
+  words, how many books it added and the three strongest subjects among them. `--clear` empties the file.
+  *Done when:* tests with the fetcher faked: a search adds works with facets; running it twice adds nothing new; a
+  title search that matches a slice work adds nothing and says so; `grep -c description data/found.json` prints 0.
+
 ## Phase 2: the core (lane B, pure, tested in Node)
 
 Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Until T1.7 lands, test against
@@ -192,8 +201,9 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
 - [ ] **T2.2 Slice** (B, S, H). `core/slice.js`: `load()` joins slice and tags (tags become `mood:`/`pace:` facets
   with labels "quiet books", "a slow pace"), indexes by `id` and `groupKey`; `match(title, author)` for typed books;
   `search(text)` over title and author for the add box; `sections()`; `labelOf()`. A missing slice gives
-  `{ok: false, message}` with a plain sentence.
-  *Done when:* tests on `slice-small.json`.
+  `{ok: false, message}` with a plain sentence. Also loads `found` when present (missing is fine): its works join
+  the pool marked `found`, its facets join the dictionary, slice works are never duplicated.
+  *Done when:* tests on `slice-small.json`, plus a small `found` fixture that adds two works and one new facet.
 
 - [ ] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Reuse the shape of
   `profile`/`scoreAgainst` in the residency kit's `seed_src/app/discovery.js`, with the changes the architecture
@@ -303,7 +313,9 @@ Checked by opening the page. Each task says what to click. All words go in the s
 - [ ] **T5.2 The starter folder** (D, S, H). `tools/build.py --starter` writes `dist/starter/`: `app/` (only the
   example mode listed), `docs/CONTRACT.md`, `docs/modes/`, `tools/check-mode.js`, `tools/check.sh`, `tools/build.py`
   (so a participant can make their own one-file take-home), `tools/serve.py`, `.claude/commands/`, `LICENSE`, and a
-  short `README.md`. Not `reference/`, `adapters/`, `research/`, `tests/` or `docs/BUILD.md`.
+  `tools/find.py` with `adapters/bibliocommons/` (fetch, parse, normalise, the `tpl` settings; not the slice builder's
+  query list), `tools/gen_data.py`, and a short `README.md`. Not `reference/`, `research/`, `tests/` or
+  `docs/BUILD.md`.
   *Done when:* inside `dist/starter/`, `node tools/check-mode.js --all` passes, `python3 tools/build.py` makes a
   working one-file copy, and `grep -rl reference dist/starter` finds nothing.
 
@@ -318,7 +330,8 @@ Checked by opening the page. Each task says what to click. All words go in the s
 
 - [ ] **T5.5 Commands and the no-Node check** (D, S, H). Port: `searchdesk/checks/check.sh` as `tools/check.sh`, and
   `searchdesk/tools/commands/new-feature.md` and `check.md` as `tools/commands/new-mode.md` and `check.md`, copied
-  into `.claude/commands/`. The new-mode command reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in
+  into `.claude/commands/`, plus `find-books.md`: runs `python3 tools/find.py` with the person's words, then tells
+  them in plain words what was added and that the page will show it. The new-mode command reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in
   `docs/modes/`, builds `app/modes/<id>.js` and its check, and ends with the check run, in plain words.
   *Done when:* `bash tools/check.sh more-by` passes on a Mac (or is marked untested on Linux under "Found while
   working"), and `/new-mode` in the Code tab starts from the contract.
@@ -376,7 +389,8 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **K1** `assemble.py` takes the app from `nextbook/dist/starter/` instead of `seed_src/assets/app/`.
 - [ ] **K2** The kit's `AGENTS.md`: "Where things go" and "The data" rewritten for the new layout (a mode is
   `app/modes/<id>.js` plus its check, the contract is `docs/CONTRACT.md`, the menu is `docs/modes/`, run the check
-  after every change). The loop, the tone and the "what not to do" sections stay.
+  after every change). "What not to do on this machine" gains one exception: `python3 tools/find.py` when the person
+  asks to find books (it fetches one library search; nothing else reaches the network). The loop, the tone and the "what not to do" sections stay.
 - [ ] **K3** `menu.md` replaced by `docs/modes/README.md` from the starter; the projected menu is that list, shuffled.
 - [ ] **K4** `show.sh` runs `python3 tools/serve.py --workshop` if T5.4 landed, else opens the file as now.
   `check_set.py` checks the new paths. Ryan's laptop gets `dist/demo.html`.
@@ -389,7 +403,10 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.1 Events snapshot.** Port the kit's `fetch_events.py` to `adapters/bibliocommons/events.py`, write
   `data/events.json` with a `fetched` date, an `#events` screen, `ctx.events` for modes, and a "Books for this event"
   button for event hook.
-- [ ] **T8.3 Open Library fallback.** Off by default; says what it will send; caches in the browser.
+- [ ] **T8.10 Look further, with Open Library** (future, D26). For the hosted copy, where there is no agent: a "Look
+  further" button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never
+  shelf titles; maps its subjects to ours by `norm()`; shows results as found works with library search links. Off by
+  default; says what it will send before it sends it; caches in the browser. Replaces the old "Open Library fallback".
 - [ ] **T8.4 Browser tests.** Playwright, development only, using the `data-test` names.
 - [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take, for a
   machine with no agent.

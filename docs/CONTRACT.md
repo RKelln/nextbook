@@ -100,7 +100,7 @@ them, for journeys, ladders and seasons.
 
 | `ctx.` | What it is |
 |---|---|
-| `works` | every work in the library list: `{id, title, author, authorKey, year, formats, contentType, audience, callNumber, series, facets}` |
+| `works` | every work in the library list: `{id, title, author, authorKey, year, formats, contentType, audience, callNumber, series, facets}`, plus any books the person's helper found on request, which also carry `found: {query}` |
 | `work(id)` | one work, or `null` |
 | `shelf` | the shelf entries: `{key, title, author, state, rating, work}`. `work` is `null` for a book typed in that the list does not have |
 | `onShelf(id)` | whether a work is on the shelf |

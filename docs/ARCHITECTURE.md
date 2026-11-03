@@ -9,7 +9,7 @@ same thesis, now with the shapes pinned down so a task can be built without maki
  build time (a developer's machine, network on)          run time (anyone's browser, network off)
 
  adapters/bibliocommons/ ─fetch search pages─▶ .cache/          app/index.html
-      │            (robots.txt, 120 s apart)               ├─ core/      the foundation
+      │            (robots.txt; paced, cached)             ├─ core/      the foundation
       ▼                                                    ├─ modes/     one file each: choose six, say why
  data/slice.json  ◀── normalise, dedupe, drop blurbs       ├─ data/      slice, tags, practice (generated .js)
  data/tags.json   ◀── our own words, by hand               └─ localStorage: two shelves, never mixed
@@ -98,6 +98,27 @@ workshop rather than copied from a publisher).
 
 At load, tags become facets on the work (`mood:quiet`, `pace:slow`) with labels "quiet books", "a slow pace". Modes that
 need mood or pace (challenge, time-box) work only on tagged works and must say how many untagged works they skipped.
+
+### `found.json`, books found on request (D26)
+
+The slice is what the app knows before anyone asks. `found.json` is what a person's agent fetched because they asked:
+"find me books about birds", "find this book I typed". `tools/find.py` runs one catalogue search through the adapter
+(paced as on demand, `DATA.md`), normalises the records with the same rules as the slice, and merges them in:
+
+```json
+{ "schema": "nextbook/found-1", "searches": [{ "query": "birds toronto", "fetched": "2026-11-07T11:40:00Z", "works": 18 }],
+  "facets": { "topic:birds": { "label": "birds", "kind": "topic", "works": 9 } },
+  "works": [ { "...same shape as a slice work...": "", "found": { "query": "birds toronto" } } ] }
+```
+
+At load, found works join the pool (`ctx.works`) beside the slice, each marked with `found`, and their facets join the
+dictionary. Singletons are kept here: a found book is there because of this person. A work already in the slice is not
+duplicated. The shelf screen says "Your helper found 18 books for 'birds toronto'" with a Clear button, and typed books
+whose title and author now match a found work are linked to it, so they gain subjects.
+
+This is the workshop's route to real, context-driven requests: the person asks in words, the agent fetches, the page
+reloads. It needs an agent with a terminal, so the hosted copy does not have it; the hosted copy's future route is the
+Open Library lookup (`BUILD.md` T8.10).
 
 ### `practice.json`, the practice shelf
 
