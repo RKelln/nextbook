@@ -172,7 +172,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   `section:science-fiction`; "813.54 L2453.109" gives `section:800`; "Kimmerer, Robin Wall, 1953-" gives nothing; a
   ` fast` heading gives nothing; `Fiction` alone gives nothing); `work_from` over the fixture gives 20 works.
 
-- [ ] **T1.7 Data for the browser** (A, S, H). Port: `kit/seed_src/app/build_app.py`, its `safe()`.
+- [x] **T1.7 Data for the browser** (A, S, H). Port: `kit/seed_src/app/build_app.py`, its `safe()`.
   `tools/gen_data.py` writes `app/data/<name>.js` for `slice`, `tags`, `practice`, `found` and `events` (each only if
   its JSON exists) as `Nextbook.data.put('<name>', <json>);`, with every `<`, `>` and `&` written as the JSON
   escapes `\u003c`, `\u003e` and `\u0026` (six characters each: backslash, u, four hex digits), so no text can end
