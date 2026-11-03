@@ -8,7 +8,7 @@ same thesis, now with the shapes pinned down so a task can be built without maki
 ```
  build time (a developer's machine, network on)          run time (anyone's browser, network off)
 
- adapters/tpl/  ──fetch search pages──▶ .cache/          app/index.html
+ adapters/bibliocommons/ ─fetch search pages─▶ .cache/          app/index.html
       │            (robots.txt, 120 s apart)               ├─ core/      the foundation
       ▼                                                    ├─ modes/     one file each: choose six, say why
  data/slice.json  ◀── normalise, dedupe, drop blurbs       ├─ data/      slice, tags, practice (generated .js)
@@ -30,7 +30,7 @@ then shows a plain sentence ("The book list did not load. The rest of the app st
 
 ### `slice.json`, the catalogue cut down
 
-Produced by `adapters/tpl/build_slice.py`. Never edited by hand.
+Produced by `adapters/bibliocommons/build_slice.py`. Never edited by hand.
 
 ```json
 {
@@ -244,13 +244,66 @@ the registered mode (`fn.toString()`, comments stripped), which works in a page 
 ported from `checks/run.js` and `checks/check.sh`, so it runs under Node and under `osascript` on a Mac with no
 Node.
 
-## Shelves from elsewhere (later, D20)
+## Bringing in the library's shelf: one-way sync (later, D20, D23, D25)
 
-The adapter is the only code that knows a library, so it is also where a library's shelf format is read:
-`adapters/<library>/` may offer `readShelf(text) -> entries` for a file the person saved themselves. Generic readers for
-other trackers' exports (Goodreads and StoryGraph CSVs) live in `core/` beside import, because they are not about a
-library. All of them run in the browser on a file the person chose, with the network off, and produce ordinary shelf
-entries that go through the usual import and its report.
+The library's shelves flow **into** the app, as often as the person likes; nothing flows back. Where the two disagree
+because of something the person did here, the app lists it so they can fix it at the library with one click, which is
+the only way anything changes there.
+
+### The memory that makes it smart
+
+Every entry that came from the library keeps what the library said **the last time it was brought in**:
+
+```json
+"library": { "itemId": 2997315199, "id": "S234C4805630", "shelf": "completed", "rating10": 8,
+             "dateAdded": "2026-04-07", "seen": "2026-11-03T16:44:00Z", "ignore": null }
+```
+
+On the next import each book has three values: **B**, the library's last time (`library`); **L**, the library now;
+**A**, the app now. States and ratings compare through the table in "Lining up with the library's own shelves", with
+ratings compared in buckets (5 = loved, 4 = liked, 3 = ok, 1 to 2 = not-for-me), so 9/10 and "loved" agree.
+
+| What happened | Rule | The person sees |
+|---|---|---|
+| New at the library, not here | add it, `from: library-shelf` | counted in "Added" |
+| Changed at the library, not here (`L ≠ B`, `A = B`) | follow the library, quietly | counted in "Updated from the library" |
+| Changed here, not at the library (`L = B`, `A ≠ B`) | keep ours | listed in **Tidy up at the library** |
+| Changed in both, differently (`L ≠ B`, `A ≠ B`, `A ≠ L`) | keep ours for now | listed in **Which is right?**, with both sides |
+| Changed in both, the same way (`A = L`) | nothing to do | nothing |
+| Gone from the library shelf | keep it, mark it | listed only if the import was complete (below), as "No longer on your library shelf" |
+| On the app's shelf, never at the library | nothing to do | optionally listed under "Not at the library yet" |
+| First import, and the book is already here from the slice | treat ours as A with no B | same as "changed in both" when they disagree |
+
+The memory B is updated to L on every import, whatever the person decides, so a difference is asked about once.
+
+### What the person sees
+
+- **One button on the shelf screen:** "Bring in my library shelf". It says plainly: save your shelf pages from the
+  library's site, choose the files, delete them afterwards. The import reads the shelf and the book records and
+  nothing else in the file.
+- **A report in words, with one Undo for the whole import** (a Search Desk lesson: every bulk change can be undone):
+  "Added 12. Updated 3 that changed at the library. 2 are different here. 1 needs you to choose."
+- **"Tidy up at the library (N)"** on the shelf screen: each book with "Here: read, loved. At the library: For Later."
+  and three choices: **Open at the library** (the record page, where the shelf buttons are), **Use the library's**
+  (copy L into the app), **Leave it** (remembered in `ignore` until either side changes again, so the list never nags).
+- **"Which is right? (N)"**: the same row with both sides, and "Keep mine" or "Use the library's".
+- **"Last brought in from the library: Nov 3"** next to the button. It is a snapshot, and the page never pretends
+  otherwise.
+
+### The edges
+
+- **Partial files.** A saved page holds 25 books; the page also carries each shelf's total. The reader adds up what
+  it got, and if a shelf is incomplete it says "You brought in 25 of 112 Completed books. Save the other pages too."
+  **Nothing is treated as removed from an incomplete shelf.**
+- **Editions.** Match on `groupKey`, not on record id: the library shelf may hold the e-book and the app the paper
+  copy. Two editions of one work on the library shelf become one entry with the furthest-along state.
+- **"Stopped".** The library has no such shelf. An app `stopped` against a library `in_progress` is listed under
+  tidy-up as information ("The library still has this as In Progress"), and "Leave it" is a fine answer.
+- **Ratings in half stars.** `rating10` is kept exactly; only the bucket is compared.
+- **The practice shelf never takes a real import,** and the import is switched off in a workshop copy: a shared
+  library computer is not the place for anyone's reading history. It says so in a sentence.
+- **Other platforms** produce the same thing, `{entries, works, complete: {shelf: true|false}}`, from their own reader
+  in their own adapter. Goodreads and StoryGraph CSVs go through the same merge, with their own codes in `from`.
 
 ## The model seam (`core/seam.js`)
 

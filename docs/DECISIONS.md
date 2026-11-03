@@ -196,3 +196,20 @@ access, no network and no help from the library's servers.
 
 The same file holds the card barcode, name, email and a live session token, so the reader is written to take only the
 shelf and the records, never to keep the file, and to tell the person to delete it. Still not for Nov 7 (T8.8).
+
+## D24. The adapter is the platform, the library is a setting (2026-11-03, Ryan)
+
+The catalogue pages, the record payload, the robots rules and the signed-in shelf page are BiblioCommons', not TPL's,
+and BiblioCommons runs many other public libraries' catalogues. So the adapter is `adapters/bibliocommons/`, and TPL is
+`adapters/bibliocommons/libraries/tpl.json` (subdomain, name, slice queries). Another BiblioCommons library is one new
+file and a rerun; another platform is another adapter with the same outputs. Sharpens D10.
+
+## D25. One-way sync with a memory, discrepancies fixed at the library (2026-11-03, Ryan)
+
+"A smart one way sync from library to app, where for things like I've read it we note discrepancies that need the
+person to resolve at the library site." Each library-origin entry remembers what the library said last time, so a
+re-import can tell "changed there" (follow it), "changed here" (list it to tidy up at the library) and "changed in both"
+(ask). Nothing is ever written to the library; the fix is a link to its record page. Spec in `ARCHITECTURE.md`.
+
+Forecloses: automatic background sync (every import is the person's action, with a date and an Undo), and deleting
+anything because it is missing from a file that might be incomplete.

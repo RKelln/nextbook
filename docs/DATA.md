@@ -65,7 +65,7 @@ pages alike.
 
 This is the most load-bearing piece of the adapter, because two books can only be compared through shared facets. Raw
 headings almost never match exactly: "Wizards Juvenile fiction." and "Wizards Fiction." are the same subject. The
-normaliser, `adapters/tpl/normalise.py`, applies these in order, each one a pure function with a test:
+normaliser, `adapters/bibliocommons/normalise.py`, applies these in order, each one a pure function with a test:
 
 1. **Drop author headings.** A heading that matches one of the work's authors, or the pattern `<Last>, <First>,
    <year>-`, is dropped ("Kimmerer, Robin Wall, 1953-").
@@ -74,7 +74,7 @@ normaliser, `adapters/tpl/normalise.py`, applies these in order, each one a pure
    `bisac:<slug>` with the label in lower case ("FICTION / Science Fiction / Action & Adventure" →
    `bisac:science-fiction`, "science fiction"). Drop a second level of `General`; then keep the top level instead
    (`bisac:juvenile-fiction`).
-4. **Form subdivisions.** Strip trailing form words, longest first, from this list (in `adapters/tpl/config.json`, so
+4. **Form subdivisions.** Strip trailing form words, longest first, from this list (in `adapters/bibliocommons/config.json`, so
    it can grow): `Juvenile fiction`, `Juvenile literature`, `Comic books, strips, etc`, `Fiction`, `History`,
    `Biography`, `Drama`, `Poetry`, `Criticism and interpretation`. The rest is the topic: `topic:<slug>`, label in
    lower case ("Wizards Juvenile fiction." → `topic:wizards`, "wizards").

@@ -41,7 +41,8 @@ app/                    the app. Open app/index.html in a browser. Nothing to in
   modes/                one file per mode, plus its check. list.js says which load. Nothing else.
   data/                 generated .js wrappers of data/*.json. Never edit by hand.
 data/                   the canonical data: slice.json, tags.json, practice.json, and their schemas
-adapters/tpl/           the only code that knows which library this is (Toronto Public Library)
+adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
+                        file in libraries/ (tpl.json: subdomain, name, slice queries)
 tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py
 .claude/commands/       new-mode and check, for the Code tab (written once in tools/commands/)
 tests/                  unit tests for core (Node) and the adapter (Python)

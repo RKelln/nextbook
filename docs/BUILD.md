@@ -85,7 +85,7 @@ shelves, the practice shelf's reset, the offline property, or "the shelf's title
 
 ## Phase 1: data (lane A)
 
-All Python, standard library only. Every network call goes through `adapters/tpl/fetch.py`.
+All Python, standard library only. Every network call goes through `adapters/bibliocommons/fetch.py`.
 
 - [ ] **T1.0 The fallback slice, first** (A, S, H). Read first: `ARCHITECTURE.md` "The data files", decision D18.
   `adapters/pack/pack_to_slice.py`: reads the W13 pack
@@ -97,7 +97,8 @@ All Python, standard library only. Every network call goes through `adapters/tpl
   *Done when:* the three files exist, every work has at least two facets, and the facets dictionary has labels.
 
 - [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "The four surfaces".
-  `adapters/tpl/fetch.py`: `get(url) -> str`. Reads `robots.txt` once per run and refuses (raises) any path that is
+  `adapters/bibliocommons/fetch.py`: `get(url) -> str`, with the host built from the library's `subdomain` (no
+  hostname written anywhere else). Reads `robots.txt` once per run and refuses (raises) any path that is
   not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; waits the `Crawl-delay` (at
   least 120 s) between real requests; sends `User-Agent: nextbook-slice/1.0 (+https://github.com/RKelln/nextbook)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
   A cache hit makes no request and does not wait. `--dry-run` prints the URLs and the time it would take.
@@ -106,22 +107,23 @@ All Python, standard library only. Every network call goes through `adapters/tpl
   parser reads the real text saved as `tests/fixtures/tpl/robots.txt`.
 
 - [ ] **T1.2 Parse a page, and the fixtures** (A, S, H). Read first: `DATA.md` "The record, field by field".
-  `adapters/tpl/parse.py`: `briefs(html) -> list[dict]`, the `briefInfo` of every bib, with `description`, `jacket`
+  `adapters/bibliocommons/parse.py`: `briefs(html) -> list[dict]`, the `briefInfo` of every bib, with `description`, `jacket`
   and `rating` **removed** here so they never travel further. Fetch one real page (`le guin`) through `fetch.py` and
   write `tests/fixtures/tpl/briefs-le-guin.json`.
   *Done when:* the fixture has 63 entries and 20 `groupKey`s (or the live numbers, corrected in `RESEARCH.md`);
   `grep -c description tests/fixtures/tpl/*.json` prints 0 for each file; a test parses a tiny hand-made page.
 
-- [ ] **T1.5a Start the real fetch, tonight** (A, S, H). Write `adapters/tpl/queries.json`: one query per pack book
+- [ ] **T1.5a Start the real fetch, tonight** (A, S, H). Write `adapters/bibliocommons/libraries/tpl.json` with
+  `subdomain` (`tpl`), `name`, and `queries`: one query per pack book
   (`"<title> <author>"`), plus `canadian history`, `cooking`, `gardening`, `poetry`, `graphic novels`,
   `climate change`, `toronto`, `mystery`, `memoir`, `astronomy`, `music`, `indigenous`, `romance`, `philosophy`.
-  `adapters/tpl/fetch_all.py --queries adapters/tpl/queries.json` fetches page 1 of each into the cache, nothing
+  `adapters/bibliocommons/fetch_all.py --library tpl` fetches page 1 of each into the cache, nothing
   else. Run it in the background (about 90 minutes). It parses nothing, so the normaliser can be written while it
   runs, and re-run on the cache as often as needed with no network.
   *Done when:* the cache holds one page per query, and the run's log lists each URL with its size.
 
 - [ ] **T1.3 The normaliser** (A, M, S). Read first: `DATA.md` "From headings to facets", all of it.
-  `adapters/tpl/normalise.py` and `adapters/tpl/config.json` (form subdivisions, genre words, Dewey hundreds labels,
+  `adapters/bibliocommons/normalise.py` and `adapters/bibliocommons/config.json` (form subdivisions, genre words, Dewey hundreds labels,
   fiction shelf words). One pure function per rule 1 to 7, plus `facets_for(brief) -> set`, `slug()`,
   `author_display("Le Guin, Ursula K., 1929-2018") -> "Ursula K. Le Guin"`, `author_key()`.
   *Done when:* one test per rule, from headings in the fixture ("Wizards Juvenile fiction." gives `topic:wizards`;
@@ -131,7 +133,7 @@ All Python, standard library only. Every network call goes through `adapters/tpl
   person can read.
 
 - [ ] **T1.4 The slice builder** (A, M, S). Read first: `ARCHITECTURE.md` "`slice.json`", `DATA.md` rules 8 and 9.
-  `adapters/tpl/build_slice.py --queries adapters/tpl/queries.json --out data/slice.json`, reading **only the cache**
+  `adapters/bibliocommons/build_slice.py --library tpl --out data/slice.json`, reading **only the cache**
   (`--offline <fixture.json>` for tests). Keep `BK`, `LPRINT`, `EBOOK`, `EAUDIOBOOK`; merge bibs by `groupKey`;
   choose the record id by format preference; drop singleton facets; build the `facets` dictionary; write `library`,
   `fetched`, `sources`. `data/slice.schema.json` and a small hand-written validator (required keys and types; no
@@ -146,7 +148,7 @@ All Python, standard library only. Every network call goes through `adapters/tpl
   **Gate 1** is this task: if it is not done by Wed 18:00, the fallback slice is Saturday's, and this lands later.
 
 - [ ] **T1.6 Tags and the practice shelf, on the real slice** (A, S, H). Read first: `ARCHITECTURE.md` "`tags.json`"
-  and "`practice.json`". `adapters/tpl/pack_to_data.py`: match each pack book to a slice work by normalised title
+  and "`practice.json`". `adapters/bibliocommons/pack_to_data.py`: match each pack book to a slice work by normalised title
   and author key; write `mood`, `pace` and `note` into `data/tags.json` under the work's `groupKey`; write
   `data/practice.json` with about twelve matched books (four loved, three liked, one ok, one not-for-me, one stopped,
   one reading, one want). Print the books that did not match.
@@ -353,7 +355,7 @@ Listed here so the order is visible. The work and its words live in
 
 ## P1, after Saturday
 
-- [ ] **T8.1 Events snapshot.** Port the kit's `fetch_events.py` to `adapters/tpl/events.py`, write
+- [ ] **T8.1 Events snapshot.** Port the kit's `fetch_events.py` to `adapters/bibliocommons/events.py`, write
   `data/events.json` with a `fetched` date, an `#events` screen, `ctx.events` for modes, and a "Books for this event"
   button for event hook.
 - [ ] **T8.3 Open Library fallback.** Off by default; says what it will send; caches in the browser.
@@ -363,15 +365,16 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
 - [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03 by Ryan and Claude; the answer is in `DATA.md`, "A person's
   own shelf page".
-- [ ] **T8.8 Import a saved library shelf.** The strongest P1 task: it gives a person's own books real subjects, which
-  ends the empty-profile problem for books outside the slice. `adapters/tpl/` documents the shape; the reader runs in
-  the app as a pure function (`readLibraryShelf(html) -> {entries, works}`) behind "Bring in your library shelf: save
-  each page of your shelf, then choose the files." It takes `entities.shelves` and the matching `briefInfo` (facets
-  through the same rules as the slice, ported to JS from `normalise.py`), maps states and stars by the table in
-  `ARCHITECTURE.md`, keeps the works it brought in beside the shelf in this browser, and **never keeps or reads
-  anything else in the file** (barcode, name, email, session, token). The screen tells the person to delete the saved
-  file afterwards. Tests use a hand-made page with a made-up user, never a real one; a test asserts the output holds no
-  key from `users`, `accounts` or `auth`.
+- [ ] **T8.8 One-way sync from a saved library shelf.** The strongest task after Saturday: it gives a person's own
+  books real subjects, which ends the empty-profile problem for books outside the slice. Spec: `ARCHITECTURE.md`,
+  "Bringing in the library's shelf". Split in three:
+  - **T8.8a The reader** (S): `readLibraryShelf(html) -> {entries, works, complete}`, a pure function, taking
+    `entities.shelves` and the matching `briefInfo` only (facets by the slice rules, ported from `normalise.py`).
+    Tests use a hand-made page with a made-up user; a test asserts no key from `users`, `accounts` or `auth` comes out.
+  - **T8.8b The merge** (M, S): the three-way rule table, one test per row, plus partial files, editions and
+    "stopped". Pure, in `core/sync.js`.
+  - **T8.8c The screens** (M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
+    "Leave it" remembered, the last-imported date, switched off on the practice shelf and in a workshop copy.
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Their CSV exports, matched to the slice by ISBN first, then by
   normalised title and author; unmatched rows become typed books with search links.
 
