@@ -232,7 +232,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   *Done when:* tests: loved weighs 3; not-for-me is negative; want is 0; a typed book with no match adds nothing; more
   facets do not win on count alone; ties keep `id` order; `similar` is symmetric.
 
-- [ ] **T2.4 Reasons** (B, S, H). Read first: `ARCHITECTURE.md` "Reasons". `core/reason.js`: `reason(parts, opts)`,
+- [x] **T2.4 Reasons** (B, S, H). Read first: `ARCHITECTURE.md` "Reasons". `core/reason.js`: `reason(parts, opts)`,
   `isReason(text)`, and `factsClause(parts)`, the same evidence in words that name **no shelf book** ("matches books
   about wizards and science fiction"), for prompts.
   *Done when:* a test per sentence shape in `ARCHITECTURE.md`; `isReason` rejects `""`, `"A small match."` and 201
