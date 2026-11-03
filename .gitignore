@@ -1,0 +1,13 @@
+# Raw payloads are fetched, never committed. The slice is the artifact.
+data/raw/
+*.tmp
+*.part
+
+# Python
+__pycache__/
+*.pyc
+
+# Editor and OS noise
+.DS_Store
+.idea/
+.vscode/
