@@ -342,7 +342,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
 
 ## Phase 4: the example and the checks
 
-- [ ] **T4.1 The example mode** (E, S, H). Needs T2.6. Copy `more-by` from `CONTRACT.md` into
+- [x] **T4.1 The example mode** (E, S, H). Needs T2.6. Copy `more-by` from `CONTRACT.md` into
   `app/modes/more-by.js`, its check into `app/modes/more-by.check.js`, and list it in `app/modes/list.js`.
   *Done when:* `node tools/check-mode.js more-by` passes and `#selftest` is green.
 

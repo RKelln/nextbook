@@ -34,6 +34,7 @@ Nextbook.mode({
   strings: {
     noAuthors: 'Rate a book "loved" or "liked" first. This finds more by those authors.',
     nothingMore: 'The library list has nothing else by the authors you rated well.',
+    fewBooks: 'The library list has {n} more by the authors you rated well.',
     why: 'You rated {author} well. You gave {book} a "{rating}".'
   },
   logic: {
@@ -59,7 +60,9 @@ Nextbook.mode({
         const e = liked[w.authorKey];
         return { id: w.id, why: ctx.t('why', { author: w.author, book: e.title, rating: e.rating }) };
       });
-    return picks.length ? { picks } : { picks: [], note: ctx.t('nothingMore') };
+    return picks.length
+      ? (picks.length < 6 ? { picks, note: ctx.t('fewBooks', { n: picks.length }) } : { picks })
+      : { picks: [], note: ctx.t('nothingMore') };
   }
 });
 ```

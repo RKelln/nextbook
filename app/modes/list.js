@@ -4,8 +4,7 @@
 // The menu of ideas is in docs/modes/, for people and their agents, not for the app.
 //
 // The starter ships no menu mode on purpose (D16); T4.1 adds the example:
-//   Nextbook.modes = ['more-by'];
 (function (window) {
   var Nextbook = window.Nextbook = window.Nextbook || {};
-  Nextbook.modes = [];
+  Nextbook.modes = ['more-by'];
 })(window);
