@@ -145,6 +145,10 @@ def label_for(facet, config):
             if section["key"] == key:
                 return section["label"]
         raise KeyError("no section label for %r" % key)
+    # The pack's genre words are its own shorthand ("true" for true stories); every
+    # other genre keeps its own word. The facet key stays the internal one.
+    if kind == config["facetPrefix"]["genre"]:
+        return config.get("genreToLabel", {}).get(key, key)
     return key
 
 

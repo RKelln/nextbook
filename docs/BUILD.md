@@ -499,6 +499,10 @@ Write here; do not guess. Each one is Ryan's to answer.
 ### Lane A
 ### Lane B
 ### Lane C
+
+- The shelf screen showed `Subjects: true`, because a pack genre word is also its facet label. `genre:true` now
+  reads "true stories", `genre:ideas` "big ideas" and `genre:speculative` "speculative fiction"; the keys are
+  unchanged. Found while clicking T3.1, fixed in the data (`adapters/pack/config.json`).
 ### Lane D
 ### Lane E
 ### The walk-through

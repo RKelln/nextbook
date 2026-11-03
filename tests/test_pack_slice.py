@@ -184,6 +184,30 @@ class Facets(unittest.TestCase):
         self.assertIn("the history shelves (900s)", labels)
         self.assertIn("the shelves about people and society (300s)", labels)
 
+    def test_genre_labels_are_readable_words(self):
+        # The pack's shorthand stays the facet key; the label is what a person reads.
+        self.assertEqual(SLICE["facets"]["genre:true"]["label"], "true stories")
+        self.assertEqual(SLICE["facets"]["genre:speculative"]["label"], "speculative fiction")
+        self.assertEqual(SLICE["facets"]["genre:fantasy"]["label"], "fantasy")
+
+    def test_every_configured_genre_label_is_a_readable_word(self):
+        # Every key in the config's genreToLabel, including 'ideas', which no work in this
+        # pack carries: a typo there would otherwise be invisible to the other tests.
+        labels = CONFIG["genreToLabel"]
+        self.assertTrue(labels, "genreToLabel has no keys")
+        for key, label in labels.items():
+            self.assertIsInstance(label, str, key)
+            self.assertTrue(label.strip(), key)
+        for key in ("true", "ideas", "speculative"):
+            self.assertIn(key, labels)
+            self.assertNotEqual(labels[key], key, key)
+        # The ten genres the config shelves are labelled through the same table (a genre with
+        # no override reads as its own key, which is a word, never blank).
+        for key in CONFIG["genreToSection"]:
+            label = adapter.label_for("genre:" + key, CONFIG)
+            self.assertIsInstance(label, str, key)
+            self.assertTrue(label.strip(), key)
+
     def test_topic_facets_come_from_themes(self):
         themes = {theme for book in PACK["books"] for theme in book["themes"]}
         for facet in SLICE["facets"]:

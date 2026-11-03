@@ -39,12 +39,12 @@
       "works": 3
     },
     "genre:speculative": {
-      "label": "speculative",
+      "label": "speculative fiction",
       "kind": "genre",
       "works": 11
     },
     "genre:true": {
-      "label": "true",
+      "label": "true stories",
       "kind": "genre",
       "works": 4
     },
