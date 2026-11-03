@@ -225,7 +225,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   and author match a work gets that work's `groupKey` and moves the profile**; `sections()` on the pack gives
   sections.
 
-- [ ] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Port the shape of
+- [x] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Port the shape of
   `profile`/`scoreAgainst` from `kit/seed_src/app/discovery.js`, with the changes the architecture names
   (square-root normalisation, parts kept, kind weights). `core/score.js`: `weightOf(entry)`, `profile(entries)`,
   `score(work, profile)`, `similar(a, b)`, `kindWeight`.
