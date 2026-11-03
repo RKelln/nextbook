@@ -260,7 +260,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   labels; the scan catches each banned token in code, **ignores "could not fetch" inside a string** and ignores a
   comment; the same seed gives the same sequence.
 
-- [ ] **T2.7 The model seam** (B, M, S). Read first: `ARCHITECTURE.md` "The model seam". Port the tolerant parsing
+- [x] **T2.7 The model seam** (B, M, S). Read first: `ARCHITECTURE.md` "The model seam". Port the tolerant parsing
   (code fences, bullets, JSON or lines) from `searchdesk/core/reply.js`; not its recipes. `core/seam.js`:
   `finalistsPrompt(result, profile, pool)`, `parseFinalists(answer, result, idPattern)`, `labelsPrompt(text,
   facets)`, `parseLabels(answer, facets)`. The finalists prompt is built from each candidate's own id, title, author,
