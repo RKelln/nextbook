@@ -141,6 +141,9 @@ line up with theirs without a lookup table nobody wrote down:
 | Completed | `read` | 3 | `ok` |
 | (none) | `stopped` | 1 or 2 | `not-for-me` |
 
+Measured on a saved shelf page (`DATA.md`): the codes are `for_later`, `in_progress`, `completed`, and `rating` is out of
+10 (stars times two; `0` is unrated), so `stars = rating / 2` and half stars round down.
+
 Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
 lands on the same works with no fuzzy matching. Bringing it in is a later task (D20); the shapes are fixed now so it
 needs no migration.

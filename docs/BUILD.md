@@ -361,16 +361,17 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take, for a
   machine with no agent.
 - [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
-- [ ] **T8.7 Measure a saved shelf page** (Ryan, signed in; can run any time). Save the "Completed" shelf page and a
-  signed-in search page (Cmd-S, "Webpage, HTML only") outside the repo, run
-  `python3 research/probes/saved_page_shape.py <files>`, which prints shapes and counts only, and read the output
-  before sharing it. The question: does `shelves.shelfSearch.shelf.items` (or `entities.shelves`) arrive filled, with
-  record ids, dates and stars? If `items` is empty and `isFetching` is set, the page loads the shelf afterwards: then
-  note, from the browser's Network panel, the URL it loads it from (no response bodies). Record the answer in
-  `DATA.md` and `RESEARCH.md`, and delete the saved files.
-- [ ] **T8.8 Import a saved library shelf.** If T8.7 finds the data: `readShelf` in the TPL adapter, ported to the app
-  as a pure function, behind "Bring in your library shelf: save the page, then choose the file." Maps by the table in
-  `ARCHITECTURE.md`. Tests use a hand-made page, never a real person's.
+- [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03 by Ryan and Claude; the answer is in `DATA.md`, "A person's
+  own shelf page".
+- [ ] **T8.8 Import a saved library shelf.** The strongest P1 task: it gives a person's own books real subjects, which
+  ends the empty-profile problem for books outside the slice. `adapters/tpl/` documents the shape; the reader runs in
+  the app as a pure function (`readLibraryShelf(html) -> {entries, works}`) behind "Bring in your library shelf: save
+  each page of your shelf, then choose the files." It takes `entities.shelves` and the matching `briefInfo` (facets
+  through the same rules as the slice, ported to JS from `normalise.py`), maps states and stars by the table in
+  `ARCHITECTURE.md`, keeps the works it brought in beside the shelf in this browser, and **never keeps or reads
+  anything else in the file** (barcode, name, email, session, token). The screen tells the person to delete the saved
+  file afterwards. Tests use a hand-made page with a made-up user, never a real one; a test asserts the output holds no
+  key from `users`, `accounts` or `auth`.
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Their CSV exports, matched to the slice by ISBN first, then by
   normalised title and author; unmatched rows become typed books with search links.
 

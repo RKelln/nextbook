@@ -122,6 +122,24 @@ weights.
 - **Covers** (Syndetics) are licensed. Not stored, not shown.
 - **NoveList** is licensed to the library. Not fetched, not copied, not cached. A link to the record page is fine.
 
+## A person's own shelf page (measured 2026-11-03, not used yet)
+
+What a signed-in "Completed" shelf page carries when the person saves it from their browser. For the later import
+(D20, D23); nothing in the first release reads it.
+
+- `entities.shelves.<userId>` maps a shelf item id to `{id, metadataId, shelf, privateItem, dateAdded, authors,
+  title, rating}`.
+- `shelf` is `for_later`, `in_progress` or `completed`.
+- `rating` is **out of 10**: stars times two (4 stars is `8`). `0` means not rated.
+- `metadataId` is the record id, and the page's `entities.bibs` carries that record's `briefInfo`: `groupKey`,
+  subject headings, call number, the lot. So a shelf brought in this way gives **facets for the person's own books**,
+  even ones outside the slice.
+- 25 items a page. A long shelf is several saved pages.
+- **The same file also holds the person's card barcode, name, email, a session id and an auth token.** A reader must
+  take `entities.shelves` and the matching `briefInfo` (without `description`, `jacket` and `rating`) and nothing
+  else, never keep the file, and tell the person to delete it.
+- A signed-in search page carries no shelf state for its results.
+
 ## Fallback sources, for books the library does not hold
 
 Measured 2026-11-03. Not used in the first release; recorded so nobody re-measures.

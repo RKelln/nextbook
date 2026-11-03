@@ -186,3 +186,13 @@ W13 pack stays, as data every lane needs on day one.
 `github.com/RKelln/nextbook`, published at `nextbook.ryankelln.com` on GitHub Pages, as Search Desk is at
 `searchdesk.ryankelln.com`. A personal subdomain implies no partnership with the library, so it answers the domain half
 of D11 without the library's agreement. The product name is still open.
+
+## D23. A saved shelf page is the import route (2026-11-03, measured)
+
+T8.7 answered D20's open question: a signed-in shelf page is rendered with the person's items in its JSON, each with the
+record id, shelf, date added and a rating out of 10, and the page carries each record's full catalogue `briefInfo`. So
+"save your shelf page, choose the file" can bring in a reading life with real subjects attached, with no account
+access, no network and no help from the library's servers.
+
+The same file holds the card barcode, name, email and a live session token, so the reader is written to take only the
+shelf and the records, never to keep the file, and to tell the person to delete it. Still not for Nov 7 (T8.8).
