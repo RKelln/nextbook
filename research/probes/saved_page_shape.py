@@ -66,6 +66,10 @@ def shape(value, key="", depth=0, max_depth=4):
 
 
 def report(path):
+    import os
+    if not os.path.isfile(path):
+        print(f"== {path}: no such file. Check where the browser saved it.")
+        return
     with open(path, encoding="utf-8", errors="replace") as f:
         html = f.read()
     blob = blob_of(html)
