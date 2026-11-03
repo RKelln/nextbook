@@ -5,8 +5,12 @@ says what to read, what to make, what to port from Search Desk, and a check that
 `ARCHITECTURE.md`; the data is `DATA.md`; the mode contract is `CONTRACT.md`.
 
 **Target: the W13 starter, in the room on Sat Nov 7, 11:00.** The kit is published Fri Nov 6 evening, so the build is
-done **Fri Nov 6, noon**, with the afternoon for the Mac walk-through and fixes. If gate 2 fails, Saturday runs on the
-residency starter that already exists, and this repo becomes the Nov 26 starter instead; nobody is stranded.
+done **Fri Nov 6, noon**, with the afternoon for the Mac walk-through and fixes. There is no fallback to the old
+starter: if a gate is missed, cut from the list below and keep going. The fallback *slice* (T1.0) stays, because it is
+data every lane needs on day one, not a second app.
+
+**Where it lives:** `github.com/RKelln/nextbook` (branch `main`), published at `nextbook.ryankelln.com` the way Search
+Desk is at `searchdesk.ryankelln.com` (D22).
 
 ## How to work (read before any task)
 
@@ -28,8 +32,8 @@ Sonnet-class (judgement on messy data or on the page's behaviour).
 ## Lanes
 
 Five lanes own separate files, so several agents can work at once without touching each other's work. Run each lane
-in its own worktree (`git worktree add ../nextbook-<lane> -b lane-<lane>`), and after each task rebase onto `master`
-and fast-forward `master` to it. A task that needs another lane's file waits for that task's tick.
+in its own worktree (`git worktree add ../nextbook-<lane> -b lane-<lane>`), and after each task rebase onto `main`
+and fast-forward `main` to it. A task that needs another lane's file waits for that task's tick.
 
 | Lane | Owns |
 |---|---|
@@ -47,18 +51,19 @@ and fast-forward `master` to it. A task that needs another lane's file waits for
 | **Wed Nov 4** | T1.3, T1.4, T1.5b, T1.6, T1.7 | T2.4, T2.5, T2.6, T2.7, T2.8 | T3.1 | T4.2 | |
 | **Wed 18:00, gate 1** | the slice report meets T1.5b's numbers, or Saturday uses the fallback slice (D18) | | | | |
 | **Thu Nov 5** | (fixes) | (fixes) | T3.2, T3.3, T3.4 | T5.1, T5.2, T5.3, T5.4, T5.5 | T4.1, then T6.1, T6.2, T6.3 |
-| **Thu 18:00, gate 2** | `dist/starter/` opens, the example mode gives six with reasons, `#selftest` is green, two reference modes pass. Else Saturday runs on the residency starter. | | | | |
-| **Fri Nov 6, morning** | | | T3.5 | | |
+| **Thu 18:00, gate 2** | `dist/starter/` opens, the example mode gives six with reasons, `#selftest` is green, two reference modes pass. If not, cut from the list below and say what was cut. | | | | |
+| **Fri Nov 6, morning** | | | T3.5 | T5.6 | |
 | **Fri Nov 6, afternoon** | K1–K5 (the kit, in the residency repo), T7.1 Ryan on a workshop Mac, T7.2 a first-timer, fixes, publish | | | | |
 
 ### If it slips, cut in this order
 
-1. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
-2. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
-3. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
+1. T5.6 the hosted copy (the take-home file works without it).
+2. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
+3. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
+4. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
    hand.
-4. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
-5. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
+5. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
+6. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
    links.
 
 **Never cut:** the result check in T2.6 (ids exist, a reason on every pick, an empty result says why), the standard
@@ -94,8 +99,7 @@ All Python, standard library only. Every network call goes through `adapters/tpl
 - [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "The four surfaces".
   `adapters/tpl/fetch.py`: `get(url) -> str`. Reads `robots.txt` once per run and refuses (raises) any path that is
   not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; waits the `Crawl-delay` (at
-  least 120 s) between real requests; sends `User-Agent: nextbook-slice/1.0 (small catalogue slice, one request per
-  crawl-delay)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
+  least 120 s) between real requests; sends `User-Agent: nextbook-slice/1.0 (+https://github.com/RKelln/nextbook)`; caches the body in `.cache/tpl/<sha1 of url>.html`; never refetches a cached URL unless `--refresh`.
   A cache hit makes no request and does not wait. `--dry-run` prints the URLs and the time it would take.
   *Done when:* tests (with `urllib.request.urlopen` replaced by a fake and the clock faked) show: a disallowed path
   raises; a `/v2/record/...` path raises; two uncached gets wait the delay; a cached get makes no call; the robots
@@ -288,7 +292,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   working one-file copy, and `grep -rl reference dist/starter` finds nothing.
 
 - [ ] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
-  reference modes loaded too. For the projector and the connection-drop fallback.
+  reference modes loaded too. For the projector, and for the room if the network drops.
   *Done when:* the reference modes show and `#selftest` is green.
 
 - [ ] **T5.4 Live reload** (D, M, S). Port: `searchdesk/tools/serve.py`, only its serving, reload and `.dev-go`
@@ -302,6 +306,12 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `docs/modes/`, builds `app/modes/<id>.js` and its check, and ends with the check run, in plain words.
   *Done when:* `bash tools/check.sh more-by` passes on a Mac (or is marked untested on Linux under "Found while
   working"), and `/new-mode` in the Code tab starts from the contract.
+
+- [ ] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
+  then `python3 tools/build.py`, then publish `dist/nextbook.html` as `index.html` with a `CNAME` of
+  `nextbook.ryankelln.com`). Ryan does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
+  *Done when:* a push to `main` publishes, and the browser's network panel shows no request beyond the page itself.
+  Cut before T5.4 if Friday is tight: the take-home file works without it.
 
 ## Phase 6: reference modes (lane E, never in the starter)
 
@@ -346,16 +356,18 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.1 Events snapshot.** Port the kit's `fetch_events.py` to `adapters/tpl/events.py`, write
   `data/events.json` with a `fetched` date, an `#events` screen, `ctx.events` for modes, and a "Books for this event"
   button for event hook.
-- [ ] **T8.2 Hosted copy.** `dist/nextbook.html` on a static host, with zero requests beyond the file.
 - [ ] **T8.3 Open Library fallback.** Off by default; says what it will send; caches in the browser.
 - [ ] **T8.4 Browser tests.** Playwright, development only, using the `data-test` names.
 - [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take, for a
   machine with no agent.
 - [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
-- [ ] **T8.7 Measure a saved shelf page** (Ryan, signed in). Save the "Completed" and "For Later" shelf pages from a
-  browser (Cmd-S) into a folder outside the repo, and run a probe on the files that prints only keys and counts (no
-  titles) from the entities block: is the shelf in `entities.shelves`, with record ids, dates and star ratings? Record
-  the answer in `DATA.md` and `RESEARCH.md`. The saved files never enter the repo.
+- [ ] **T8.7 Measure a saved shelf page** (Ryan, signed in; can run any time). Save the "Completed" shelf page and a
+  signed-in search page (Cmd-S, "Webpage, HTML only") outside the repo, run
+  `python3 research/probes/saved_page_shape.py <files>`, which prints shapes and counts only, and read the output
+  before sharing it. The question: does `shelves.shelfSearch.shelf.items` (or `entities.shelves`) arrive filled, with
+  record ids, dates and stars? If `items` is empty and `isFetching` is set, the page loads the shelf afterwards: then
+  note, from the browser's Network panel, the URL it loads it from (no response bodies). Record the answer in
+  `DATA.md` and `RESEARCH.md`, and delete the saved files.
 - [ ] **T8.8 Import a saved library shelf.** If T8.7 finds the data: `readShelf` in the TPL adapter, ported to the app
   as a pure function, behind "Bring in your library shelf: save the page, then choose the file." Maps by the table in
   `ARCHITECTURE.md`. Tests use a hand-made page, never a real person's.
@@ -366,7 +378,7 @@ Listed here so the order is visible. The work and its words live in
 
 Write here; do not guess. Each one is Ryan's to answer.
 
-1. Product name and domain (D11).
+1. Product name (D11, D22). The domain is settled; the name `nextbook` is still a working name.
 
 ## Found while working
 

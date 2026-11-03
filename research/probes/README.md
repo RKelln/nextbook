@@ -6,6 +6,7 @@ Throwaway scripts that checked a claim. They are not the product and never ship 
 |---|---|
 | `record_fields.py <recordId>` | What a catalogue record page actually carries right now, field by field |
 | `search_bibs.py "<query>"` | How many records one search page returns, and how many come with subjects and descriptions |
+| `saved_page_shape.py <file.html>...` | The shape (keys, types, counts; never values) of a page you saved yourself, such as a signed-in shelf. No network |
 | `search_fields.py "<query>"` | Which fields the slice builder reads are filled on a search page, and the common headings |
 
 Both are standard library only, print what they find, and write nothing. Run them before trusting `docs/DATA.md`; if a

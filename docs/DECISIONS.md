@@ -174,3 +174,15 @@ Not for Nov 7. Measured nothing yet: a public search page's JSON carries empty `
 
 Forecloses: account linking, credential handling, and any feature that needs the library's servers to know the app
 exists.
+
+## D21. No fallback to the old starter (2026-11-03, Ryan)
+
+"I don't think we want a fallback demo." Replaces the last clause of D18: if a gate is missed, the build cuts from the
+list in `BUILD.md` and carries on; Saturday does not switch back to the residency starter. The fallback slice from the
+W13 pack stays, as data every lane needs on day one.
+
+## D22. Repo and domain (2026-11-03, Ryan)
+
+`github.com/RKelln/nextbook`, published at `nextbook.ryankelln.com` on GitHub Pages, as Search Desk is at
+`searchdesk.ryankelln.com`. A personal subdomain implies no partnership with the library, so it answers the domain half
+of D11 without the library's agreement. The product name is still open.

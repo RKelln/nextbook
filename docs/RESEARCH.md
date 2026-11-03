@@ -17,6 +17,8 @@ number, the line is corrected in place and says what changed.
 | Old catalogue search | `torontopubliclibrary.ca/search.jsp?Ntt=<q>` | **403**, and the host redirects to `tpl.ca` |
 | Live search route | `tpl.bibliocommons.com/v2/search?searchType=keyword&query=<title>+<author>` | 200, and it is what the library's own header search uses |
 
+| App state on a public page | same search page, with `saved_page_shape.py` (2026-11-03) | top-level `shelves`, `borrowing`, `user`, `auth` keys beside `entities`. `shelves.shelfSearch.shelf` has `userId`, `name`, `privateByDefault`, `items`, `pagination`, empty when signed out; `shelves.importResult` matches the account page's "Import Content from Previous Catalogue". Signed in: not yet measured (T8.7) |
+
 **CORS:** none of the catalogue pages send `access-control-allow-origin`. A page on another origin, or opened from a
 file, cannot fetch them. This is the single fact that decides the architecture.
 
