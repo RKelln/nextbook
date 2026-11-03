@@ -205,7 +205,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
 Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Until T1.7 lands, test against
 `tests/fixtures/slice-small.json` (ten works copied from T1.0's output, or hand-made in its shape).
 
-- [ ] **T2.1 Base** (B, S, H). Port: `searchdesk/core/h.js`, `searchdesk/core/strings.js`.
+- [x] **T2.1 Base** (B, S, H). Port: `searchdesk/core/h.js`, `searchdesk/core/strings.js`.
   `core/base.js`: the `Nextbook` namespace; `h(tag, attrs, ...children)` (text and attributes only, the link rules
   kept); `norm(text)` (lower case, strip accents and punctuation, collapse spaces, drop a leading the/a/an);
   `data.put(name, value)` and `data.get(name)` (from `put`, else a `#nb-<name>` JSON block parsed in `try`/`catch`,
