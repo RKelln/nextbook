@@ -52,18 +52,20 @@ and fast-forward `main` to it. A task that needs another lane's file waits for t
 | **Wed 18:00, gate 1** | the slice report meets T1.5b's numbers, or Saturday uses the fallback slice (D18) | | | | |
 | **Thu Nov 5** | (fixes) | (fixes) | T3.2, T3.3, T3.4 | T5.1, T5.2, T5.3, T5.4, T5.5 | T4.1, then T6.1, T6.2, T6.3 |
 | **Thu 18:00, gate 2** | `dist/starter/` opens, the example mode gives six with reasons, `#selftest` is green, two reference modes pass. If not, cut from the list below and say what was cut. | | | | |
-| **Fri Nov 6, morning** | | | T3.5 | T5.6 | |
+| **Thu Nov 5, after gate 2** | | T8.8a, T8.8b (stretch) | | | |
+| **Fri Nov 6, morning** | | | T3.5, then T8.8c (stretch) | T5.6 | |
 | **Fri Nov 6, afternoon** | K1–K5 (the kit, in the residency repo), T7.1 Ryan on a workshop Mac, T7.2 a first-timer, fixes, publish | | | | |
 
 ### If it slips, cut in this order
 
-1. T5.6 the hosted copy (the take-home file works without it).
-2. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
-3. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
-4. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
+1. T8.8, the library shelf sync (stretch; it is off in the workshop copy anyway).
+2. T5.6 the hosted copy (the take-home file works without it).
+3. T5.4 live reload (the kit's `show.sh` opens the file; people press Cmd-R).
+4. T5.5 `check.sh` (Node is in the workshop Mac image; `#selftest` covers the rest).
+5. The "from some words" half of the model box (T3.3); event hook and news diet still work with subjects picked by
    hand.
-5. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
-6. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
+6. T6.3, then T6.2 (keep survey: it is the facilitator's demo).
+7. The real slice (T1.5): ship the fallback slice from the W13 pack (D18). The design holds; links become search
    links.
 
 **Never cut:** the result check in T2.6 (ids exist, a reason on every pick, an empty result says why), the standard
@@ -337,6 +339,23 @@ on the practice shelf and finds each one true.
 - [ ] **T7.2 A first-timer.** Someone who has never seen the app opens it, rates three books, gets six and clicks out
   without help.
 
+## Stretch: the last thing before Saturday, only if it fits
+
+Started only when gate 2 is green, and the first thing cut. It is not for the room (the import is off in a workshop
+copy); it is for anyone who takes the app home or opens the hosted copy and already keeps shelves at the library. The
+hand-made test page follows the shape in `DATA.md`, "A person's own shelf page", with a made-up user.
+
+- [ ] **T8.8 One-way sync from a saved library shelf.** It gives a person's own
+  books real subjects, which ends the empty-profile problem for books outside the slice. Spec: `ARCHITECTURE.md`,
+  "Bringing in the library's shelf". Split in three:
+  - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, a pure function, taking
+    `entities.shelves` and the matching `briefInfo` only (facets by the slice rules, ported from `normalise.py`).
+    Tests use a hand-made page with a made-up user; a test asserts no key from `users`, `accounts` or `auth` comes out.
+  - **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
+    "stopped". Pure, in `core/sync.js`.
+  - **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
+    "Leave it" remembered, the last-imported date, switched off on the practice shelf and in a workshop copy.
+
 ## The kit (residency repo, not this repo)
 
 Listed here so the order is visible. The work and its words live in
@@ -365,16 +384,6 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
 - [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03 by Ryan and Claude; the answer is in `DATA.md`, "A person's
   own shelf page".
-- [ ] **T8.8 One-way sync from a saved library shelf.** The strongest task after Saturday: it gives a person's own
-  books real subjects, which ends the empty-profile problem for books outside the slice. Spec: `ARCHITECTURE.md`,
-  "Bringing in the library's shelf". Split in three:
-  - **T8.8a The reader** (S): `readLibraryShelf(html) -> {entries, works, complete}`, a pure function, taking
-    `entities.shelves` and the matching `briefInfo` only (facets by the slice rules, ported from `normalise.py`).
-    Tests use a hand-made page with a made-up user; a test asserts no key from `users`, `accounts` or `auth` comes out.
-  - **T8.8b The merge** (M, S): the three-way rule table, one test per row, plus partial files, editions and
-    "stopped". Pure, in `core/sync.js`.
-  - **T8.8c The screens** (M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
-    "Leave it" remembered, the last-imported date, switched off on the practice shelf and in a workshop copy.
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Their CSV exports, matched to the slice by ISBN first, then by
   normalised title and author; unmatched rows become typed books with search links.
 
