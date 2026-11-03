@@ -81,6 +81,9 @@ record id, call number, formats, subjects) instead of adding a second copy.
   `EBOOK`, then `EAUDIOBOOK`, then anything. `formats` lists every format seen for the work.
 - **`facets` is a dictionary** of every facet that survived, with a display `label` (used in reason sentences) and how
   many works carry it. A facet carried by only one work cannot match anything and is dropped at build time.
+- **`sources` says where the works came from.** A catalogue search gives `{url, fetched, bibs, works}` with a URL; the
+  pack gives `{kind, name, version, fetched, books, works}`, because it has no URL (D28). The app never reads it; it is
+  there so a slice can say how old it is and what it was built from.
 - **The URL templates live in the slice**, not in the app. That is what keeps the app library-generic (D10). The app
   never contains `bibliocommons`.
 - **No `description`, no `jacket`, no `rating`.** The build fails if any appears.

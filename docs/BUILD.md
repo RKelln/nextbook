@@ -123,7 +123,7 @@ The kit is rebuilt after this lock and may rely on these, and nothing else:
 
 Python, standard library only. Every network call goes through `adapters/bibliocommons/fetch.py`.
 
-- [ ] **T1.0 The starting list, from the pack** (A, M, S). Read first: `ARCHITECTURE.md` "The data files", D28,
+- [x] **T1.0 The starting list, from the pack** (A, M, S). Read first: `ARCHITECTURE.md` "The data files", D28,
   D29. Port from: `kit/seed_src/pack/books.json` (the data, not code).
   `adapters/pack/pack_to_slice.py` and `adapters/pack/config.json` write `data/slice.json`, `data/tags.json`,
   `data/practice.json`, and their schemas (`data/*.schema.json`, with a small hand-written validator in

@@ -1,0 +1,30 @@
+{
+  "title": "practice.json, the practice shelf",
+  "type": "object",
+  "required": ["schema", "entries"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "type": "string", "enum": ["nextbook/practice-1"] },
+    "entries": {
+      "type": "array",
+      "minItems": 12,
+      "maxItems": 12,
+      "items": {
+        "type": "object",
+        "required": ["key", "id", "groupKey", "title", "author", "state", "rating", "updated"],
+        "additionalProperties": false,
+        "x-forbiddenKeys": ["description", "jacket"],
+        "properties": {
+          "key": { "type": "string", "minLength": 3 },
+          "id": { "type": "string", "minLength": 1 },
+          "groupKey": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "author": { "type": "string", "minLength": 1 },
+          "state": { "type": "string", "enum": ["want", "reading", "read", "stopped"] },
+          "rating": { "type": ["string", "null"], "enum": ["loved", "liked", "ok", "not-for-me", null] },
+          "updated": { "type": "string", "minLength": 20 }
+        }
+      }
+    }
+  }
+}

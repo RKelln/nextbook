@@ -1,0 +1,32 @@
+{
+  "title": "tags.json, our own words: mood, pace, a note",
+  "type": "object",
+  "required": ["schema", "vocab", "works"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "type": "string", "enum": ["nextbook/tags-1"] },
+    "vocab": {
+      "type": "object",
+      "required": ["mood", "pace"],
+      "additionalProperties": false,
+      "properties": {
+        "mood": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+        "pace": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } }
+      }
+    },
+    "works": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["mood", "pace", "note"],
+        "additionalProperties": false,
+        "x-forbiddenKeys": ["description", "jacket", "rating"],
+        "properties": {
+          "mood": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 1 } },
+          "pace": { "type": "string", "minLength": 1 },
+          "note": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

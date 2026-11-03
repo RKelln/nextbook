@@ -1,0 +1,59 @@
+{
+  "schema": "nextbook/pack-config-1",
+  "packPath": "~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/seed_src/pack/books.json",
+  "facetPrefix": {
+    "genre": "genre",
+    "theme": "topic",
+    "section": "section"
+  },
+  "dropFacetsCarriedByFewerThan": 2,
+  "genreToSection": {
+    "literary": { "key": "fiction", "label": "the fiction shelves" },
+    "speculative": { "key": "science-fiction", "label": "the science fiction shelves" },
+    "fantasy": { "key": "fantasy", "label": "the fantasy shelves" },
+    "mystery": { "key": "mystery", "label": "the mystery shelves" },
+    "horror": { "key": "horror", "label": "the horror shelves" },
+    "romance": { "key": "romance", "label": "the romance shelves" },
+    "history": { "key": "900", "label": "the history shelves (900s)" },
+    "nature": { "key": "500", "label": "the science shelves (500s)" },
+    "ideas": { "key": "100", "label": "the philosophy shelves (100s)" },
+    "true": { "key": "300", "label": "the shelves about people and society (300s)" }
+  },
+  "genreToContentType": {
+    "literary": "FICTION",
+    "speculative": "FICTION",
+    "fantasy": "FICTION",
+    "mystery": "FICTION",
+    "horror": "FICTION",
+    "romance": "FICTION",
+    "history": "NONFICTION",
+    "true": "NONFICTION",
+    "nature": "NONFICTION",
+    "ideas": "NONFICTION"
+  },
+  "audience": {
+    "adult": "ADULT",
+    "either": "ADULT",
+    "teen": "TEEN"
+  },
+  "library": {
+    "name": "Toronto Public Library",
+    "recordUrl": null,
+    "searchUrl": "https://tpl.bibliocommons.com/v2/search?searchType=keyword&query={q}",
+    "idPattern": "^[a-z0-9-]+$"
+  },
+  "practice": [
+    { "id": "dispossessed", "state": "read", "rating": "loved", "updated": "2026-10-12T09:14:00Z" },
+    { "id": "thursday-murder", "state": "read", "rating": "loved", "updated": "2026-10-12T09:16:00Z" },
+    { "id": "braiding", "state": "read", "rating": "loved", "updated": "2026-10-13T20:02:00Z" },
+    { "id": "piranesi", "state": "read", "rating": "loved", "updated": "2026-10-14T18:40:00Z" },
+    { "id": "remains", "state": "read", "rating": "liked", "updated": "2026-10-15T08:05:00Z" },
+    { "id": "wager", "state": "read", "rating": "liked", "updated": "2026-10-16T21:30:00Z" },
+    { "id": "earthsea", "state": "read", "rating": "liked", "updated": "2026-10-17T07:55:00Z" },
+    { "id": "five-little-indians", "state": "read", "rating": "ok", "updated": "2026-10-18T13:20:00Z" },
+    { "id": "seven-moons", "state": "read", "rating": "not-for-me", "updated": "2026-10-19T22:10:00Z" },
+    { "id": "norrell", "state": "stopped", "rating": null, "updated": "2026-10-20T19:45:00Z" },
+    { "id": "klara", "state": "reading", "rating": null, "updated": "2026-10-21T07:30:00Z" },
+    { "id": "midnight-bargain", "state": "want", "rating": null, "updated": "2026-10-22T16:00:00Z" }
+  ]
+}

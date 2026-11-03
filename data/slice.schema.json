@@ -1,0 +1,80 @@
+{
+  "title": "slice.json, the starting list",
+  "type": "object",
+  "required": ["schema", "library", "fetched", "sources", "facets", "works"],
+  "additionalProperties": false,
+  "properties": {
+    "schema": { "type": "string", "enum": ["nextbook/slice-1"] },
+    "library": {
+      "type": "object",
+      "required": ["name", "recordUrl", "searchUrl", "idPattern"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "recordUrl": { "type": ["string", "null"] },
+        "searchUrl": { "type": "string", "minLength": 1 },
+        "idPattern": { "type": "string", "minLength": 1 }
+      }
+    },
+    "fetched": { "type": "string", "minLength": 10 },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["fetched", "works"],
+        "additionalProperties": true,
+        "properties": {
+          "kind": { "type": "string", "enum": ["pack", "search"] },
+          "name": { "type": "string", "minLength": 1 },
+          "version": { "type": "integer", "minimum": 1 },
+          "fetched": { "type": "string", "minLength": 10 },
+          "books": { "type": "integer", "minimum": 0 },
+          "works": { "type": "integer", "minimum": 0 },
+          "url": { "type": "string", "minLength": 1 },
+          "bibs": { "type": "integer", "minimum": 0 }
+        }
+      }
+    },
+    "facets": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["label", "kind", "works"],
+        "additionalProperties": false,
+        "properties": {
+          "label": { "type": "string", "minLength": 1 },
+          "kind": { "type": "string", "enum": ["genre", "topic", "section", "bisac", "mood", "pace"] },
+          "works": { "type": "integer", "minimum": 2 }
+        }
+      }
+    },
+    "works": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "groupKey", "title", "author", "authorKey", "year",
+                     "formats", "contentType", "audience", "series", "facets"],
+        "additionalProperties": false,
+        "x-forbiddenKeys": ["description", "jacket", "rating"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "groupKey": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "subtitle": { "type": ["string", "null"] },
+          "author": { "type": "string", "minLength": 1 },
+          "authorKey": { "type": "string", "minLength": 1 },
+          "year": { "type": "integer", "minimum": 1 },
+          "formats": { "type": "array", "items": { "type": "string" } },
+          "contentType": { "type": "string", "enum": ["FICTION", "NONFICTION"] },
+          "audience": { "type": "string", "enum": ["ADULT", "TEEN", "JUVENILE"] },
+          "language": { "type": ["string", "null"] },
+          "callNumber": { "type": ["string", "null"] },
+          "series": { "type": "array", "items": { "type": "string" } },
+          "facets": { "type": "array", "minItems": 1, "items": { "type": "string", "minLength": 3 } }
+        }
+      }
+    }
+  }
+}
