@@ -181,7 +181,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   *Done when:* `--check` passes after a run and fails after editing `data/tags.json`; a test shows a title containing
   `</script>` survives the round trip; the generated file contains no literal `<`.
 
-- [ ] **T1.8 Find on request** (A, M, S). Read first: `ARCHITECTURE.md` "`found.json`", `DATA.md` "Pacing". Needs
+- [x] **T1.8 Find on request** (A, M, S). Read first: `ARCHITECTURE.md` "`found.json`", `DATA.md` "Pacing". Needs
   T1.1 to T1.3 and T1.7. `tools/find.py "<words>"` and `tools/find.py --title "<t>" --author "<a>"`: **first prints
   the exact search it is about to send and the address**, then one on-demand search (up to 3 pages with `--pages`),
   parsed and normalised by the adapter, merged into `data/found.json` (no duplicates of earlier finds; no
