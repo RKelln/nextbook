@@ -346,7 +346,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `app/modes/more-by.js`, its check into `app/modes/more-by.check.js`, and list it in `app/modes/list.js`.
   *Done when:* `node tools/check-mode.js more-by` passes and `#selftest` is green.
 
-- [ ] **T4.2 The command-line check** (D, S, S). Needs T2.6. Port: `searchdesk/checks/run.js` as
+- [x] **T4.2 The command-line check** (D, S, S). Needs T2.6. Port: `searchdesk/checks/run.js` as
   `tools/check-mode.js`, keeping its Node-or-osascript host split, loading the pure core files, the mode, its check
   and the real `app/data/` files, then `runModeChecks`. The scan is the same as the browser's (functions, strings
   stripped), plus a failure for any code in the file outside the one `Nextbook.mode(...)` call. `--all` runs every id
@@ -387,7 +387,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Done when:* saving `app/modes/more-by.js` reloads an open tab; writing `find` to `.dev-go` moves it to `#find`; the
   server is not reachable from another machine.
 
-- [ ] **T5.5a The no-Node check** (D, S, H). Never cut. Port: `searchdesk/checks/check.sh` as `tools/check.sh`,
+- [x] **T5.5a The no-Node check** (D, S, H). Never cut. Port: `searchdesk/checks/check.sh` as `tools/check.sh`,
   running `tools/check-mode.js` through `osascript -l JavaScript`. Bash 3.2 and BSD-safe: no associative arrays, no
   `${var,,}`, `sed -i ''`, no `grep -P`, no `timeout`, `shasum -a 256`.
   *Done when:* `bash tools/check.sh more-by` passes on the Mac mini in a standard user (T7.1).
