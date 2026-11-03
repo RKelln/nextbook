@@ -161,7 +161,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   *Done when:* the fixture has 63 entries and 20 `groupKey`s (or the live numbers, corrected in `RESEARCH.md`);
   `grep -c description tests/fixtures/tpl/*.json` prints 0 for each file; a test parses a tiny hand-made page.
 
-- [ ] **T1.3 The normaliser** (A, M, S). Read first: `DATA.md` "From headings to facets", all of it.
+- [x] **T1.3 The normaliser** (A, M, S). Read first: `DATA.md` "From headings to facets", all of it.
   `adapters/bibliocommons/normalise.py` and `adapters/bibliocommons/config.json` (form subdivisions, genre words,
   Dewey hundreds labels, fiction shelf words). One pure function per rule 1 to 8, plus `facets_for(brief) -> set`,
   `work_from(briefs) -> work` (rule 8's merge, the format preference for the record id), `slug()`,

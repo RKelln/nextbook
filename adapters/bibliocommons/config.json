@@ -1,0 +1,62 @@
+{
+  "form_subdivisions": [
+    "Juvenile fiction",
+    "Juvenile literature",
+    "Comic books, strips, etc",
+    "Criticism and interpretation",
+    "Fiction",
+    "History",
+    "Biography",
+    "Drama",
+    "Poetry"
+  ],
+  "genre_words": [
+    "Fiction",
+    "Literature",
+    "Science Fiction",
+    "Fantasy",
+    "Fantasy Fiction",
+    "Thriller",
+    "Mystery",
+    "Horror",
+    "Romance",
+    "Mythology",
+    "Young Adult Fiction",
+    "Juvenile Fiction",
+    "Comic and Graphic Books",
+    "Graphic Novels",
+    "Historical Fiction",
+    "Suspense",
+    "Adventure",
+    "Humorous Fiction",
+    "Short Stories",
+    "Poetry",
+    "Drama",
+    "Biography",
+    "Nonfiction",
+    "Non-fiction",
+    "Folklore",
+    "Fairy Tales"
+  ],
+  "dropped_genres": ["Fiction", "Literature"],
+  "fiction_shelves": [
+    { "words": ["SCIENCE FICTION"], "key": "science-fiction", "label": "the science fiction shelves" },
+    { "words": ["FANTASY"], "key": "fantasy", "label": "the fantasy shelves" },
+    { "words": ["MYSTERY"], "key": "mystery", "label": "the mystery shelves" },
+    { "words": ["HORROR"], "key": "horror", "label": "the horror shelves" },
+    { "words": ["ROMANCE"], "key": "romance", "label": "the romance shelves" },
+    { "words": ["FICTION", "FIC"], "key": "fiction", "label": "the fiction shelves" }
+  ],
+  "dewey_labels": {
+    "000": "general works (000s)",
+    "100": "the philosophy shelves (100s)",
+    "200": "the religion shelves (200s)",
+    "300": "the shelves about people and society (300s)",
+    "400": "the language shelves (400s)",
+    "500": "the science shelves (500s)",
+    "600": "the shelves about how things are made (600s)",
+    "700": "the art shelves (700s)",
+    "800": "the literature shelves (800s)",
+    "900": "the history shelves (900s)"
+  }
+}
