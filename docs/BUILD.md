@@ -107,7 +107,7 @@ The kit is rebuilt after this lock and may rely on these, and nothing else:
 
 ## Phase 0: ground
 
-- [ ] **T0.1 Scaffold** (A, S, H). Read first: `AGENTS.md`, `ARCHITECTURE.md` "The picture". Port:
+- [x] **T0.1 Scaffold** (A, S, H). Read first: `AGENTS.md`, `ARCHITECTURE.md` "The picture". Port:
   `searchdesk/tests/unit/_load.js` as `tests/_load.js`.
   Make the tree in `AGENTS.md` with stub files. `app/index.html` loads, in order: `core/base.js`, `core/slice.js`,
   `core/score.js`, `core/reason.js`, `core/links.js`, `core/contract.js`, `core/seam.js`, `core/store.js`,
