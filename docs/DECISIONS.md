@@ -153,3 +153,24 @@ The mode menu is `docs/modes/`, for people and the agents in the room. The app l
 screen with one item marked as the answer, which D8 forbids.
 
 Forecloses: "not built yet" cards in the app.
+
+## D20. The library's own shelves: line up now, import once later, never sync (2026-11-03, Ryan and Claude)
+
+BiblioCommons already keeps a signed-in person's shelves (For Later, In Progress, Completed) and 1 to 5 star ratings,
+and other library systems have the same. The library's shelf is the tracker; this app is the decision layer beside it,
+and does not compete with it (the W13 thesis since 2026-09-01).
+
+Decided now, because it costs nothing and avoids a migration: our states and ratings map one to one onto theirs
+(`ARCHITECTURE.md`, "Lining up with the library's own shelves"), entries keep the library's `groupKey` and record id,
+and imported entries can carry `from` and `stars`.
+
+Later, and only this way: **import once, from a file the person saved themselves**, read in their browser with the
+network off. Never ask for a library card number or password, never sign in on anyone's behalf, never write back to
+the library's shelves (the record page's own buttons do that, one click away), and never two-way sync. A patron-data
+API would be a separate conversation with the library, and nothing public says it is coming.
+
+Not for Nov 7. Measured nothing yet: a public search page's JSON carries empty `shelves`, `borrowingHistory` and
+`checkouts` entities, which suggests a signed-in page carries the person's own; T8.7 checks.
+
+Forecloses: account linking, credential handling, and any feature that needs the library's servers to know the app
+exists.

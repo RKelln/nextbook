@@ -125,6 +125,25 @@ Kept in `localStorage`. Two keys, never mixed:
 ```
 
 - `state` is one of `want`, `reading`, `read`, `stopped`. `rating` is `loved`, `liked`, `ok`, `not-for-me` or `null`.
+- Optional `from` says where an entry came from when it was imported (`tpl-shelf`, `goodreads`, ...), and optional
+  `stars` keeps a 1 to 5 rating exactly as the other system gave it. Neither changes the weights; they keep an import
+  honest and reversible. Unknown keys on an entry are kept and exported untouched.
+
+### Lining up with the library's own shelves
+
+BiblioCommons (TPL's catalogue, and many other libraries') already keeps shelves for a signed-in person, so ours must
+line up with theirs without a lookup table nobody wrote down:
+
+| Library shelf | Our `state` | Library stars | Our `rating` |
+|---|---|---|---|
+| For Later | `want` | 5 | `loved` |
+| In Progress | `reading` | 4 | `liked` |
+| Completed | `read` | 3 | `ok` |
+| (none) | `stopped` | 1 or 2 | `not-for-me` |
+
+Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
+lands on the same works with no fuzzy matching. Bringing it in is a later task (D20); the shapes are fixed now so it
+needs no migration.
 - `key` is `w:<groupKey>` for a book from the slice, and `t:<normalised title>|<normalised author>` for a book typed in.
   A typed book that matches a slice work (same normalised title and author) is linked to it on entry.
 - A typed book with no match keeps `id` and `groupKey` null. It has no facets, so it does not move the profile, and it
@@ -221,6 +240,14 @@ the registered mode (`fn.toString()`, comments stripped), which works in a page 
 `Nextbook.check(id, (t, mode) => ...)` with `t.ok` and `t.eq` is the same check API. The command-line runner is
 ported from `checks/run.js` and `checks/check.sh`, so it runs under Node and under `osascript` on a Mac with no
 Node.
+
+## Shelves from elsewhere (later, D20)
+
+The adapter is the only code that knows a library, so it is also where a library's shelf format is read:
+`adapters/<library>/` may offer `readShelf(text) -> entries` for a file the person saved themselves. Generic readers for
+other trackers' exports (Goodreads and StoryGraph CSVs) live in `core/` beside import, because they are not about a
+library. All of them run in the browser on a file the person chose, with the network off, and produce ordinary shelf
+entries that go through the usual import and its report.
 
 ## The model seam (`core/seam.js`)
 

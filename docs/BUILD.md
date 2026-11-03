@@ -216,7 +216,8 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   `importShelf(text)` with a `{added, changed, kept, skipped}` report; remembered inputs per mode. A file that is not
   a shelf is refused with a sentence.
   *Done when:* tests: practice reset leaves the own shelf untouched; export then import round-trips; newer wins; a tie
-  keeps ours; a broken file is refused, not thrown.
+  keeps ours; a broken file is refused, not thrown; unknown keys on an entry (`from`, `stars`, anything) survive import
+  and export.
 
 ## Phase 3: the page (lane C)
 
@@ -236,8 +237,8 @@ Checked by opening the page. Each task says what to click. All words go in the s
   did not load; the chosen mode's inputs (every kind in `CONTRACT.md` section 4), remembered; the result as cards
   (`list`) or an ordered path (`path`, with `step` words), grouped by `group` when present; on each card the title,
   author, year, formats in words, the reason, our note if any, the library link, "Want to read" and "Read it"; the
-  dropped-picks notice; the note; "Shuffle"; and one line under the results: "Holds, copies and the library's own
-  suggestions are on the library's page." The slice's `fetched` date in the footer.
+  dropped-picks notice; the note; "Shuffle"; and one line under the results: "Holds, copies, your library shelves
+  and the library's own suggestions are on the library's page." The slice's `fetched` date in the footer.
   *Click:* with the example mode, the practice shelf gives picks with reasons; "Want to read" moves the six; the own
   empty shelf shows the mode's note; a typed book's link opens the library's search.
 
@@ -351,6 +352,15 @@ Listed here so the order is visible. The work and its words live in
 - [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take, for a
   machine with no agent.
 - [ ] **T8.6 Refresh the slice.** Rerun T1.5 with `--refresh`, diff the report, note what moved.
+- [ ] **T8.7 Measure a saved shelf page** (Ryan, signed in). Save the "Completed" and "For Later" shelf pages from a
+  browser (Cmd-S) into a folder outside the repo, and run a probe on the files that prints only keys and counts (no
+  titles) from the entities block: is the shelf in `entities.shelves`, with record ids, dates and star ratings? Record
+  the answer in `DATA.md` and `RESEARCH.md`. The saved files never enter the repo.
+- [ ] **T8.8 Import a saved library shelf.** If T8.7 finds the data: `readShelf` in the TPL adapter, ported to the app
+  as a pure function, behind "Bring in your library shelf: save the page, then choose the file." Maps by the table in
+  `ARCHITECTURE.md`. Tests use a hand-made page, never a real person's.
+- [ ] **T8.9 Import a Goodreads or StoryGraph export.** Their CSV exports, matched to the slice by ISBN first, then by
+  normalised title and author; unmatched rows become typed books with search links.
 
 ## Open questions
 
