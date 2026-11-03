@@ -43,6 +43,18 @@ and fast-forward `main` to it. A task that needs another lane's file waits for t
 | **D, tools** | `tools/` except `gen_data.py`; `.claude/commands/` |
 | **E, modes** | `app/modes/`, `reference/modes/` |
 
+### Starting a lane
+
+Paste this into a fresh agent session, with the lane letter and the next unticked task filled in:
+
+> You are building lane **<A–E>** of nextbook. Read `AGENTS.md`, then the "How to work" and "Lanes" parts of
+> `docs/BUILD.md`, then do task **<T-id>** and nothing else. Work in the worktree `../nextbook-<lane>` (make it if it
+> is missing). Touch only the files your lane owns. Run the task's "Done when" checks, paste their summary lines, tick
+> the box, commit with `T<id>: <what, and why>`, then rebase onto `main` and fast-forward `main`. Do not push. If the
+> docs do not decide something, write it under "Open questions" and stop.
+
+Start lane A first: T0.1 is the scaffold every other lane builds on. Lane B can start as soon as T0.1 is ticked.
+
 ## Timeline and gates
 
 | When | Lane A | Lane B | Lane C | Lane D | Lane E |
