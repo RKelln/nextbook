@@ -129,6 +129,9 @@ Kept in `localStorage`. Two keys, never mixed:
   A typed book that matches a slice work (same normalised title and author) is linked to it on entry.
 - A typed book with no match keeps `id` and `groupKey` null. It has no facets, so it does not move the profile, and it
   still gets a link: the library's search page for its title and author.
+- **Two addresses are two shelves.** `localStorage` belongs to the page's address, so the folder opened as a file, the
+  same folder served by `tools/serve.py`, and the one-file take-home each have their own shelves. Move a shelf between
+  them with export and import, and say so wherever the app is handed over (a Search Desk lesson).
 - **Export** writes this shape to `nextbook-shelf-<date>.json`. **Import** merges by `key`; on a clash, the newer
   `updated` wins, and the app says how many it added, changed and kept.
 
@@ -205,8 +208,19 @@ show-and-tell, and lets the shell enforce the rules instead of trusting each mod
 `labelOf`, `tagsOf`, a seeded `random()` (so blind date is repeatable in a test), other imported shelves (swap, club),
 and `t()` for strings. It has no DOM and no storage.
 
-`app/modes/list.js` lists the modes to load and the planned ones. A planned mode with no file shows as a stub card:
-its name, its purpose, and "Not built yet. The brief is in docs/modes/<id>.md."
+`app/modes/list.js` lists the modes to load, and nothing else. The menu of ideas is `docs/modes/`, read by people
+and their agents; the app never shows modes that are not built. A listed mode whose file is missing or throws shows a
+card saying it did not load, and the rest of the app carries on (Search Desk's "missing is fine").
+
+Around every result the shell adds what no mode should rewrite: the cards and links, "Want to read" and "Read it"
+buttons on each card (the mode runs again after either), the mode's last inputs remembered in this browser, and the
+model box. `CONTRACT.md` section 8.
+
+The contract code is ported from Search Desk's `core/contract.js`: the banned-word scan runs over every function of
+the registered mode (`fn.toString()`, comments stripped), which works in a page with no file access, and
+`Nextbook.check(id, (t, mode) => ...)` with `t.ok` and `t.eq` is the same check API. The command-line runner is
+ported from `checks/run.js` and `checks/check.sh`, so it runs under Node and under `osascript` on a Mac with no
+Node.
 
 ## The model seam (`core/seam.js`)
 
@@ -228,6 +242,8 @@ with nothing valid says so. Titles, authors, years and links in the answer are i
 - A work in the slice: `library.recordUrl` with `{id}`. That page holds availability, formats, the hold button, and
   the library's own suggestions, and the app says so once, near the results.
 - A typed book: `library.searchUrl` with `{q}` = title and author, URL-encoded.
+- A work in a slice whose `library.recordUrl` is `null` (the fallback slice built from the W13 pack, D18): the search
+  URL, as for a typed book.
 
 Never stored; always derived.
 
@@ -244,9 +260,10 @@ Three screens behind the address hash, so a link or a reload lands in the same p
 
 - `tools/build.py` writes `dist/nextbook.html`: one file, every script and style inlined, data in JSON blocks, no
   network request of any kind.
-- `tools/build.py --starter` writes `dist/starter/`, the workshop folder: `app/` with only the example mode loaded and
-  the menu as planned stubs, `docs/CONTRACT.md`, `docs/modes/`, and no `reference/`, no `tests/`, no `adapters/`, no
-  `docs/BUILD.md`. The session's own brief is added by the workshop kit, not by this repo.
+- `tools/build.py --starter` writes `dist/starter/`, the workshop folder: the app with only the example mode listed,
+  the contract, the mode briefs, and the tools a participant needs (check, build, serve). The exact list is
+  `BUILD.md` T5.2. The session's own brief is added by the workshop kit, not by this repo.
+- `tools/build.py --demo` writes `dist/demo.html` with the reference modes loaded, for the projector.
 
 ## Hosted copy (later)
 

@@ -11,7 +11,7 @@ to the library's own page for the book. It runs from a folder in a browser, with
 The app has a **finished foundation** (the shelf, the data, the scoring core, the reason sentences, the model seam, the
 links) and a **slot for modes**. A mode is one file that chooses six books and says why. The repo ships one example
 mode on purpose and leaves the menu of modes as written briefs in `docs/modes/`, so that workshop participants build
-them. Do not build a menu mode into the starter unless a task tells you to; reference builds live in `reference/`.
+them. The menu is documentation for people and agents, not part of the app. Reference builds live in `reference/`.
 
 ## Rules that come from the project, not from taste
 
@@ -38,11 +38,12 @@ When two conflict, the earlier one wins.
 ```
 app/                    the app. Open app/index.html in a browser. Nothing to install.
   core/                 the foundation: shelf, data, scoring, reasons, links, contract, model seam, shell
-  modes/                one file per mode, plus its check. list.js says which load.
+  modes/                one file per mode, plus its check. list.js says which load. Nothing else.
   data/                 generated .js wrappers of data/*.json. Never edit by hand.
 data/                   the canonical data: slice.json, tags.json, practice.json, and their schemas
 adapters/tpl/           the only code that knows which library this is (Toronto Public Library)
-tools/                  build.py (packs one file), check-mode.js (runs a mode's checks), gen_data.py
+tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py
+.claude/commands/       new-mode and check, for the Code tab (written once in tools/commands/)
 tests/                  unit tests for core (Node) and the adapter (Python)
 reference/modes/        finished demo modes. Never copied into the starter.
 docs/                   design, data, contract, the build plan, the mode briefs
@@ -58,15 +59,20 @@ in `<script type="application/json">` blocks. Nothing needs it to **run**; it ex
 ## Commands
 
 ```sh
-node --test tests/                       # core unit tests (Node 22: pass the folder or a glob)
+node --test tests/*.test.js              # core unit tests (Node 22 refuses a bare folder: keep the glob)
 python3 -m unittest discover -s tests -p 'test_*.py'   # adapter tests
 node tools/check-mode.js <id>            # one mode: its own checks plus the standard shelves
 node tools/check-mode.js --all           # every loaded mode
+bash tools/check.sh <id>                 # the same, on a Mac with no Node (osascript)
+python3 tools/serve.py --workshop        # serve app/ with live reload, for a workshop or a demo
 python3 tools/build.py                   # dist/nextbook.html, one file
 python3 tools/build.py --starter         # dist/starter/, the workshop folder
 ```
 
-In a browser, `app/index.html#selftest` runs the same mode checks with no Node, for machines that have none.
+In a browser, `app/index.html#selftest` runs the same mode checks with no tools at all.
+
+Tests get objects from a `vm` realm, so compare them after a JSON round trip, not with `assert.deepStrictEqual`
+against literals (a Search Desk lesson).
 
 Run the checks for what you touched before you say a task is done, and paste the summary lines in your report.
 
@@ -107,5 +113,5 @@ and `window.` (other than `window.Nextbook`); the check fails a mode that uses o
 - Do not edit `app/data/*.js` by hand; regenerate it from `data/*.json` with `python3 tools/gen_data.py`.
 - Do not put workshop arrangements (dates, rooms, people, the session plan) in this repo. `docs/W13.md` states the
   boundary.
-- Do not build a menu mode into `app/modes/`. That is the participants' work. The briefs are the spec; the reference
-  builds are for the projector.
+- Do not build a mode from the menu (`docs/modes/`) into `app/modes/`. That is the participants' work. The briefs are
+  the spec; the reference builds in `reference/modes/` are for the projector.

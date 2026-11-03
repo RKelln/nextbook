@@ -15,7 +15,12 @@ A mode **does not draw anything and does not save anything**. It is a function f
 ## 2. The file
 
 `app/modes/<id>.js`. The id is lower case letters and hyphens and matches the file name. Add the id to
-`Nextbook.modes` in `app/modes/list.js`, and delete its line from `Nextbook.planned` if it is there.
+`Nextbook.modes` in `app/modes/list.js`. That list is the only place the app learns about modes: the menu of ideas
+lives in `docs/modes/`, for people and their agents, not in the app.
+
+**Missing is fine.** If a listed mode's file is missing or throws while loading, the app shows a card with its id and
+"This one did not load. Ask your helper to run the check." Everything else keeps working. Registering the same id
+twice replaces the first and logs a warning.
 
 ```js
 // app/modes/more-by.js: the example. It is not on the menu, on purpose.
@@ -119,7 +124,7 @@ A mode that needs something from the person lists it in `inputs`, and the app dr
 | `shelf-book` | pick a book from the shelf | its entry |
 | `book` | search the library list | a work |
 | `facet` | pick a subject from the list | a facet key |
-| `facets` | pick up to four subjects, by hand or "from some words" through the model box (section 8) | a list of facet keys |
+| `facets` | pick up to four subjects, by hand or "from some words" through the model box (section 9) | a list of facet keys |
 | `text` | a short text box | the text |
 | `number` | a number, with `min`, `max`, `default` | the number |
 | `choice` | buttons, from `options: [{value, label}]`, with `default` | the chosen `value` |
@@ -134,9 +139,10 @@ Until every input has a value, `choose` is not called and the app asks for it.
 ## 5. The rules, word for word
 
 1. **Talk to the app only through `ctx`.** No globals of your own, no other mode's code.
-2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.`, `window.` (other than `Nextbook`),
-   `eval`, `new Function`, `fetch`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random`, `Date`, or a timer.
-   The check scans the file for these and fails it.
+2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document`, `window`, `eval`, `new Function`,
+   `fetch`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random`, `Date`, `setTimeout` or `setInterval`. The
+   check scans every function in the mode for these words (comments are ignored, words inside quotes count) and fails
+   the mode if it finds one.
 3. **Pure helpers go in `logic`**, and the check file tests them.
 4. **Words people see go in `strings`.** About grade 6. Short sentences.
 5. **Nothing invented.** Every pick is a work in `ctx.works`. No titles, authors, years or links of your own.
@@ -148,23 +154,22 @@ Until every input has a value, `choose` is not called and the app asks for it.
 
 ## 6. The check file
 
-`app/modes/<id>.check.js` tests the `logic` with tiny made-up inputs, and can call `choose` on a made-up `ctx`:
+`app/modes/<id>.check.js` tests the `logic` with tiny made-up inputs. It is the same shape as Search Desk's checks:
 
 ```js
-Nextbook.check('more-by', [
-  { name: 'keeps the loved book when an author has two', run(assert, mode) {
-      const e = mode.logic.likedAuthors([
-        { title: 'A', rating: 'liked', work: { authorKey: 'x' } },
-        { title: 'B', rating: 'loved', work: { authorKey: 'x' } }]);
-      assert.equal(e.x.title, 'B');
-  } },
-  { name: 'ignores typed books', run(assert, mode) {
-      assert.deepEqual(mode.logic.likedAuthors([{ title: 'C', rating: 'loved', work: null }]), {});
-  } }
-]);
+Nextbook.check('more-by', (t, mode) => {
+  const L = mode.logic;
+  const e = L.likedAuthors([
+    { title: 'A', rating: 'liked', work: { authorKey: 'x' } },
+    { title: 'B', rating: 'loved', work: { authorKey: 'x' } }]);
+  t.eq(e.x.title, 'B', 'keeps the loved book when an author has two');
+  t.eq(L.likedAuthors([{ title: 'C', rating: 'loved', work: null }]), {}, 'ignores books typed in');
+  t.ok(mode.strings.noAuthors, 'has the sentence for an empty shelf');
+});
 ```
 
-`assert` has `ok(value, message)`, `equal(a, b)` and `deepEqual(a, b)`.
+`t.ok(value, message)` passes when the value is true. `t.eq(actual, expected, message)` compares plain data deeply
+and, on a failure, prints what it got and what it wanted. Write the message as what should be true.
 
 ### The standard shelves
 
@@ -183,13 +188,26 @@ sample text, the number's `default`).
 
 ## 7. Running the checks
 
-- With Node: `node tools/check-mode.js <id>`. It takes about a second. Run it after every change.
-- With no Node (a workshop laptop): open `app/index.html#selftest` in the browser and press Run. Same checks.
+- With Node: `node tools/check-mode.js <id>`. About a second. Run it after every change.
+- On a Mac with no Node: `bash tools/check.sh <id>`. The same checks, through the Mac's own JavaScript.
+- In the browser: open the app, go to `#selftest`, press Run. The same checks again, with no tools at all.
 
 If a check fails, fix the mode. Do not change the check to make it pass, unless the behaviour itself was meant to
 change.
 
-## 8. When a model is involved
+## 8. What the app adds around every mode
+
+So a mode does not have to:
+
+- **The cards.** Title, author, year, the formats in words ("book, audiobook"), the reason, our own note if the book
+  has one, and the link to the library's page.
+- **Two buttons on each card:** "Want to read" (adds it to the shelf as want) and "Read it" (adds it as read, ready to
+  rate). The mode runs again after either, so the six move.
+- **Remembered inputs.** The last values of a mode's inputs are kept in this browser, so a person who picked a subject
+  yesterday finds it picked today.
+- **The model box,** under every result (section 9).
+
+## 9. When a model is involved
 
 The app already has the model box: it writes a prompt with your six and asks a chat to argue for two of them, then
 reads the answer back and checks every id. A mode does not need to do anything for that to work.

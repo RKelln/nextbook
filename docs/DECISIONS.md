@@ -90,7 +90,7 @@ of new titles), honours the delay, caches every page, and never fetches record p
 Forecloses: per-record enrichment at build time, and "20 pages of new titles" as the main source (unread, often on
 order). Supersedes the source list in the first `BUILD.md`.
 
-## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, needs Ryan's yes)
+## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, accepted by Ryan)
 
 The first `AGENTS.md` said "one HTML file, no build step". For a foundation that participants extend, one large file is
 the most fragile thing a beginner's agent can edit, and the residency starter is already 119 KB. Search Desk's answer
@@ -99,16 +99,22 @@ standard-library `tools/build.py` that packs one file for carrying home and host
 
 Forecloses: editing the single file by hand. The take-home is still one file, made by the build.
 
-## D14. A mode chooses; the shell draws and checks (2026-11-03, proposed by Claude, needs Ryan's yes)
+## D14. A mode chooses; the shell draws and checks (2026-11-03, proposed by Claude, accepted by Ryan)
 
 A mode returns `{picks: [{id, why}], note}` and draws nothing. The shell renders every result the same way, builds the
 links, and enforces rules 5 and 6 (ids exist, every pick has a reason, an empty result says why) for every mode rather
 than trusting each one.
 
-Forecloses: per-mode screens in the first release. A custom view is a later slot, added to core, not improvised in a
-mode.
+Forecloses: per-mode screens in the first release. A custom view is a new `shape` added to the shell, not drawing
+improvised in a mode, the same rule as Search Desk's "new slots are added to core".
 
-## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, needs Ryan's yes)
+Ryan, accepting: the `why` and the `note` are what let one contract fit very different modes. Taken from Search Desk
+as well, because they were tested there: missing is fine (a mode that fails to load shows a card and nothing else
+breaks), a repeat registration replaces with a warning, the banned-word scan over the mode's functions, the
+`check(id, (t, mode))` API with a runner for Node and for `osascript`, the in-browser self-test, live reload with
+`.dev-go`, the `new-mode` and `check` commands, and the rules for small models.
+
+## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, accepted by Ryan)
 
 Facets come from the catalogue (topics, BISAC, genre, call-number sections, series). What the catalogue does not carry
 (mood, pace, a one-line note) lives in `data/tags.json`, keyed by `groupKey`, hand-written, seeded from the W13 pack.
@@ -116,7 +122,7 @@ Modes that need mood or pace say how many untagged works they skipped.
 
 Forecloses: inventing mood or length for works nobody tagged.
 
-## D16. The example mode is not on the menu (2026-11-03, proposed by Claude, needs Ryan's yes)
+## D16. The example mode is not on the menu (2026-11-03, proposed by Claude, accepted by Ryan)
 
 The starter ships `more-by` (more by authors you rated well) as the contract's worked example, and no menu mode. Survey,
 journey and challenge are reference builds in `reference/modes/`, packed into the demo file only. Same reasoning as Search
@@ -129,3 +135,21 @@ Forecloses: shipping a menu mode in the starter.
 
 A work links to `library.recordUrl` with its id; a typed book links to `library.searchUrl` with its title and author.
 Both templates live in `slice.json`, written by the adapter, so the app never contains a library's hostname (D10).
+
+## D18. Saturday Nov 7 is the target, with a fallback slice (2026-11-03, Ryan)
+
+"We want this for Nov 7." Most of the foundation is a port of Search Desk, which was built and tested in four days;
+the library layers are the new part. The safety net is a slice built from the W13 pack (30 books, the pack's own facets,
+search links instead of record links), made first so every lane has data on day one. If the real slice misses its
+numbers by Wed 18:00 the fallback ships, and if the starter misses gate 2 on Thu 18:00 Saturday runs on the residency
+starter that already exists.
+
+Forecloses: nothing permanent. The real slice replaces the fallback whenever it lands.
+
+## D19. The menu lives in the docs, not in the app (2026-11-03, Ryan)
+
+The mode menu is `docs/modes/`, for people and the agents in the room. The app lists only modes that are built
+(`app/modes/list.js`). Search Desk showed planned features as stubs inside the app; here that would put the menu on
+screen with one item marked as the answer, which D8 forbids.
+
+Forecloses: "not built yet" cards in the app.
