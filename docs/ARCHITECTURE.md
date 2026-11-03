@@ -173,7 +173,7 @@ needs no migration.
 
 No embeddings (D5). Everything here is a plain function with a unit test.
 
-- `profile(entries)` returns `{ weights: {facet: number}, authors: {authorKey: number}, evidence: {facet: [key...]}, rated: n }`.
+- `profile(entries)` returns `{ weights: {facet: number}, authors: {authorKey: number}, evidence: {facet: [entry...]}, rated: n }`.
   Each entry adds its weight to every facet of its work, and to its author. `evidence` remembers which shelf entries
   produced each facet, so a reason can name a book.
 - `score(work, profile)` returns `{ score, parts: [{facet, label, weight}] }`. The facet part is the sum of
@@ -210,6 +210,7 @@ A mode is one file that registers one object. The full contract, with an example
 Nextbook.mode({
   id: 'more-by', name: 'More by them', purpose: 'Other books by authors you rated well.',
   shape: 'list',                 // 'list' or 'path'
+  allowShelf: false,             // optional: true when picks may already be on the shelf
   inputs: [],                    // optional: [{id:'seed', kind:'book'|'shelf-book'|'facet'|'text'|'number', label}]
   strings: { ... },
   logic: { ... },                // pure helpers, tested by the mode's check file

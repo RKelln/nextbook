@@ -105,8 +105,8 @@ it has a list, a rule and a reason. All user-facing strings live in a `strings` 
 
 Text from the catalogue, a model, an imported file or a person is shown as text. Never use `innerHTML`,
 `outerHTML`, `insertAdjacentHTML`, `document.write`, `eval` or `new Function` anywhere in `app/`. Build elements with
-`Nextbook.h()`. Mode files are scanned for these words and for `fetch`, `XMLHttpRequest`, `localStorage`, `document.`
-and `window.` (other than `window.Nextbook`); the check fails a mode that uses one.
+`Nextbook.h()`. Modes have a longer banned list (no `document`, `window`, `fetch`, `localStorage`, `Math.random`,
+`Date`, timers and more); the list is `docs/CONTRACT.md` section 5, and the check fails a mode that uses one.
 
 ## What not to do
 

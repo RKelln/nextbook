@@ -63,7 +63,9 @@ Nextbook.mode({
 });
 ```
 
-Keep the order of the keys: `id`, `name`, `purpose`, `shape`, `inputs`, `strings`, `logic`, `choose`.
+Keep the order of the keys: `id`, `name`, `purpose`, `shape`, `inputs`, `strings`, `logic`, `choose`. One optional
+key goes after `shape`: `allowShelf: true`, for a mode whose picks may already be on the shelf (journey's goal, swap's
+"for them").
 
 The app calls `mode.choose(ctx, input)`, so inside `choose`, `this.logic` is your `logic`. Use method syntax
 (`choose(ctx) { ... }`), not an arrow function, or `this` is lost.
