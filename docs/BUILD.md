@@ -213,7 +213,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   *Done when:* tests for `h` (text-only children, `javascript:` links dropped), `norm`, `t`, and `data.get` with a
   good block, a broken block (`null`, no throw) and no block.
 
-- [ ] **T2.2 The pool** (B, M, S). Read first: `ARCHITECTURE.md` "The data files". `core/slice.js`: `load()` joins
+- [x] **T2.2 The pool** (B, M, S). Read first: `ARCHITECTURE.md` "The data files". `core/slice.js`: `load()` joins
   slice, tags and found:
   - tags become `mood:`/`pace:` facets with labels ("quiet books", "a slow pace");
   - **a found work that matches a slice work** (same `norm(title)` and `authorKey`) enriches it rather than

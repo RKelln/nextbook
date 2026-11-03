@@ -1,0 +1,168 @@
+{
+  "schema": "nextbook/found-1",
+  "searches": [
+    {
+      "query": "le guin",
+      "fetched": "2026-11-03T16:44:00Z",
+      "works": 3
+    }
+  ],
+  "facets": {
+    "bisac:science-fiction": {
+      "label": "science fiction",
+      "kind": "bisac",
+      "works": 1
+    },
+    "genre:science-fiction": {
+      "label": "science fiction",
+      "kind": "genre",
+      "works": 3
+    },
+    "section:800": {
+      "label": "the 800 shelves",
+      "kind": "section",
+      "works": 2
+    },
+    "section:science-fiction": {
+      "label": "the science fiction shelves",
+      "kind": "section",
+      "works": 2
+    },
+    "series:hainish-cycle": {
+      "label": "Hainish cycle series",
+      "kind": "series",
+      "works": 1
+    },
+    "series:masterpieces-of-science-fiction": {
+      "label": "Masterpieces of science fiction series",
+      "kind": "series",
+      "works": 1
+    },
+    "topic:anarchism": {
+      "label": "anarchism",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:communal-living": {
+      "label": "communal living",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:dreams": {
+      "label": "dreams",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:dystopias": {
+      "label": "dystopias",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:life-on-other-planets": {
+      "label": "life on other planets",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:physicists": {
+      "label": "physicists",
+      "kind": "topic",
+      "works": 1
+    },
+    "topic:utopias": {
+      "label": "utopias",
+      "kind": "topic",
+      "works": 1
+    }
+  },
+  "works": [
+    {
+      "id": "S234C4827395",
+      "groupKey": "word_for_world_is_forest�guin_ursula_k_le�text_eng",
+      "title": "Word for World Is Forest",
+      "subtitle": null,
+      "author": "Ursula K. Le Guin",
+      "authorKey": "le guin, u",
+      "year": 2026,
+      "formats": [
+        "BK",
+        "EBOOK",
+        "EAUDIOBOOK"
+      ],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": "eng",
+      "callNumber": "ON ORDER",
+      "series": [
+        "Hainish Cycle"
+      ],
+      "facets": [
+        "bisac:science-fiction",
+        "genre:science-fiction",
+        "series:hainish-cycle"
+      ],
+      "found": {
+        "query": "le guin"
+      }
+    },
+    {
+      "id": "S234C1129065",
+      "groupKey": "dispossessed_an_ambiguous_utopia�le_guin_ursula_k�text_eng",
+      "title": "The Dispossessed",
+      "subtitle": "An Ambiguous Utopia",
+      "author": "Ursula K. Le Guin",
+      "authorKey": "le guin, u",
+      "year": 1974,
+      "formats": [
+        "BK"
+      ],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": "eng",
+      "callNumber": "SCIENCE FICTION LEG",
+      "series": [
+        "Masterpieces of science fiction"
+      ],
+      "facets": [
+        "genre:science-fiction",
+        "section:800",
+        "section:science-fiction",
+        "series:masterpieces-of-science-fiction",
+        "topic:anarchism",
+        "topic:communal-living",
+        "topic:dystopias",
+        "topic:life-on-other-planets",
+        "topic:physicists",
+        "topic:utopias"
+      ],
+      "found": {
+        "query": "le guin"
+      }
+    },
+    {
+      "id": "S234C2345281",
+      "groupKey": "lathe_of_heaven�le_guin_ursula_k�text_eng",
+      "title": "The Lathe of Heaven",
+      "subtitle": null,
+      "author": "Ursula K. Le Guin",
+      "authorKey": "le guin, u",
+      "year": 1997,
+      "formats": [
+        "BK"
+      ],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": "eng",
+      "callNumber": "SCIENCE FICTION LEG",
+      "series": [],
+      "facets": [
+        "genre:science-fiction",
+        "section:800",
+        "section:science-fiction",
+        "topic:dreams"
+      ],
+      "found": {
+        "query": "le guin"
+      }
+    }
+  ]
+}
