@@ -38,8 +38,10 @@ with one `<script type="application/json">` block carrying the record. **This is
 adapter does not fetch it (one work per two minutes is too slow), except a human spot check in a browser.
 
 **A search.** `https://tpl.bibliocommons.com/v2/search?searchType=keyword&query=<words>&page=<n>`. About 945 KB. One
-page for "le guin" carried **63 bibs, 20 distinct works** (`groupKey`), 42 with subject headings, 47 with a call
-number, 46 with `genreForm`. **This is the adapter's source.**
+page for "le guin" carried **63 bibs, 20 works** (`groupKey`), 42 with subject headings, 47 with a call
+number, 46 with `genreForm`. Those 20 `groupKey`s were 12 distinct titles: the catalogue files some editions under a
+second author spelling (`Guin, Ursula K. Le` beside `Le Guin, Ursula K., 1929-2018`), so one book can land in two
+groups (`RESEARCH.md`). **This is the adapter's source.**
 
 **New and on-order titles.** `https://tpl.bibliocommons.com/v2/browse/titles/new`. About 712 KB, 18 bibs per page,
 51,458 items. Many are on order, and nobody has read them yet, so they are a poor seed for a shelf. A page or two

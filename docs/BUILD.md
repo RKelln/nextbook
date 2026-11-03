@@ -154,7 +154,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   two uncached batch gets wait the delay; on-demand waits 5 s and refuses a fourth page; a cached get makes no call;
   the robots parser reads the real text saved as `tests/fixtures/tpl/robots.txt`.
 
-- [ ] **T1.2 Parse a page, and the fixtures** (A, S, H). Read first: `DATA.md` "The record, field by field".
+- [x] **T1.2 Parse a page, and the fixtures** (A, S, H). Read first: `DATA.md` "The record, field by field".
   `adapters/bibliocommons/parse.py`: `briefs(html) -> list[dict]`, the `briefInfo` of every bib, with
   `description`, `jacket` and `rating` **removed** here so they never travel further. Fetch one real page
   (`le guin`) on demand and write `tests/fixtures/tpl/briefs-le-guin.json`.

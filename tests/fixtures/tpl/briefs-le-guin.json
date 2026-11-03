@@ -1,0 +1,2820 @@
+[
+ {
+  "groupKey": "word_for_world_is_forest\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C10259420",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Word for World Is Forest",
+  "primaryLanguage": "eng",
+  "publicationDate": "2024",
+  "id": "S980C10259420",
+  "isbns": [
+   "9798891780323"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C331480",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "2010",
+  "id": "S980C331480",
+  "isbns": [
+   "9781481547703"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C11012370",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": "A Graphic Novel",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "2025",
+  "id": "S980C11012370",
+  "isbns": [
+   "9780063285774"
+  ],
+  "subjectHeadings": [
+   "Comic and Graphic Books",
+   "Fantasy",
+   "Folklore",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Science fiction"
+  ],
+  "callNumber": "FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C225521",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Women Clergy -- Juvenile Fiction.",
+   "Magic -- Juvenile Fiction.",
+   "JUVENILE FICTION / General.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "2.",
+    "sortName": "earthsea",
+    "volumeNumber": 2
+   },
+   {
+    "name": "Earthsea cycle ",
+    "volume": "[2]",
+    "sortName": "earthsea cycle",
+    "volumeNumber": 2
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1971",
+  "id": "S234C225521",
+  "isbns": [
+   "9781442459908"
+  ],
+  "subjectHeadings": [
+   "Women clergy Juvenile fiction.",
+   "Magic Juvenile fiction.",
+   "JUVENILE FICTION / General. bisacsh"
+  ],
+  "edition": "first edition"
+ },
+ {
+  "groupKey": "word_for_world_is_forest\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": "ON ORDER",
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S234C4827395",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "FICTION / Science Fiction / Action & Adventure"
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "Word for World Is Forest",
+  "primaryLanguage": "eng",
+  "publicationDate": "2026",
+  "id": "S234C4827395",
+  "isbns": [
+   "9781250343680"
+  ],
+  "subjectHeadings": [
+   "FICTION / Science Fiction / Action & Adventure bisacsh"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C1708304",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "2014",
+  "id": "S980C1708304",
+  "isbns": [
+   "9781626812628"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Literature",
+   "Science Fiction",
+   "Thriller"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "farthest_shore\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Science fiction"
+  ],
+  "callNumber": "813.54 L2453.109",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C164550",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Fantasy.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "v. 3.",
+    "sortName": "earthsea",
+    "volumeNumber": 3
+   },
+   {
+    "name": "The Earthsea trilogy ",
+    "volume": "v. 3",
+    "sortName": "earthsea trilogy",
+    "volumeNumber": 3
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C164550",
+  "isbns": [
+   "9781442459922"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction.",
+   "Fantasy."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "dispossessed_an_ambiguous_utopia\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1129065",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Life on Other Planets -- Fiction.",
+   "Communal Living -- Fiction.",
+   "Physicists -- Fiction.",
+   "Anarchism -- Fiction.",
+   "Utopias -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "An Ambiguous Utopia",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C1129065",
+  "isbns": [
+   "9780060125639",
+   "0060125632"
+  ],
+  "subjectHeadings": [
+   "Life on other planets Fiction.",
+   "Communal living Fiction.",
+   "Physicists Fiction.",
+   "Anarchism Fiction.",
+   "Utopias Fiction."
+  ],
+  "edition": "Second printing"
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C1425275",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "2012",
+  "id": "S980C1425275",
+  "isbns": [
+   "9780544084377"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Mythology",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "dispossessed\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C455741",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "2010",
+  "id": "S980C455741",
+  "isbns": [
+   "9780062025449"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Literature",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "ursula_k_le_guin_the_complete_earthsea_volume_1\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Fantasy fiction",
+   "Novels",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C4807004",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE",
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Wizards -- Fiction.",
+   "Magic -- Fiction.",
+   "Good and Evil -- Fiction.",
+   "Fantasy Fiction.",
+   "Novels."
+  ],
+  "series": [
+   {
+    "name": "Library of America ",
+    "volume": "400.",
+    "sortName": "library of america",
+    "volumeNumber": 400
+   }
+  ],
+  "format": "BK",
+  "subtitle": "The Complete Earthsea. Volume 1",
+  "title": "Ursula K. Le Guin",
+  "primaryLanguage": "eng",
+  "publicationDate": "2026",
+  "id": "S234C4807004",
+  "isbns": [
+   "9781598538502",
+   "1598538500"
+  ],
+  "subjectHeadings": [
+   "Wizards Fiction.",
+   "Magic Fiction.",
+   "Good and evil Fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2345281",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "1997",
+  "id": "S234C2345281",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [
+   "Graphic books",
+   "Fantasy fiction",
+   "Fantasy comics",
+   "Comic books, strips, etc",
+   "Action and adventure fiction",
+   "Action and adventure comics",
+   "Electronic books",
+   "Graphic novels",
+   "Comics (Graphics works)"
+  ],
+  "callNumber": "EBOOK",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C4809556",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Coming of Age -- Comic Books, Strips, Etc.",
+   "Fairy Tales -- Comic Books, Strips, Etc.",
+   "Folklore -- Comic Books, Strips, Etc.",
+   "Graphic Novels -- Comic Books, Strips, Etc.",
+   "Graphic Books.",
+   "Action and Adventure Fiction.",
+   "Fantasy Fiction.",
+   "Young Adult Fiction -- Comic Books, Strips, Etc.",
+   "Action and Adventure Comics.",
+   "Fantasy Comics.",
+   "Electronic Books.",
+   "Graphic Novels.",
+   "Comics (Graphics Works)"
+  ],
+  "series": [
+   {
+    "name": "Wizard of Earthsea ",
+    "volume": null,
+    "sortName": "wizard of earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "2025",
+  "id": "S234C4809556",
+  "isbns": [],
+  "subjectHeadings": [
+   "Coming of age Comic books, strips, etc.",
+   "Fairy tales Comic books, strips, etc.",
+   "Folklore Comic books, strips, etc.",
+   "Graphic novels Comic books, strips, etc.",
+   "Young adult fiction Comic books, strips, etc."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG ME",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C3712372",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Gender Identity -- Fiction.",
+   "Life on Other Planets -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1986",
+  "id": "S234C3712372",
+  "isbns": [
+   "9780441478101",
+   "0441478107"
+  ],
+  "subjectHeadings": [
+   "Gender identity Fiction.",
+   "Life on other planets Fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C499459",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1969",
+  "id": "S234C499459",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "813.54 L2453.2",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1309731",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "1971",
+  "id": "S234C1309731",
+  "isbns": [
+   "9781416556961"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "dispossessed_an_ambiguous_utopia\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1309775",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Dystopias -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Masterpieces of science fiction",
+    "volume": null,
+    "sortName": "masterpieces of science fiction",
+    "volumeNumber": null
+   }
+  ],
+  "format": "BK",
+  "subtitle": "An Ambiguous Utopia",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "1986",
+  "id": "S234C1309775",
+  "isbns": [],
+  "subjectHeadings": [
+   "Dystopias Fiction."
+  ],
+  "edition": "Collector's edition"
+ },
+ {
+  "groupKey": "ursula_k_le_guin_the_complete_earthsea_volume_2\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Fantasy fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C4807005",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE",
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Wizards -- Fiction.",
+   "Magic -- Fiction.",
+   "Good and Evil -- Fiction.",
+   "Fantasy Fiction."
+  ],
+  "series": [
+   {
+    "name": "Library of America ",
+    "volume": "401.",
+    "sortName": "library of america",
+    "volumeNumber": 401
+   }
+  ],
+  "format": "BK",
+  "subtitle": "The Complete Earthsea. Volume 2",
+  "title": "Ursula K. Le Guin",
+  "primaryLanguage": "eng",
+  "publicationDate": "2026",
+  "id": "S234C4807005",
+  "isbns": [
+   "9781598538519",
+   "1598538519"
+  ],
+  "subjectHeadings": [
+   "Wizards Fiction.",
+   "Magic Fiction.",
+   "Good and evil Fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2135040",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1968",
+  "id": "S234C2135040",
+  "isbns": [
+   "9780395276532",
+   "0395276535"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Fantasy fiction",
+   "Science fiction",
+   "Juvenile works",
+   "Fiction"
+  ],
+  "callNumber": "FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C263565",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Wizards -- Juvenile Fiction.",
+   "Dragons -- Juvenile Fiction.",
+   "Good and Evil -- Juvenile Fiction.",
+   "JUVENILE FICTION / Fantasy & Magic.",
+   "Dragons.",
+   "Fantasy Fiction.",
+   "Good and Evil.",
+   "Magic.",
+   "Wizards.",
+   "Fantasy Fiction.",
+   "Fiction.",
+   "Juvenile Works.",
+   "Fantasy Fiction.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea cycle ",
+    "volume": "bk. one",
+    "sortName": "earthsea cycle",
+    "volumeNumber": "NaN"
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "2012",
+  "id": "S234C263565",
+  "isbns": [
+   "9780547851396"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction.",
+   "Wizards Juvenile fiction.",
+   "Dragons Juvenile fiction.",
+   "Good and evil Juvenile fiction.",
+   "JUVENILE FICTION / Fantasy & Magic. bisacsh",
+   "Dragons. fast",
+   "Fantasy fiction. fast",
+   "Good and evil. fast",
+   "Magic. fast",
+   "Wizards. fast"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C3784283",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "2016",
+  "id": "S980C3784283",
+  "isbns": [
+   "9781501923807"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "always_coming_home\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG ME",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2345373",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "Always Coming Home",
+  "primaryLanguage": "eng",
+  "publicationDate": "1986",
+  "id": "S234C2345373",
+  "isbns": [
+   "9780553262803",
+   "0553262807"
+  ],
+  "subjectHeadings": [],
+  "edition": "Bantam edition"
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C3784285",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "2017",
+  "id": "S980C3784285",
+  "isbns": [
+   "9781501910111"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1164084",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C1164084",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2333175",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C2333175",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2336145",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea trilogy ",
+    "volume": "pt. 1",
+    "sortName": "earthsea trilogy",
+    "volumeNumber": 1
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1968",
+  "id": "S234C2336145",
+  "isbns": [
+   "9780575007178",
+   "0575007176"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "dispossessed\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C11154799",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": "A Novel",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "2024",
+  "id": "S980C11154799",
+  "isbns": [
+   "9780063445796"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Fiction",
+   "Literature",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "hainish_novels_and_stories_volume_1\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C3602147",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction, American.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Library of America ",
+    "volume": "296.",
+    "sortName": "library of america",
+    "volumeNumber": 296
+   }
+  ],
+  "format": "BK",
+  "subtitle": "Volume One",
+  "title": "Hainish Novels & Stories",
+  "primaryLanguage": "eng",
+  "publicationDate": "2017",
+  "id": "S234C3602147",
+  "isbns": [
+   "9781598535389"
+  ],
+  "subjectHeadings": [
+   "Science fiction, American."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction"
+  ],
+  "callNumber": "LHS FIC LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2108953",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Women Priests -- Juvenile Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "v. 2.",
+    "sortName": "earthsea",
+    "volumeNumber": 2
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1971",
+  "id": "S234C2108953",
+  "isbns": [
+   "9780689845369",
+   "0689845367"
+  ],
+  "subjectHeadings": [
+   "Women priests Juvenile fiction."
+  ],
+  "edition": "First edition"
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1170180",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1970",
+  "id": "S234C1170180",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ACCESSIBLE_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction"
+  ],
+  "callNumber": "FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2996466",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "JUVENILE"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Wizards -- Juvenile Fiction.",
+   "Large Type Books."
+  ],
+  "series": [
+   {
+    "name": "Lythway book",
+    "volume": null,
+    "sortName": "lythway book",
+    "volumeNumber": null
+   }
+  ],
+  "format": "LPRINT",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1986",
+  "id": "S234C2996466",
+  "isbns": [
+   "9780745103372",
+   "0745103375"
+  ],
+  "subjectHeadings": [
+   "Wizards Juvenile fiction.",
+   "Large type books."
+  ],
+  "edition": "Large print edition"
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1198571",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Dreams -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "1971",
+  "id": "S234C1198571",
+  "isbns": [
+   "9780684125299",
+   "0684125293"
+  ],
+  "subjectHeadings": [
+   "Dreams Fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2336467",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "v. [2].",
+    "sortName": "earthsea",
+    "volumeNumber": 2
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C2336467",
+  "isbns": [
+   "9780575013988",
+   "0575013982"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2336126",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C2336126",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "always_coming_home\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2368896",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "Always Coming Home",
+  "primaryLanguage": "eng",
+  "publicationDate": "1985",
+  "id": "S234C2368896",
+  "isbns": [
+   "9780060154561",
+   "006015456X"
+  ],
+  "subjectHeadings": [],
+  "edition": "First edition"
+ },
+ {
+  "groupKey": "farthest_shore\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1128206",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C1128206",
+  "isbns": [],
+  "subjectHeadings": [
+   "Magic Juvenile fiction."
+  ],
+  "edition": "first edition"
+ },
+ {
+  "groupKey": "farthest_shore\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C2360494",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1994",
+  "id": "S980C2360494",
+  "isbns": [
+   "9781449870010"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C2394243",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1994",
+  "id": "S980C2394243",
+  "isbns": [
+   "9781449881207"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C2232544",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "2000",
+  "id": "S980C2232544",
+  "isbns": [
+   "9781101665398"
+  ],
+  "subjectHeadings": [
+   "Classic Literature",
+   "Fantasy",
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "quarter_number_2\ufffdbertin_le_guin_marsh_roney_van_troyer_lowell\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Poetry"
+  ],
+  "callNumber": "811.5408 QUA ME",
+  "authors": [],
+  "metadataId": "S234C4187462",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "NONFICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "American Poetry -- 20th Century.",
+   "Poetry."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "Number 2",
+  "title": "Quarter",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C4187462",
+  "isbns": [],
+  "subjectHeadings": [
+   "American poetry 20th century."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "farthest_shore\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2345358",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1973",
+  "id": "S234C2345358",
+  "isbns": [
+   "9780575016033",
+   "0575016035"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Fantasy fiction",
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2333611",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction.",
+   "Fantasy Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "v.[2]",
+    "sortName": "earthsea",
+    "volumeNumber": 2
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1984",
+  "id": "S234C2333611",
+  "isbns": [
+   "9780606004428",
+   "0606004424"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "steering_the_craft\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Problems, exercises, etc"
+  ],
+  "callNumber": "808.02 LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C3346876",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "NONFICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Authorship -- Problems, Exercises, Etc.",
+   "Creative Writing -- Problems, Exercises, Etc.",
+   "Narration (Rhetoric) -- Problems, Exercises, Etc."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "A Twenty-first-century Guide to Sailing the Sea of Story",
+  "title": "Steering the Craft",
+  "primaryLanguage": "eng",
+  "publicationDate": "2015",
+  "id": "S234C3346876",
+  "isbns": [
+   "9780544611610",
+   "0544611616"
+  ],
+  "subjectHeadings": [
+   "Authorship Problems, exercises, etc.",
+   "Creative writing Problems, exercises, etc.",
+   "Narration (Rhetoric) Problems, exercises, etc."
+  ],
+  "edition": "First Mariner Books edition, Revised edition."
+ },
+ {
+  "groupKey": "dispossessed_an_ambiguous_utopia\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "813.54 L2453.6",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C372706",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "An Ambiguous Utopia",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C372706",
+  "isbns": [
+   "9780063414334"
+  ],
+  "subjectHeadings": [],
+  "edition": "first edition."
+ },
+ {
+  "groupKey": "farthest_shore\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C1055358",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "2012",
+  "id": "S980C1055358",
+  "isbns": [
+   "9781442480834"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C1055369",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "2012",
+  "id": "S980C1055369",
+  "isbns": [
+   "9781442480841"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2336768",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Gender Identity -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Masterpieces of science fiction",
+    "volume": null,
+    "sortName": "masterpieces of science fiction",
+    "volumeNumber": null
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1992",
+  "id": "S234C2336768",
+  "isbns": [],
+  "subjectHeadings": [
+   "Gender identity Fiction."
+  ],
+  "edition": "Collector's edition"
+ },
+ {
+  "groupKey": "dispossessed\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2368921",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Life on Other Planets -- Fiction.",
+   "Communal Living -- Fiction.",
+   "Physicists -- Fiction.",
+   "Anarchism -- Fiction.",
+   "Utopias -- Fiction.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "1975",
+  "id": "S234C2368921",
+  "isbns": [],
+  "subjectHeadings": [
+   "Life on other planets Fiction.",
+   "Communal living Fiction.",
+   "Physicists Fiction.",
+   "Anarchism Fiction.",
+   "Utopias Fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2334844",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C2334844",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "dispossessed\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2345525",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Dispossessed",
+  "primaryLanguage": "eng",
+  "publicationDate": "1974",
+  "id": "S234C2345525",
+  "isbns": [
+   "9780575016781",
+   "0575016787"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "farthest_shore\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2368779",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "3.",
+    "sortName": "earthsea",
+    "volumeNumber": 3
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1977",
+  "id": "S234C2368779",
+  "isbns": [
+   "9780553115994",
+   "0553115995"
+  ],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "lathe_of_heaven\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1128739",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Lathe of Heaven",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C1128739",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "AUDIOBOOKS_SPOKEN_WORD",
+   "ELECTRONIC_FORMATS",
+   "TALKING_BOOKS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C2393576",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "TEEN"
+  ],
+  "consumptionFormat": "LISTEN",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Earthsea",
+    "volume": null,
+    "sortName": "earthsea",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EAUDIOBOOK",
+  "subtitle": null,
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1992",
+  "id": "S980C2393576",
+  "isbns": [
+   "9781449881948"
+  ],
+  "subjectHeadings": [
+   "Fantasy",
+   "Young Adult Fiction"
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Fantasy fiction"
+  ],
+  "callNumber": "LHS AUX FIC LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2572874",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Wizards -- Juvenile Fiction.",
+   "Fantasy Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea trilogy ",
+    "volume": "pt. 1",
+    "sortName": "earthsea trilogy",
+    "volumeNumber": 1
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1971",
+  "id": "S234C2572874",
+  "isbns": [
+   "9780140304770",
+   "0140304770"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction.",
+   "Wizards Juvenile fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "always_coming_home\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Fiction"
+  ],
+  "callNumber": "FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C3763526",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Human Beings -- California, Northern -- Fiction.",
+   "Anthropology -- California, Northern -- Fiction.",
+   "Anthropology.",
+   "Human Beings.",
+   "California, Northern.",
+   "Fiction."
+  ],
+  "series": [
+   {
+    "name": "Library of America ",
+    "volume": "315.",
+    "sortName": "library of america",
+    "volumeNumber": 315
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "Always Coming Home",
+  "primaryLanguage": "eng",
+  "publicationDate": "2019",
+  "id": "S234C3763526",
+  "isbns": [
+   "9781598536034",
+   "1598536036"
+  ],
+  "subjectHeadings": [
+   "Human beings California, Northern Fiction.",
+   "Anthropology California, Northern Fiction.",
+   "Anthropology. fast",
+   "Human beings. fast",
+   "California, Northern. fast"
+  ],
+  "edition": "Author's expanded edition."
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2334813",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1969",
+  "id": "S234C2334813",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": "Book club edition"
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction",
+   "Fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C3461522",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Life on Other Planets -- Fiction.",
+   "FICTION / Science Fiction / General.",
+   "FICTION / Classics.",
+   "FICTION / Literary.",
+   "Science Fiction."
+  ],
+  "series": [
+   {
+    "name": "Penguin galaxy",
+    "volume": null,
+    "sortName": "penguin galaxy",
+    "volumeNumber": null
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "2016",
+  "id": "S234C3461522",
+  "isbns": [
+   "9780143111597"
+  ],
+  "subjectHeadings": [
+   "Life on other planets Fiction.",
+   "FICTION / Science Fiction / General. bisacsh",
+   "FICTION / Classics. bisacsh",
+   "FICTION / Literary. bisacsh"
+  ],
+  "edition": "Deluxe hardcover edition."
+ },
+ {
+  "groupKey": "left_hand_of_darkness\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2368815",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction, American.",
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Left Hand of Darkness",
+  "primaryLanguage": "eng",
+  "publicationDate": "1969",
+  "id": "S234C2368815",
+  "isbns": [],
+  "subjectHeadings": [
+   "Science fiction, American."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "tombs_of_atuan\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Science fiction"
+  ],
+  "callNumber": "SCIENCE FICTION LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1175945",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Science Fiction."
+  ],
+  "series": [],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Tombs of Atuan",
+  "primaryLanguage": "eng",
+  "publicationDate": "1972",
+  "id": "S234C1175945",
+  "isbns": [],
+  "subjectHeadings": [],
+  "edition": "Second printing"
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Fantasy fiction"
+  ],
+  "callNumber": "LHS AUX FIC LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C2572868",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Wizards -- Juvenile Fiction.",
+   "Fantasy Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea trilogy ",
+    "volume": "pt. 1",
+    "sortName": "earthsea trilogy",
+    "volumeNumber": 1
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1991",
+  "id": "S234C2572868",
+  "isbns": [
+   "9780140157765",
+   "014015776X"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction.",
+   "Wizards Juvenile fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "wizard_of_earthsea\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction",
+   "Fantasy fiction"
+  ],
+  "callNumber": "LHS FIC LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1540903",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction.",
+   "Wizards -- Juvenile Fiction.",
+   "Fantasy Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "1.",
+    "sortName": "earthsea",
+    "volumeNumber": 1
+   },
+   {
+    "name": "Earthsea trilogy ",
+    "volume": "pt. 1",
+    "sortName": "earthsea trilogy",
+    "volumeNumber": 1
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "A Wizard of Earthsea",
+  "primaryLanguage": "eng",
+  "publicationDate": "1992",
+  "id": "S234C1540903",
+  "isbns": [
+   "9780575007178",
+   "0575007176"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction.",
+   "Wizards Juvenile fiction."
+  ],
+  "edition": "Sixth impression."
+ },
+ {
+  "groupKey": "farthest_shore\ufffdle_guin_ursula_k\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "MODERN_FORMATS"
+  ],
+  "genreForm": [
+   "Juvenile fiction"
+  ],
+  "callNumber": "LHS FIC LEG",
+  "authors": [
+   "Le Guin, Ursula K."
+  ],
+  "metadataId": "S234C1582727",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [
+   "Magic -- Juvenile Fiction."
+  ],
+  "series": [
+   {
+    "name": "Earthsea ",
+    "volume": "3.",
+    "sortName": "earthsea",
+    "volumeNumber": 3
+   }
+  ],
+  "format": "BK",
+  "subtitle": "",
+  "title": "The Farthest Shore",
+  "primaryLanguage": "eng",
+  "publicationDate": "1973",
+  "id": "S234C1582727",
+  "isbns": [
+   "9780575016033",
+   "0575016035"
+  ],
+  "subjectHeadings": [
+   "Magic Juvenile fiction."
+  ],
+  "edition": null
+ },
+ {
+  "groupKey": "word_for_world_is_forest\ufffdguin_ursula_k_le\ufffdtext_eng",
+  "superFormats": [
+   "BOOKS",
+   "ELECTRONIC_FORMATS"
+  ],
+  "genreForm": [],
+  "callNumber": null,
+  "authors": [
+   "Guin, Ursula K. Le"
+  ],
+  "metadataId": "S980C515276",
+  "multiscriptAuthor": null,
+  "audiences": [
+   "ADULT"
+  ],
+  "consumptionFormat": "READ",
+  "contentType": "FICTION",
+  "multiscriptTitle": null,
+  "compositeSubjectHeadings": [],
+  "series": [
+   {
+    "name": "Hainish Cycle",
+    "volume": null,
+    "sortName": "hainish cycle",
+    "volumeNumber": null
+   }
+  ],
+  "format": "EBOOK",
+  "subtitle": null,
+  "title": "The Word for World Is Forest",
+  "primaryLanguage": "eng",
+  "publicationDate": "2010",
+  "id": "S980C515276",
+  "isbns": [
+   "9781429983549"
+  ],
+  "subjectHeadings": [
+   "Fiction",
+   "Science Fiction"
+  ],
+  "edition": null
+ }
+]
