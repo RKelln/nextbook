@@ -143,7 +143,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   *Done when:* the validator passes all three files; every work has at least three facets including a `section:`;
   `sections()` would give at least six sections (print them); the notes are the pack's words unchanged.
 
-- [ ] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "Pacing".
+- [x] **T1.1 The polite fetcher** (A, M, S). Read first: `DATA.md` "The rules of the house" and "Pacing".
   `adapters/bibliocommons/fetch.py`: `get(url, kind)` with `kind` `on-demand` or `batch`, the host built from
   `adapters/bibliocommons/libraries/tpl.json` (`subdomain`, `name`). Reads `robots.txt` once per run; refuses any
   path not under `/v2/search` or `/v2/browse/titles/new`, or that `robots.txt` disallows; paces by kind (`batch`

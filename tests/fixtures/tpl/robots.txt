@@ -1,0 +1,67 @@
+# See http://www.robotstxt.org/wc/norobots.html for documentation on how to use the robots.txt file
+User-agent: *
+
+  Crawl-delay: 120
+  Disallow: /layouts/
+  Disallow: /holds/select_hold/
+  Disallow: /item/report_match/
+  Disallow: /info/select_library/
+  Disallow: /item/digital_availability/
+  Disallow: /item/show_circulation_widget/
+  Disallow: /item/get_external_content/
+  Disallow: /item/full_record/
+  Disallow: /item/read_alike_list/
+  Disallow: /item/load_ugc_content/
+  Disallow: /item/syndetics_reviews
+  Disallow: /item/awards_and_series_list
+  Disallow: /item/bibs_from_isbns
+  Disallow: /item/show_circulation/
+  Disallow: /collection/add
+  Disallow: /bib/match/
+  Disallow: /list/new/my/
+  Disallow: /dashboard/browse/shelf_browse
+  Disallow: /session/back_to
+  Disallow: /header/state
+  Disallow: /v2/availability/
+  Disallow: /user/login
+
+  Allow: /*
+  Allow: /sitemap.xml
+
+  Sitemap: https://tpl.bibliocommons.com/sitemap.xml
+  Sitemap: https://tpl.bibliocommons.com/events/sitemap
+
+User-agent: Applebot
+
+  Crawl-delay: 120
+  Disallow: /layouts/
+  Disallow: /holds/select_hold/
+  Disallow: /item/report_match/
+  Disallow: /info/select_library/
+  Disallow: /item/digital_availability/
+  Disallow: /item/show_circulation_widget/
+  Disallow: /item/get_external_content/
+  Disallow: /item/full_record/
+  Disallow: /item/read_alike_list/
+  Disallow: /item/load_ugc_content/
+  Disallow: /item/syndetics_reviews
+  Disallow: /item/awards_and_series_list
+  Disallow: /item/bibs_from_isbns
+  Disallow: /item/show_circulation/
+  Disallow: /collection/add
+  Disallow: /bib/match/
+  Disallow: /list/new/my/
+  Disallow: /dashboard/browse/shelf_browse
+  Disallow: /session/back_to
+  Disallow: /header/state
+  Disallow: /v2/availability/
+  Disallow: /user/login
+
+  Allow: /*
+  Allow: /sitemap.xml
+
+User-agent: Yandex
+Disallow: /
+
+User-agent: YandexBot
+Disallow: /
