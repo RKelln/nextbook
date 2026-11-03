@@ -238,7 +238,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   *Done when:* a test per sentence shape in `ARCHITECTURE.md`; `isReason` rejects `""`, `"A small match."` and 201
   characters; `factsClause` on parts whose evidence is a shelf book contains no shelf title.
 
-- [ ] **T2.5 Links** (B, S, H). `core/links.js`: `linkFor(entryOrWork, library)`: the record URL when the work has a
+- [x] **T2.5 Links** (B, S, H). `core/links.js`: `linkFor(entryOrWork, library)`: the record URL when the work has a
   `recordId` (or an `id` and `library.recordUrl` is set), otherwise the search URL with title and author
   (`encodeURIComponent`, spaces as `+`).
   *Done when:* tests for a pack work, a pack work enriched by a find, a found work, a typed book, and a title with
