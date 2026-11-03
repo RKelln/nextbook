@@ -80,3 +80,52 @@ repo's reason to exist.
 so a subdomain on the residency's domain is not assumed.
 
 Forecloses: shipping a name that implies a partnership before there is one.
+
+## D12. The slice is built from search pages, at the house's pace (2026-11-03, measured)
+
+`robots.txt` asks for `Crawl-delay: 120`. A record page gives one work per request; a search page gives about twenty
+and carries the same `briefInfo`, call numbers included. The adapter fetches only `/v2/search` (and at most a page or two
+of new titles), honours the delay, caches every page, and never fetches record pages.
+
+Forecloses: per-record enrichment at build time, and "20 pages of new titles" as the main source (unread, often on
+order). Supersedes the source list in the first `BUILD.md`.
+
+## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, needs Ryan's yes)
+
+The first `AGENTS.md` said "one HTML file, no build step". For a foundation that participants extend, one large file is
+the most fragile thing a beginner's agent can edit, and the residency starter is already 119 KB. Search Desk's answer
+works: one file per feature behind a contract, classic `<script src>` so the folder opens from `file://`, and a
+standard-library `tools/build.py` that packs one file for carrying home and hosting. Nothing needs the build to run.
+
+Forecloses: editing the single file by hand. The take-home is still one file, made by the build.
+
+## D14. A mode chooses; the shell draws and checks (2026-11-03, proposed by Claude, needs Ryan's yes)
+
+A mode returns `{picks: [{id, why}], note}` and draws nothing. The shell renders every result the same way, builds the
+links, and enforces rules 5 and 6 (ids exist, every pick has a reason, an empty result says why) for every mode rather
+than trusting each one.
+
+Forecloses: per-mode screens in the first release. A custom view is a later slot, added to core, not improvised in a
+mode.
+
+## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, needs Ryan's yes)
+
+Facets come from the catalogue (topics, BISAC, genre, call-number sections, series). What the catalogue does not carry
+(mood, pace, a one-line note) lives in `data/tags.json`, keyed by `groupKey`, hand-written, seeded from the W13 pack.
+Modes that need mood or pace say how many untagged works they skipped.
+
+Forecloses: inventing mood or length for works nobody tagged.
+
+## D16. The example mode is not on the menu (2026-11-03, proposed by Claude, needs Ryan's yes)
+
+The starter ships `more-by` (more by authors you rated well) as the contract's worked example, and no menu mode. Survey,
+journey and challenge are reference builds in `reference/modes/`, packed into the demo file only. Same reasoning as Search
+Desk's example feature and the residency kit keeping the demo out of the seed set: an agent that can see the finished
+mode copies it.
+
+Forecloses: shipping a menu mode in the starter.
+
+## D17. Links come from templates in the slice (2026-11-03)
+
+A work links to `library.recordUrl` with its id; a typed book links to `library.searchUrl` with its title and author.
+Both templates live in `slice.json`, written by the adapter, so the app never contains a library's hostname (D10).

@@ -1,7 +1,11 @@
-# Raw payloads are fetched, never committed. The slice is the artifact.
+# Raw catalogue pages are fetched into a local cache, never committed. The slice is the artifact.
+.cache/
 data/raw/
 *.tmp
 *.part
+
+# Built copies are made by tools/build.py, never edited, never committed.
+dist/
 
 # Python
 __pycache__/

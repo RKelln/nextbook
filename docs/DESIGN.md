@@ -39,33 +39,22 @@ The mode changes the middle, not the ends.
 ## The mode menu
 
 A mode is a pair: what goes in, what shape comes out. Nothing is ranked; participants choose, and the instruction to
-them is that any of these is a full answer.
+them is that any of these is a full answer. Each has a buildable brief in `docs/modes/`, with a rule, checks and what
+usually goes wrong.
 
-**Ranked list, nearest neighbour to the shelf**
-- **Survey.** One candidate from each part of the library the shelf does not visit. Coverage, not similarity. Needs the
-  subject terms and a coverage rule.
-- **Time-box.** "Something for the commute." Filter on format, year and pace, then nearest. Needs a length or pace
-  signal, which the catalogue does not give, so this one uses our own tags on a curated pack.
+- **Off the shelf, on purpose:** survey (one from each part of the library the shelf never visits), blind date (three
+  places the shelf never goes, no scores: the rule is the product).
+- **An ordered path:** journey (from a book they loved to one they have been avoiding), ladder (beginner to deep on one
+  subject), club season (six weeks for a group).
+- **Deliberate disagreement:** challenge (same subject, the other side: fiction against non-fiction, or another mood).
+- **A constraint a vendor cannot take:** time-box (something to listen to on the commute).
+- **Someone else's shelf:** swap (two exported shelves, what each should read from the other's).
+- **An outside text as the seed:** event hook, news diet. Words become subjects **from the list**, by hand or through
+  the model box, and the rules take it from there.
 
-**Ordered path**
-- **Journey.** From a book they loved to a book they have been avoiding. Each step is a neighbour of the last, and the
-  last step is the hardest. A greedy walk over the same similarity function. Output is a sequence with a reason per step.
-- **Ladder.** Beginner to expert on one subject, ordered by a difficulty tag. Needs subject terms plus difficulty.
-
-**Deliberately not the nearest neighbour**
-- **Challenge.** Same subject, opposing frame or mood: books that would argue with them. Needs a stance tag, hand-applied
-  and honestly imperfect.
-- **Blind date.** One from each of three places the shelf never goes, one line each, no scores. The rule is the product.
-
-**Someone else's shelf**
-- **Swap.** Two exported shelves: what each should read from the other's. Trade two files; the room can literally do it.
-- **Club season.** A group's shared shelf becomes a six-week sequence with a line per week. The book-club shape.
-
-**An outside text as the seed**
-- **Event hook.** An event at a branch becomes the seed. One model step maps the event text to themes; the rules map
-  themes to candidates.
-- **News diet.** Headlines to themes to books, same seam, with the honest warning that text-to-theme is where models are
-  weakest.
+The foundation ships one example mode that is **not** on the menu (`more-by`, other books by authors you rated well),
+so the contract has a worked example without handing anyone their answer. Survey, journey and challenge are built as
+reference modes for the projector and kept out of the starter.
 
 ## Reasons, not scores
 
@@ -119,9 +108,10 @@ working, and that is the residency's actual product.
 
 1. Product name and domain. `nextbook` is the working repo name only. Anything implying the library endorses it needs
    the library's agreement first, which is why a TPL-branded subdomain is not assumed here.
-2. Whether the hosted copy fetches anything at runtime. Thin says no, except optionally one Wikipedia or Open Library
-   lookup for a title outside the slice, cached in the browser.
-3. Whether a curated pack ships with the app (30 books with our own one-liners) or the app starts empty against the
-   library. The pack makes a demo possible offline; empty is purer.
-4. Which modes ship first. My recommendation is survey and journey, because between them they exercise coverage,
-   sequencing and reasons without needing stance tags.
+2. Whether the hosted copy fetches anything at runtime. **Proposed (2026-11-03):** not in the first release. An optional
+   Open Library lookup for a typed book is a P1 task, off by default.
+3. A curated pack or an empty start. **Proposed (2026-11-03):** both, separated. The catalogue slice is the list; the
+   W13 pack's 30 books become our own words (`data/tags.json`: mood, pace, a note) and the practice shelf. The own shelf
+   starts empty.
+4. Which modes ship first. **Proposed (2026-11-03):** none on the menu; the example `more-by` ships, and survey, journey
+   and challenge are reference builds, because between them they exercise coverage, sequencing and inversion.

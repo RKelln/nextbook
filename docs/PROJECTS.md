@@ -9,8 +9,14 @@ A job-search desk that runs from plain files in a browser: features as single fi
 copy that works with an agent, a built single file for hosting, and a test suite that skips (loudly) when a file is
 missing.
 
-**Take:** the single-file app pattern, the per-feature contract with its own check file, the "paste packet" route for
-people with only a chat window, and the read-me-first `AGENTS.md`. This repo's app should feel like a smaller cousin.
+**Take:** the per-feature contract with its own check file (here, the mode contract), classic scripts that open from
+`file://`, a stdlib build that packs one file, the in-browser self-test, the "paste packet" route for people with only a
+chat window, the example feature nobody was asked to build, and the read-me-first `AGENTS.md` with its rules for small
+models. This repo's app should feel like a smaller cousin.
+
+Note: Search Desk keeps its data in `data/*.js` files that set globals, not in `application/json` script blocks. An
+earlier version of this repo's `AGENTS.md` said otherwise. The JSON-block pattern is the residency starter's (below),
+and here it is used only in the built single file.
 **Do not take:** its size. Search Desk is a platform; nextbook is one screen and a shortlist.
 
 ## tpl-finder
@@ -24,6 +30,18 @@ Location: `~/Documents/Projects/tpl-finder-1` (and two earlier variants).
 **Take:** the events adapter and its traps, the travel-time cache keyed by branch and hour, and the "ids only, checked
 against the list" guard that goes with any model picking.
 **Do not take:** its Python runtime. The workshop app is a file in a browser; the finder is a program for a projector.
+
+## The W13 starter (residency repo)
+
+`~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/seed_src/`. A working single-file shelf app built
+from a template, with a 30-book reading pack (mood, pace, themes, a note in our own words) and an events snapshot.
+It runs the first W13 session as it is.
+
+**Take:** the pack, which becomes `data/tags.json` and the practice shelf (D15); the rating weights; the
+`profile`/`score`/`explain` shape in its `discovery.js`; the template-builds-starter-and-demo idea; `fetch_events.py`
+for the P1 events snapshot.
+**Do not take:** the hand-tagged genres and themes as facets (the catalogue's subjects replace them), or search-page
+links for books that have a record id.
 
 ## get2know and standin
 

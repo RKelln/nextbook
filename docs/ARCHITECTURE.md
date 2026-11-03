@@ -1,106 +1,260 @@
 # Architecture
 
-Thin on purpose. The app decides and routes; the library owns the record.
+Thin on purpose. The app decides and routes; the library owns the record. Rewritten 2026-11-03 from the first draft:
+same thesis, now with the shapes pinned down so a task can be built without making a design call.
 
-## The pieces
-
-```
-  shelf.json (the person)      slice.json (the catalogue)        prompt + paste (the model)
-        |                              |                                  |
-        +--------------+---------------+----------------------------------+
-                       |
-               nextbook.html  (one file, offline, no tracking)
-                       |
-                 a link out to tpl.bibliocommons.com/v2/record/<id>
-```
-
-## The app
-
-One HTML file. Style in `<style>`, code in `<script>`, data in its own `<script type="application/json">` blocks parsed
-inside `try`/`catch`, with a plain sentence shown on failure. It opens from a folder, works with the network off, and
-keeps the person's shelf in `localStorage`.
-
-Two shelves, never mixed:
-
-- `reading-life-v1` is the person's own shelf.
-- `reading-life-practice-v1` is the practice shelf, pre-filled with the example books, with a banner, a switch and a
-  reset button.
-
-Practice mode is prebuilt, not a participant exercise. It exists so a person can try something destructive without
-risking their real shelf, and so a workshop can be tested and cleared without touching anyone's data.
-
-## The slice
-
-`slice.json` is the catalogue, cut down to what the app can carry: one entry per work, keyed by `groupKey`, holding the
-record id, title, author, year, format, audience, content type, normalised subject facets, and our own one-liner where
-we wrote one. **No publisher blurb, no covers.**
-
-A slice is a build artifact with a `fetched` date, and the app shows that date wherever it uses it. It is produced by a
-script, committed with the app, and never edited by hand.
-
-Size: about 800 bytes an entry, so 300 works is a quarter of a megabyte and 3,000 is 2.5 MB. Past that it stops being a
-file and becomes a small endpoint, and the record shape stays the same.
-
-## The adapter
-
-The only part that knows which library it is talking to. One interface:
+## The picture
 
 ```
-search(query, page)      -> [brief]
-record(recordId)         -> brief
-newTitles(page)          -> [brief]
-recordUrl(recordId)      -> the page a person borrows from
+ build time (a developer's machine, network on)          run time (anyone's browser, network off)
+
+ adapters/tpl/  ──fetch search pages──▶ .cache/          app/index.html
+      │            (robots.txt, 120 s apart)               ├─ core/      the foundation
+      ▼                                                    ├─ modes/     one file each: choose six, say why
+ data/slice.json  ◀── normalise, dedupe, drop blurbs       ├─ data/      slice, tags, practice (generated .js)
+ data/tags.json   ◀── our own words, by hand               └─ localStorage: two shelves, never mixed
+ data/practice.json                                                │
+      │                                                            ▼
+      └── tools/gen_data.py ──▶ app/data/*.js          a link out to the library's own page for the book
 ```
 
-`brief` is the normalised shape above. An adapter is a build-time producer (a script) today; if a host wants live
-queries, the same interface becomes a small HTTP endpoint and nothing else changes. `adapters/tpl/` is the first
-implementation; another library system means another adapter, not a rewrite.
+Nothing at run time talks to the library. It cannot: the catalogue sends no CORS header (measured, `RESEARCH.md`).
 
-Events, if a mode uses them, come through the same idea: one adapter, one normalised shape, built ahead.
+## The data files
 
-## The scoring core
+All three are canonical JSON in `data/`, validated by `data/*.schema.json`, and turned into
+`app/data/<name>.js` (`Nextbook.data.put('<name>', {...})`) by `tools/gen_data.py` so the folder works from
+`file://`. `tools/build.py` inlines them as `<script type="application/json" id="nb-<name>">` blocks instead.
+`Nextbook.data.get(name)` reads whichever is present, inside `try`/`catch`, and returns `null` on failure; the shell
+then shows a plain sentence ("The book list did not load. The rest of the app still works.").
 
-No embeddings. At this size they would be unexplainable and slower to reason about than what they replace.
+### `slice.json`, the catalogue cut down
 
-- A **profile** is a weighted count of facets over the shelf: loved is 3, liked 2, finished unrated 1, reading a half,
-  not-for-me negative. Author affinity is tracked separately.
-- **Similarity** is the weighted overlap between a candidate's facets and the profile, normalised by the candidate's
-  facet count so a heavily-catalogued book does not win by having more labels.
-- Every contribution is kept, which is what makes the **reason**: the two strongest contributors become the sentence.
-- Modes consume the same core differently: rank it, walk it into a sequence, invert it, or apply it to someone else's
-  shelf.
+Produced by `adapters/tpl/build_slice.py`. Never edited by hand.
 
-## The model seam
+```json
+{
+  "schema": "nextbook/slice-1",
+  "library": {
+    "name": "Toronto Public Library",
+    "recordUrl": "https://tpl.bibliocommons.com/v2/record/{id}",
+    "searchUrl": "https://tpl.bibliocommons.com/v2/search?searchType=keyword&query={q}",
+    "idPattern": "^S\\d+C\\d+$"
+  },
+  "fetched": "2026-11-10",
+  "sources": [{ "url": "https://tpl.bibliocommons.com/v2/search?...", "fetched": "2026-11-10", "bibs": 63, "works": 20 }],
+  "facets": {
+    "topic:wizards":        { "label": "wizards",                 "kind": "topic",   "works": 7 },
+    "bisac:science-fiction":{ "label": "science fiction",         "kind": "bisac",   "works": 31 },
+    "section:500":          { "label": "the science shelves (500s)", "kind": "section", "works": 12 }
+  },
+  "works": [
+    {
+      "id": "S234C4805630",
+      "groupKey": "turbulent_sun_...",
+      "title": "The Turbulent Sun",
+      "subtitle": "A Natural History of Our Cosmic Origins and Future",
+      "author": "Leon Golub",
+      "authorKey": "golub, l",
+      "year": 2026,
+      "formats": ["BK"],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": "eng",
+      "callNumber": "523.58 GOL",
+      "series": [],
+      "facets": ["topic:heliosphere-astrophysics", "topic:solar-activity", "topic:sun", "section:500", "genre:history"]
+    }
+  ]
+}
+```
 
-Exactly two jobs, both optional, both with the same guard.
+- **One entry per work** (`groupKey`). `id` is the record of the preferred manifestation: `BK`, then `LPRINT`, then
+  `EBOOK`, then `EAUDIOBOOK`, then anything. `formats` lists every format seen for the work.
+- **`facets` is a dictionary** of every facet that survived, with a display `label` (used in reason sentences) and how
+  many works carry it. A facet carried by only one work cannot match anything and is dropped at build time.
+- **The URL templates live in the slice**, not in the app. That is what keeps the app library-generic (D10). The app
+  never contains `bibliocommons`.
+- **No `description`, no `jacket`, no `rating`.** The build fails if any appears.
 
-1. **Text to facets.** An event description, a headline, or a half-formed wish becomes a handful of facet labels. Output
-   is labels only, and the rules take it from there.
-2. **Argue between finalists.** Given six ids with their facts and our one-liners, pick two and give one sentence each.
+How raw subject headings become facets is specified in `DATA.md`, "From headings to facets".
 
-The guard: the model answers with ids that must already exist. The app checks every id against the shortlist, drops what
-it does not recognise, and says which ones it dropped. Dates, titles and authors are never taken from the model.
+### `tags.json`, our own words
 
-With no model available, the app still works: the six candidates and their rule-built reasons stand on their own. The
-argument is an enhancement, not a dependency.
+Hand-written, keyed by `groupKey`. This is where the things the catalogue does not carry live: mood, pace, and a
+one-line note in our own words. Seeded from the W13 reading pack (30 books with mood, pace and a note, written for the
+workshop rather than copied from a publisher).
 
-## Files in and out
+```json
+{
+  "schema": "nextbook/tags-1",
+  "vocab": { "mood": ["quiet","dark","hopeful","funny","tense","warm","strange","sad"], "pace": ["slow","steady","fast"] },
+  "works": {
+    "dispossessed_...": { "mood": ["quiet","strange"], "pace": "slow",
+                          "note": "Two worlds, one that owns things and one that does not, and a physicist stuck between them." }
+  }
+}
+```
 
-- `shelf.json` out and back in: the person's list, portable, theirs.
-- `picks.json` the six with reasons, so a result can be saved, shared or handed to an agent.
-- `path.json` for a journey or a ladder: an ordered list with a reason per step.
-- `club.json` for a shared shelf: several members' shelves folded into one, which is what a book club season needs.
+At load, tags become facets on the work (`mood:quiet`, `pace:slow`) with labels "quiet books", "a slow pace". Modes that
+need mood or pace (challenge, time-box) work only on tagged works and must say how many untagged works they skipped.
 
-One shape, several verbs. A mode that cannot express itself as one of these is probably two modes.
+### `practice.json`, the practice shelf
 
-## Hosted copy
+A list of shelf entries (shape below) pointing at slice works, with states and ratings already set, so the app has
+something to show in its first second. Built from the W13 pack's books as matched into the slice.
 
-The same file, served from a static host, with no accounts and no server storage. The only runtime network call
-permitted is an optional Wikipedia or Open Library lookup for a title that is not in the slice, cached in the browser,
-and the app says so before it happens. The catalogue is never fetched at runtime, because it cannot be: there is no CORS
-header.
+## The shelf
+
+Kept in `localStorage`. Two keys, never mixed:
+
+- `nextbook-own-v1`, the person's own shelf.
+- `nextbook-practice-v1`, the practice shelf: filled from `practice.json` on first use, with a banner that says it is
+  practice, a switch to the own shelf, and a reset that refills it. Reset never touches the own key.
+
+```json
+{
+  "schema": "nextbook/shelf-1",
+  "exported": "2026-11-10T14:03:00Z",
+  "entries": [
+    { "key": "w:dispossessed_...", "id": "S1234C567", "groupKey": "dispossessed_...",
+      "title": "The Dispossessed", "author": "Ursula K. Le Guin",
+      "state": "read", "rating": "loved", "updated": "2026-11-10T14:00:00Z" }
+  ]
+}
+```
+
+- `state` is one of `want`, `reading`, `read`, `stopped`. `rating` is `loved`, `liked`, `ok`, `not-for-me` or `null`.
+- `key` is `w:<groupKey>` for a book from the slice, and `t:<normalised title>|<normalised author>` for a book typed in.
+  A typed book that matches a slice work (same normalised title and author) is linked to it on entry.
+- A typed book with no match keeps `id` and `groupKey` null. It has no facets, so it does not move the profile, and it
+  still gets a link: the library's search page for its title and author.
+- **Export** writes this shape to `nextbook-shelf-<date>.json`. **Import** merges by `key`; on a clash, the newer
+  `updated` wins, and the app says how many it added, changed and kept.
+
+### Weights
+
+| Entry | Weight |
+|---|---|
+| rating `loved` | 3 |
+| rating `liked` | 2 |
+| rating `ok`, or state `read` with no rating | 1 |
+| state `reading` | 0.5 |
+| state `stopped` with no rating | -1 |
+| rating `not-for-me` (any state) | -2 |
+| state `want` | 0 (it is a wish, not evidence; modes may use it as a target) |
+
+## The scoring core (`core/score.js`, pure)
+
+No embeddings (D5). Everything here is a plain function with a unit test.
+
+- `profile(entries)` returns `{ weights: {facet: number}, authors: {authorKey: number}, evidence: {facet: [key...]}, rated: n }`.
+  Each entry adds its weight to every facet of its work, and to its author. `evidence` remembers which shelf entries
+  produced each facet, so a reason can name a book.
+- `score(work, profile)` returns `{ score, parts: [{facet, label, weight}] }`. The facet part is the sum of
+  `profile.weights[f] * kindWeight(f)` over the work's facets, divided by `sqrt(number of facets)` so a heavily
+  catalogued work does not win on label count (the first draft divided by the count, which punished well-catalogued
+  books too hard). The author part is `2 * profile.authors[authorKey]`, as its own entry in `parts`. Negative parts
+  are kept: they explain a low score.
+- `kindWeight`: `topic` 1, `genre` 1, `bisac` 0.75, `series` 1.5, `mood` 1, `pace` 0.5, `section` 0.5,
+  `audience` 0. One table in one place, so a participant can change it and see what moves.
+- `similar(a, b)` returns `{ score, shared: [facet...] }` between two works: the same weighted overlap, symmetric. Used
+  by walks (journey, ladder).
+- `sections(works)` groups works by their `section:` facet (Dewey hundreds, or the fiction shelf words). Survey and
+  blind date use it, because "a part of the library you never visit" is literally a shelf.
+
+Ties break by `id`, so the same shelf always gives the same six.
+
+## Reasons (`core/reason.js`, pure)
+
+`reason(parts, opts)` turns the two strongest positive parts into one sentence:
+
+- author: "You rated Ursula K. Le Guin well already."
+- two facets: "Matches books about wizards and science fiction on your shelf."
+- one facet with evidence: "Shares the Earthsea series with A Wizard of Earthsea, which you loved."
+- negative evidence, when a mode asks for it: "Not much like your shelf, which is the point: you have no history."
+
+Modes may write their own sentence, but it must name evidence (a facet label, a book, an author or a rule). The
+contract check rejects an empty `why` and the stock phrase "a small match". A reason is at most 200 characters.
+
+## Modes (`app/modes/`, the participants' slot)
+
+A mode is one file that registers one object. The full contract, with an example, is `docs/CONTRACT.md`; the shape:
+
+```js
+Nextbook.mode({
+  id: 'more-by', name: 'More by them', purpose: 'Other books by authors you rated well.',
+  shape: 'list',                 // 'list' or 'path'
+  inputs: [],                    // optional: [{id:'seed', kind:'book'|'shelf-book'|'facet'|'text'|'number', label}]
+  strings: { ... },
+  logic: { ... },                // pure helpers, tested by the mode's check file
+  choose(ctx, input) { return { picks: [{ id, why, group?, step? }], note? }; }
+});
+```
+
+A mode **does not draw anything**. The shell draws every result the same way: six cards (or an ordered path), the
+reason on each, the library link, the model box. That keeps a beginner's file small, makes every mode comparable at
+show-and-tell, and lets the shell enforce the rules instead of trusting each mode:
+
+- every `id` must exist in the slice; unknown ids are dropped and named on screen;
+- every pick needs a `why`; a pick without one is dropped and named;
+- at most six picks, list or path, no repeats, nothing already on the shelf unless the mode says `allowShelf`;
+- no picks and no `note` is an error the person sees: "This mode found nothing and did not say why."
+
+`ctx` is the only thing a mode touches: the slice, the shelf, the profile, `score`, `similar`, `reason`, `sections`,
+`labelOf`, `tagsOf`, a seeded `random()` (so blind date is repeatable in a test), other imported shelves (swap, club),
+and `t()` for strings. It has no DOM and no storage.
+
+`app/modes/list.js` lists the modes to load and the planned ones. A planned mode with no file shows as a stub card:
+its name, its purpose, and "Not built yet. The brief is in docs/modes/<id>.md."
+
+## The model seam (`core/seam.js`)
+
+Optional everywhere. The app is complete with the box never touched. No keys and no API calls: the route is copy a
+prompt, paste it into any chat, paste the answer back. Two jobs, one guard.
+
+1. **Argue between finalists.** `finalistsPrompt(result, profile)` writes the six as lines of
+   `id | title | author | year | facet labels | the rule's reason`, plus the profile's top five facet labels, and asks
+   for exactly two lines back: `<id>: <one sentence>`. **The shelf's titles are not in the prompt.**
+2. **Text to facets.** `labelsPrompt(text, facetLabels)` asks a model to choose up to four labels **from the slice's
+   own facet list** for a piece of text (an event, a headline, a wish). Event hook and news diet use it.
+
+`parseFinalists(answer, result, idPattern)` and `parseLabels(answer, facets)` keep what matches and return
+`{ kept, dropped, reason }`. Anything that looks like an id but is not one of the six is dropped and named. An answer
+with nothing valid says so. Titles, authors, years and links in the answer are ignored: the card shows the slice's.
+
+## Links (`core/links.js`, pure)
+
+- A work in the slice: `library.recordUrl` with `{id}`. That page holds availability, formats, the hold button, and
+  the library's own suggestions, and the app says so once, near the results.
+- A typed book: `library.searchUrl` with `{q}` = title and author, URL-encoded.
+
+Never stored; always derived.
+
+## The shell (`core/shell.js`)
+
+Three screens behind the address hash, so a link or a reload lands in the same place:
+
+- `#shelf`: the practice banner and switch, add a book (search the slice by title or author first, type it in
+  second), the list with state and rating controls, export and import.
+- `#find` (the default): the loaded modes as cards, the chosen mode's inputs, its result, the model box.
+- `#selftest`: runs every loaded mode's checks and the standard shelves in the browser, and lists data load status.
+
+## Packing
+
+- `tools/build.py` writes `dist/nextbook.html`: one file, every script and style inlined, data in JSON blocks, no
+  network request of any kind.
+- `tools/build.py --starter` writes `dist/starter/`, the workshop folder: `app/` with only the example mode loaded and
+  the menu as planned stubs, `docs/CONTRACT.md`, `docs/modes/`, and no `reference/`, no `tests/`, no `adapters/`, no
+  `docs/BUILD.md`. The session's own brief is added by the workshop kit, not by this repo.
+
+## Hosted copy (later)
+
+The same single file on a static host. The only runtime network call ever permitted is an optional Open Library
+lookup for a typed book outside the slice (CORS `*`, measured), off by default, and the app says what it will send
+before it sends it. Not in the first release.
 
 ## What the thin build deliberately lacks
 
-Covers, blurbs, availability counts, and live search. Each is on the library's page, one click away, and each is a
+Covers, blurbs, availability counts and live search. Each is on the library's page, one click away, and each is a
 copyright or a scraping problem we do not need to have.

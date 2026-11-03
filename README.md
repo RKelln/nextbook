@@ -8,7 +8,7 @@ Working name. The product name and the domain are Ryan's call, not this file's.
 ## The shape in five lines
 
 1. The person keeps a shelf: what they have read, are reading, want, and how they rated it.
-2. The app narrows the catalogue to six candidates with a cheap, explainable rule.
+2. A mode narrows the library's list to six candidates with a cheap rule, and says why for each.
 3. A model argues for two of the six, in one sentence each, using only the six it was given.
 4. The person decides.
 5. Every candidate links out to the library's record page, where availability, formats, the hold button and the
@@ -24,9 +24,11 @@ in the cloud.
 | `README.md` | this file: the promise and the boundaries |
 | `AGENTS.md` | read this first if you are an agent building here |
 | `docs/DESIGN.md` | the product: three jobs, the mode menu, the output contract, what we refuse |
-| `docs/DATA.md` | what the library catalogue actually gives you, measured, with the traps |
-| `docs/ARCHITECTURE.md` | thin router: single file, adapter, cache, model seam, file formats |
-| `docs/BUILD.md` | the build order for a fresh session, with acceptance checks |
+| `docs/ARCHITECTURE.md` | the shapes: data files, shelf, scoring, reasons, modes, model seam, packing |
+| `docs/DATA.md` | what the library catalogue actually gives you, measured, with the traps and the facet rules |
+| `docs/CONTRACT.md` | how to write a mode: the one file a participant's agent needs |
+| `docs/modes/` | the mode menu, one buildable brief per mode |
+| `docs/BUILD.md` | the task list for building the foundation, with checks |
 | `docs/DECISIONS.md` | the calls already made, with dates and provenance |
 | `docs/RESEARCH.md` | the measurements: URLs, statuses, sizes, licences |
 | `docs/PROJECTS.md` | sibling projects to borrow from, and what not to borrow |
@@ -46,9 +48,9 @@ in the cloud.
 
 ## Status
 
-Design phase, 2026-11-03. No application code yet, by choice: this repo exists so a fresh session can build from a
-settled design rather than rediscover it. Every measurement in `docs/` was taken on 2026-11-03 from this machine and
-carries its URL, so it can be re-checked.
+Design and plan, 2026-11-03. No application code yet. The foundation is built task by task from `docs/BUILD.md`;
+the modes are left as briefs for people to build. Every measurement in `docs/` carries its URL and date so it can be
+re-checked.
 
 ## Licence
 
