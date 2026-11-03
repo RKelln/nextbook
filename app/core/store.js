@@ -1,10 +1,11 @@
 'use strict';
-// The shelf: kept in this browser only, in three keys that are never mixed.
+// The shelf: kept in this browser only, in four keys that are never mixed.
 //
 //   nextbook-own-v1       the person's own shelf
 //   nextbook-practice-v1  the practice shelf, filled from data/practice.js on first use
 //   nextbook-others-v1    friends' shelves, each an exported file added under a name
 //   nextbook-mode-v1:<id> one per mode: its last inputs and its shuffle seed
+//   nextbook-which-v1     the shelf last in use: 'own' or 'practice', one plain value
 //
 // A friend's shelf is never merged into the person's own; importing a file merges into the
 // shelf in use. On a key clash the newer `updated` wins and a tie keeps ours (the rule in
@@ -17,8 +18,10 @@
 //   var store = Nextbook.store.open(storage);
 //   store.persistent        true when this browser is really saving
 //   store.which()           'own' or 'practice' (practice is the default)
-//   store.use(name)         switch, returning the shelf now in use; use('own') is refused
-//                           in a workshop copy, which leaves 'practice' and says so by return
+//   store.use(name)         switch, returning the shelf now in use. The choice is written to
+//                           nextbook-which-v1, so the next visit opens on that shelf; use('own')
+//                           is refused in a workshop copy, which leaves 'practice' and says so
+//                           by return
 //   store.shelf()           the entries in use
 //   store.own(), store.practice(), store.practiceReset()
 //   store.add(entry)        -> {added, changed, kept}
@@ -43,6 +46,7 @@
   var OWN = 'nextbook-own-v1';
   var PRACTICE = 'nextbook-practice-v1';
   var OTHERS = 'nextbook-others-v1';
+  var WHICH = 'nextbook-which-v1';
   var MODE_PREFIX = 'nextbook-mode-v1:';
 
   var SHELF_SCHEMA = 'nextbook/shelf-1';
@@ -51,11 +55,21 @@
   var STATES = { want: 1, reading: 1, read: 1, stopped: 1 };
   var RATINGS = { loved: 1, liked: 1, ok: 1, 'not-for-me': 1 };
 
-  var MSG = {
-    notFile: 'That file is not a shelf file, so nothing was changed.',
-    wrongSchema: 'That file was saved by a different version of the app, so nothing was changed.',
-    noEntries: 'That file has no books in it, so nothing was changed.'
-  };
+  // The store's own keys join the one table in core/base.js, exactly as the shell's do. A key
+  // already set elsewhere wins, so the wording can move to the table without touching this file.
+  function addStrings(table) {
+    Nextbook.strings = Nextbook.strings || {};
+    Object.keys(table).forEach(function (k) {
+      if (!Object.prototype.hasOwnProperty.call(Nextbook.strings, k)) Nextbook.strings[k] = table[k];
+    });
+  }
+  addStrings({
+    importNotFile: 'That file is not a shelf file, so nothing was changed.',
+    importWrongSchema: 'That file was saved by a different version of the app, so nothing was changed.',
+    importNoEntries: 'That file has no books in it, so nothing was changed.'
+  });
+
+  function t(key) { return typeof Nextbook.t === 'function' ? Nextbook.t(key) : String(key); }
 
   function has(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); }
 
@@ -143,14 +157,16 @@
     return { entries: entries, report: report };
   }
 
-  // Parse a shelf file. Returns {entries} or {error: one plain sentence}.
+  // Parse a shelf file. Returns {entries} or {error: one plain sentence}. A file with a valid
+  // schema and an empty list is refused with the sentence that says it has no books in it, so
+  // the page never reports a hollow "0 added, 0 changed, 0 kept".
   function readFile(text) {
-    if (typeof text !== 'string' || !text.trim()) return { error: MSG.notFile };
+    if (typeof text !== 'string' || !text.trim()) return { error: t('importNotFile') };
     var data = null;
-    try { data = JSON.parse(text); } catch (e) { return { error: MSG.notFile }; }
-    if (!isObj(data)) return { error: MSG.notFile };
-    if (has(data, 'schema') && data.schema !== SHELF_SCHEMA) return { error: MSG.wrongSchema };
-    if (!Array.isArray(data.entries)) return { error: MSG.noEntries };
+    try { data = JSON.parse(text); } catch (e) { return { error: t('importNotFile') }; }
+    if (!isObj(data)) return { error: t('importNotFile') };
+    if (has(data, 'schema') && data.schema !== SHELF_SCHEMA) return { error: t('importWrongSchema') };
+    if (!Array.isArray(data.entries) || !data.entries.length) return { error: t('importNoEntries') };
     return { entries: data.entries };
   }
 
@@ -187,6 +203,26 @@
     } else if (!probe()) {
       st = null;
       persistent = false;
+    }
+
+    // The shelf last in use, from its own one-value key, so a reload lands where the person
+    // left off instead of back on the practice shelf. Read here, once, at open.
+    chosen = storedWhich();
+
+    function workshopCopy() {
+      if (typeof Nextbook.workshop !== 'function') return false;
+      try { return Nextbook.workshop() === true; } catch (e) { return false; }
+    }
+
+    // Only 'own' or 'practice' is a real answer; anything else is the practice default. A
+    // workshop copy refuses 'own' here too, so a value left by an ordinary copy in the same
+    // browser can never put the practice-only copy on someone's own shelf.
+    function storedWhich() {
+      var value = readRaw(WHICH);
+      var name = typeof value === 'string' ? value : '';
+      if (name !== 'own' && name !== 'practice') return 'practice';
+      if (name === 'own' && workshopCopy()) return 'practice';
+      return name;
     }
 
     // Read from storage every time, so a write by another store is never missed. Only a
@@ -284,12 +320,9 @@
     function use(name) {
       var wanted = String(name === null || name === undefined ? '' : name);
       if (wanted !== 'own' && wanted !== 'practice') return chosen;
-      if (wanted === 'own' && typeof Nextbook.workshop === 'function') {
-        var workshop = false;
-        try { workshop = Nextbook.workshop() === true; } catch (e) { workshop = false; }
-        if (workshop) return chosen; // the practice shelf is the only shelf here
-      }
+      if (wanted === 'own' && workshopCopy()) return chosen; // the practice shelf is the only shelf here
       chosen = wanted;
+      writeRaw(WHICH, chosen); // remembered, so the next visit opens on this shelf
       return chosen;
     }
 

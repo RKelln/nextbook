@@ -293,7 +293,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
 Checked by opening the page. Each task says what to click. All words go in the strings table, about grade 6. Put a
 `data-test` name on every control a later browser test would press, and list them in `tests/DATA-TEST.md`.
 
-- [ ] **T3.1 The shelf screen** (C, M, S). Needs T2.1, T2.2, T2.8. `core/shell.js` and `nextbook.css`: the hash
+- [x] **T3.1 The shelf screen** (C, M, S). Needs T2.1, T2.2, T2.8. `core/shell.js` and `nextbook.css`: the hash
   router (`#find` default, `#shelf`, `#selftest`); the practice banner ("Practice shelf. Try anything. Reset puts it
   back.") with a reset that asks first; the switch to the own shelf, **except in a workshop copy**, where it says
   "On this computer, use the practice shelf. Your own books go in at home, on your own computer."; "Add a book" that
@@ -326,7 +326,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   the prompt, paste the answer, see the kept subjects and the dropped ones named.
   *Click:* an answer with one real subject and one invented keeps one and names the other.
 
-- [ ] **T3.4 The self-test screen** (C, S, H). Port the screen's shape from `searchdesk/core/selftest.js`.
+- [x] **T3.4 The self-test screen** (C, S, H). Port the screen's shape from `searchdesk/core/selftest.js`.
   `#selftest`: data status with counts and dates; a Run button that calls `runModeChecks` for every loaded mode and
   prints passes and failures in plain words; whether the browser is saving.
   *Click:* green with the example mode; break its check on purpose and see it fail by name.

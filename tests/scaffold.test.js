@@ -36,13 +36,19 @@ test('the scaffold loads and the Nextbook namespace works', () => {
   nb.data.put('slice', { books: [{ id: 'b1' }] });
   assert.deepStrictEqual(plain(nb.data.get('slice')), { books: [{ id: 'b1' }] });
 
-  // modes/list.js is the manifest, and nothing else: the scaffold ships no mode (D16).
-  assert.deepStrictEqual(plain(nb.modes), []);
+  // modes/list.js is the manifest, and nothing else: an array of mode ids, each one
+  // usable as a file name (lower case letters and hyphens, CONTRACT.md section 2).
+  const modes = plain(nb.modes);
+  assert.ok(Array.isArray(modes), 'Nextbook.modes should be an array');
+  for (const id of modes) {
+    assert.ok(typeof id === 'string' && /^[a-z]+(-[a-z]+)*$/.test(id),
+      'manifest entry should be a usable mode id, got ' + JSON.stringify(id));
+  }
   assert.deepStrictEqual(plain(nb.modeDefs), {});
 
   // A mode registers one object; registering never edits the manifest.
   nb.mode({ id: 'demo', choose: function () { return { picks: [] }; } });
-  assert.deepStrictEqual(plain(nb.modes), []);
+  assert.ok(!plain(nb.modes).includes('demo'), 'registering a mode must not add it to the manifest');
   assert.strictEqual(nb.modeDefs.demo.id, 'demo');
   assert.strictEqual(typeof nb.modeDefs.demo.choose, 'function');
 

@@ -316,10 +316,73 @@ test('a shelf survives a reload: a second open reads the same keys', () => {
   first.setSeed('pick-three', 11);
 
   const second = nb.store.open(storage);
-  assert.strictEqual(second.which(), 'practice', 'the chosen shelf is per visit; practice is where a visit starts');
+  assert.strictEqual(second.which(), 'own', 'the shelf the first store chose is the one that comes back');
   second.use('own');
   assert.deepStrictEqual(plain(second.own()), [entry('a', '2026-11-10T14:00:00Z')], 'the own shelf came back');
   assert.strictEqual(second.seed('pick-three'), 11, 'and the seed');
+});
+
+test('the shelf in use is remembered, in its own one-value key, without mixing the shelf keys', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const storage = memoryStorage();
+  const first = nb.store.open(storage);
+  assert.strictEqual(first.which(), 'practice', 'a browser that has never chosen starts on practice');
+  assert.strictEqual(storage.has('nextbook-which-v1'), false, 'nothing is written until a choice is made');
+
+  const practiceBefore = storage.raw('nextbook-practice-v1');
+  first.use('own');
+  assert.strictEqual(storage.raw('nextbook-which-v1'), '"own"', 'one plain value, in its own key');
+  assert.strictEqual(storage.raw('nextbook-practice-v1'), practiceBefore, 'the practice shelf itself is untouched');
+
+  const second = nb.store.open(storage);
+  assert.strictEqual(second.which(), 'own', 'a second open starts on the shelf the first one chose');
+  assert.deepStrictEqual(plain(second.shelf()), [], 'and shows that shelf');
+
+  second.use('practice');
+  const third = nb.store.open(storage);
+  assert.strictEqual(third.which(), 'practice', 'a later choice is the one remembered');
+  assert.deepStrictEqual(plain(third.shelf()), plain(PRACTICE.entries));
+
+  // A key that is not a shelf name is ignored, so a hand-edited value cannot break the page.
+  storage.setItem('nextbook-which-v1', '"somewhere-else"');
+  assert.strictEqual(nb.store.open(storage).which(), 'practice');
+  storage.setItem('nextbook-which-v1', '{"which":"own"}');
+  assert.strictEqual(nb.store.open(storage).which(), 'practice', 'only one plain word is a shelf');
+});
+
+test('an empty but valid shelf file says it has no books in it', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const store = nb.store.open(memoryStorage());
+  store.use('own');
+  store.add(entry('a', '2026-11-10T14:00:00Z'));
+  const before = plain(store.own());
+
+  const report = plain(store.importShelf(shelfFile([])));
+  assert.strictEqual(report.error, nb.t('importNoEntries'), 'the sentence, not a hollow count');
+  assert.ok(!/0 added/.test(report.error));
+  assert.strictEqual(report.added + report.changed + report.kept, 0);
+  assert.deepStrictEqual(plain(store.own()), before, 'and the shelf is untouched');
+
+  const friend = plain(store.addOther(shelfFile([]), 'Sam'));
+  assert.strictEqual(friend.error, nb.t('importNoEntries'), "an empty friend's file says so too");
+  assert.deepStrictEqual(plain(store.others()), []);
+});
+
+test('the store reads its import sentences from Nextbook.strings, not a table of its own', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const store = nb.store.open(memoryStorage());
+  ['importNotFile', 'importWrongSchema', 'importNoEntries'].forEach((key) => {
+    assert.strictEqual(typeof nb.strings[key], 'string', key + ' should be in the one strings table');
+    assert.ok(nb.strings[key].length > 10);
+  });
+
+  assert.strictEqual(store.importShelf('not a file').error, nb.t('importNotFile'));
+  assert.strictEqual(store.importShelf('{"schema":"other/1","entries":[]}').error, nb.t('importWrongSchema'));
+  assert.strictEqual(store.importShelf(shelfFile([])).error, nb.t('importNoEntries'));
+
+  // A wording change in the table reaches the store at once, which a private copy could not do.
+  nb.strings.importNoEntries = 'That file is empty.';
+  assert.strictEqual(store.importShelf(shelfFile([])).error, 'That file is empty.');
 });
 
 test('in a workshop copy the practice shelf is the only shelf, and use(\'own\') is refused', () => {

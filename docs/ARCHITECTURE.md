@@ -153,6 +153,9 @@ Kept in `localStorage`. Three keys, never mixed:
 - `nextbook-others-v1`, friends' shelves: each an exported shelf file added with "Add a friend's shelf" and a name.
   Never merged into the person's own; swap and club season read them as `ctx.others`.
 
+A fourth key, `nextbook-which-v1`, holds one value: which shelf the person was last using, so a reload lands where
+they left off. In a workshop copy it always says practice. It is not a shelf and is never merged with one.
+
 **In a workshop copy** (`app/data/workshop.js` sets the flag) the practice shelf is the only shelf: the switch is
 replaced by "On this computer, use the practice shelf. Your own books go in at home, on your own computer.", and the
 library import is off. The app says this itself, so the rule does not depend on the agent's brief.

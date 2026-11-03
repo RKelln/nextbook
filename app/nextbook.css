@@ -1,0 +1,347 @@
+/* nextbook.css: the page's one stylesheet. Plain, quiet, and readable at arm's length.
+   No images, no web fonts, no CDN: a folder opened from file:// needs nothing. */
+
+:root {
+  --nb-ink: #1d1d1b;
+  --nb-paper: #fbfaf7;
+  --nb-soft: #f0ede6;
+  --nb-line: #cfc9bd;
+  --nb-muted: #5c574e;
+  --nb-accent: #2f5d50;
+  --nb-accent-ink: #ffffff;
+  --nb-warn: #7a4b00;
+  --nb-warn-bg: #fff4dd;
+  --nb-pass: #1f5c33;
+  --nb-fail: #8a1f1f;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --nb-ink: #ece8df;
+    --nb-paper: #17181a;
+    --nb-soft: #232528;
+    --nb-line: #45484c;
+    --nb-muted: #b5b0a5;
+    --nb-accent: #8fc9b6;
+    --nb-accent-ink: #101211;
+    --nb-warn: #f0c779;
+    --nb-warn-bg: #33290f;
+    --nb-pass: #9fd7ad;
+    --nb-fail: #f0a0a0;
+  }
+}
+
+* { box-sizing: border-box; }
+
+html { background: var(--nb-paper); }
+
+body {
+  margin: 0 auto;
+  padding: 20px 18px 48px;
+  max-width: 60rem;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}
+
+h1 {
+  margin: 0 0 4px;
+  font-size: 1.9rem;
+  letter-spacing: 0.01em;
+}
+
+h2 { margin: 1.6rem 0 0.4rem; font-size: 1.35rem; }
+h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+h4 { margin: 1rem 0 0.2rem; font-size: 1rem; }
+
+p { margin: 0.35rem 0; }
+
+.nb-intro { color: var(--nb-muted); margin-bottom: 0.2rem; }
+.nb-line { color: var(--nb-muted); font-size: 0.95rem; }
+
+/* ---- Tabs ---------------------------------------------------------------------------------- */
+
+.nb-nav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 18px 0 14px;
+  border-bottom: 1px solid var(--nb-line);
+  padding-bottom: 10px;
+}
+
+.nb-tab {
+  min-height: 42px;
+  padding: 8px 16px;
+  border: 1px solid var(--nb-line);
+  border-radius: 999px;
+  background: var(--nb-soft);
+  color: var(--nb-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.nb-tab:hover { border-color: var(--nb-accent); }
+
+.nb-tab-on {
+  background: var(--nb-accent);
+  border-color: var(--nb-accent);
+  color: var(--nb-accent-ink);
+  font-weight: 600;
+}
+
+/* ---- Banners and notes --------------------------------------------------------------------- */
+
+.nb-banner {
+  margin: 0 0 16px;
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-left: 5px solid var(--nb-accent);
+  border-radius: 8px;
+  background: var(--nb-soft);
+}
+
+.nb-banner-text { font-weight: 600; }
+.nb-banner-note { color: var(--nb-muted); }
+
+.nb-banner-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.nb-message {
+  margin: 0 0 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: var(--nb-soft);
+}
+
+.nb-message-warn {
+  background: var(--nb-warn-bg);
+  color: var(--nb-warn);
+  border: 1px solid var(--nb-warn);
+}
+
+.nb-found {
+  margin: 0 0 16px;
+  padding: 10px 14px;
+  border: 1px dashed var(--nb-line);
+  border-radius: 8px;
+}
+
+.nb-found-line { font-weight: 600; }
+
+.nb-hint { color: var(--nb-muted); font-size: 0.95rem; }
+.nb-note { color: var(--nb-muted); font-size: 0.9rem; }
+.nb-empty { color: var(--nb-muted); font-style: italic; }
+.nb-count { color: var(--nb-muted); }
+
+/* ---- The shelf list ------------------------------------------------------------------------ */
+
+.nb-books {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.nb-books-compact { margin-top: 6px; }
+
+.nb-book {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px 18px;
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-book-head { min-width: 15rem; flex: 1 1 18rem; }
+
+.nb-book-title {
+  font-size: 1.05rem;
+  font-weight: 650;
+  color: var(--nb-ink);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+  overflow-wrap: anywhere;
+}
+
+.nb-book-title:hover { color: var(--nb-accent); }
+strong.nb-book-title { text-decoration: none; }
+
+.nb-by { color: var(--nb-muted); }
+.nb-subjects { font-size: 0.92rem; color: var(--nb-muted); }
+
+.nb-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+}
+
+.nb-field { display: flex; flex-direction: column; gap: 4px; }
+.nb-label { font-size: 0.8rem; color: var(--nb-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+.nb-select,
+.nb-input {
+  min-height: 42px;
+  padding: 8px 10px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: inherit;
+}
+
+.nb-input-search { width: 100%; }
+
+.nb-select { min-width: 9rem; }
+
+.nb-button {
+  min-height: 42px;
+  padding: 9px 16px;
+  border: 1px solid var(--nb-accent);
+  border-radius: 8px;
+  background: var(--nb-accent);
+  color: var(--nb-accent-ink);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.nb-button:hover { filter: brightness(1.08); }
+
+.nb-button-small { min-height: 38px; padding: 6px 14px; }
+
+.nb-button-quiet {
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  border-color: var(--nb-line);
+  font-weight: 500;
+}
+
+.nb-button-quiet:hover { border-color: var(--nb-accent); }
+
+.nb-tag { color: var(--nb-muted); font-size: 0.95rem; }
+
+/* ---- Panels -------------------------------------------------------------------------------- */
+
+.nb-panel {
+  margin: 22px 0 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-panel .nb-panel { background: var(--nb-paper); }
+
+.nb-search { margin: 8px 0 10px; }
+
+.nb-results { min-height: 1.5rem; }
+
+.nb-byname { margin-top: 10px; }
+
+.nb-byname-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.nb-file { font: inherit; }
+
+.nb-export-text {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: 0.9rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.nb-friends-list { list-style: none; margin: 10px 0 0; padding: 0; display: grid; gap: 8px; }
+
+.nb-friend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px 14px;
+  padding: 8px 10px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+}
+
+.nb-friend-name { font-weight: 600; overflow-wrap: anywhere; }
+.nb-friend-count { color: var(--nb-muted); }
+
+/* ---- Modes and the self-test --------------------------------------------------------------- */
+
+.nb-modes { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 10px; }
+
+.nb-mode {
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-status { margin: 8px 0 0; padding-left: 1.2rem; }
+.nb-status-line { margin: 3px 0; }
+
+.nb-status-save { color: var(--nb-pass); font-weight: 600; }
+.nb-status-nosave { color: var(--nb-warn); font-weight: 600; }
+
+.nb-run-box { margin-top: 12px; }
+
+.nb-run-mode {
+  margin: 12px 0;
+  padding: 10px 12px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+}
+
+.nb-run-summary { color: var(--nb-muted); }
+
+.nb-run-results { margin: 6px 0 0; padding-left: 1.2rem; }
+.nb-run-results li { margin: 2px 0; }
+.nb-pass { color: var(--nb-pass); }
+.nb-fail { color: var(--nb-fail); font-weight: 600; }
+
+.nb-run-total { margin-top: 14px; font-weight: 700; }
+
+/* ---- Focus and small screens --------------------------------------------------------------- */
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid var(--nb-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 34rem) {
+  body { padding: 14px 12px 40px; font-size: 16px; }
+  .nb-book { flex-direction: column; }
+  .nb-book-head { min-width: 0; }
+  .nb-controls { width: 100%; }
+  .nb-select { min-width: 0; width: 100%; }
+  .nb-field { flex: 1 1 8rem; }
+  .nb-banner-actions .nb-button { flex: 1 1 100%; }
+  .nb-nav { gap: 6px; }
+  .nb-tab { flex: 1 1 auto; }
+}
