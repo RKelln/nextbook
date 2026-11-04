@@ -426,10 +426,13 @@
     for (i = 0; i < library.length; i++) markWork(seen, library[i]);
 
     // A partial shelf is not a removal announcement. Say so once per unfinished shelf, so the
-    // screen can ask for the other pages instead of quietly dropping books.
+    // screen can ask for the other pages instead of quietly dropping books. A shelf the import
+    // could not count is a different thing: `unknown` means nobody told us how many books it
+    // holds, and saying "not fully saved" then would be a claim we cannot make.
+    var unknown = isObj(source.unknown) ? source.unknown : {};
     for (i = 0; i < SHELF_ORDER.length; i++) {
       var name = SHELF_ORDER[i];
-      if (has(complete, name) && complete[name] !== true) {
+      if (has(complete, name) && complete[name] !== true && unknown[name] !== true) {
         refusals.push(t('importPartialShelf', { shelf: SHELF_WORD[name] }));
       }
     }

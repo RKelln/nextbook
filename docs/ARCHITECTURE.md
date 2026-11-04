@@ -348,9 +348,10 @@ The memory B is updated to L on every import, whatever the person decides, so a 
 
 ### The edges
 
-- **Partial files.** A saved page holds 25 books; the page also carries each shelf's total. The reader adds up what
-  it got, and if a shelf is incomplete it says "You brought in 25 of 112 Completed books. Save the other pages too."
-  **Nothing is treated as removed from an incomplete shelf.**
+- **Partial files.** A saved page may carry each shelf's total; measured pages do not (DATA.md, 2026-11-04). When a
+  total is there and the items fall short, the reader says "You brought in 25 of 112 Completed books. Save the other
+  pages too." When no total is there at all, the shelf is **unknown**: the import says nothing about it, and still
+  **nothing is treated as removed from an incomplete or uncounted shelf.**
 - **Editions.** Match on `groupKey`, not on record id: the library shelf may hold the e-book and the app the paper
   copy. Two editions of one work on the library shelf become one entry with the furthest-along state.
 - **"Stopped".** The library has no such shelf. An app `stopped` against a library `in_progress` is listed under

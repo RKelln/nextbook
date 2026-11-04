@@ -148,7 +148,7 @@ weights.
 - **Covers** (Syndetics) are licensed. Not stored, not shown.
 - **NoveList** is licensed to the library. Not fetched, not copied, not cached. A link to the record page is fine.
 
-## A person's own shelf page (measured 2026-11-03, not used yet)
+## A person's own shelf page (measured 2026-11-03, re-checked on two saved pages 2026-11-04)
 
 What a signed-in "Completed" shelf page carries when the person saves it from their browser. For the later import
 (D20, D23); nothing in the first release reads it.
@@ -160,11 +160,17 @@ What a signed-in "Completed" shelf page carries when the person saves it from th
 - `metadataId` is the record id, and the page's `entities.bibs` carries that record's `briefInfo`: `groupKey`,
   subject headings, call number, the lot. So a shelf brought in this way gives **facets for the person's own books**,
   even ones outside the slice.
-- 25 items a page. A long shelf is several saved pages.
+- **No totals and no page numbers.** A saved page carries `entities.shelves.<userId>` and `entities.bibs` and no
+  `shelfSearch` and no `meta` (measured 2026-11-04), so the file never says how many books the shelf holds or which
+  page of it this is. "Is this the whole shelf?" cannot be answered from the file: the reader says the shelf is
+  **unknown** rather than claiming it was partly saved, and nothing is marked gone from it. A page that does state a
+  count is short only if the count is bigger than the items read.
+- 25 items a page. A long shelf is several saved pages, and each is saved by hand.
 - **The same file also holds the person's card barcode, name, email, a session id and an auth token.** A reader must
   take `entities.shelves` and the matching `briefInfo` (without `description`, `jacket` and `rating`) and nothing
   else, never keep the file, and tell the person to delete it.
-- A signed-in search page carries no shelf state for its results.
+- A signed-in **search** page carries the same `entities` with its results in `entities.bibs` and nothing under
+  `shelves`. It is refused by name rather than read as an empty shelf (seen 2026-11-04).
 
 ## Fallback sources, for books the library does not hold
 

@@ -40,6 +40,8 @@
   addStrings({
     libraryShelfNotPage: 'This file does not look like a page saved from the library. ' +
       'Save the shelf page itself, not a link to it.',
+    libraryShelfIsSearch: 'This is a search page, not one of your shelves. Open your shelf at the library, '
+      + 'save that page, and choose it here.',
     libraryShelfUnreadable: 'This file could not be read. Save the shelf page again from the library.',
     libraryShelfNoTitle: 'A book on the {shelf} shelf (id {id}) has no title, so it was left out.',
     libraryShelfUnknownShelf: '{title} (id {id}): the page says its shelf is "{shelf}", which is ' +
@@ -553,6 +555,17 @@
     return out;
   }
 
+  // A saved page carries no shelf totals: measured on a real page (RESEARCH.md, 2026-11-04) the
+  // state has `entities.shelves.<user>` and no `shelfSearch` and no `meta`, so "how many books
+  // are on this shelf" is simply not in the file. That is not the same as "you saved part of it".
+  // `unknown` says which shelves we were not told about, and the merge keeps quiet about those
+  // instead of telling a person their shelf was not fully saved when it may well have been.
+  function emptyUnknown() {
+    var out = {};
+    for (var i = 0; i < SHELF_ORDER.length; i++) out[SHELF_ORDER[i]] = true;
+    return out;
+  }
+
   // ---- the records the items point at ---------------------------------------------------------
   function briefOf(bibs, recordId) {
     if (!isObj(bibs) || !recordId || !has(bibs, recordId)) return null;
@@ -799,13 +812,18 @@
     // `complete` is "this page alone covers the shelf". With no stated count it cannot be
     // said, so it is false: a missing number is not a whole shelf.
     var complete = emptyComplete();
+    var unknown = emptyUnknown();
     for (i = 0; i < SHELF_ORDER.length; i++) {
       var shelfName = SHELF_ORDER[i];
+      unknown[shelfName] = doubtful || pages[shelfName].count === null;
       complete[shelfName] = !doubtful &&
         pages[shelfName].count !== null && pages[shelfName].got >= pages[shelfName].count;
     }
 
-    return { entries: entries, works: works, complete: complete, pages: pages, problems: problems };
+    return {
+      entries: entries, works: works, complete: complete, unknown: unknown,
+      pages: pages, problems: problems, items: items.length
+    };
   }
 
   function read(page, opts) {
@@ -815,6 +833,7 @@
       entries: [],
       works: [],
       complete: emptyComplete(),
+      unknown: emptyUnknown(),
       pages: emptyPages(),
       problems: [],
       error: '',
@@ -828,10 +847,18 @@
         return result;
       }
       var built = readState(state);
+      // A search page carries the same `entities` with results in `bibs` and nothing on a shelf.
+      // Reading it would say "0 books" as if the shelf were empty, so it is refused instead.
+      var bibCount = isObj(state.entities.bibs) ? Object.keys(state.entities.bibs).length : 0;
+      if (built.items === 0 && bibCount > 0) {
+        result.error = t('libraryShelfIsSearch');
+        return result;
+      }
       result.ok = true;
       result.entries = built.entries;
       result.works = built.works;
       result.complete = built.complete;
+      result.unknown = built.unknown;
       result.pages = built.pages;
       result.problems = built.problems;
       return result;
@@ -842,6 +869,7 @@
         entries: [],
         works: [],
         complete: emptyComplete(),
+        unknown: emptyUnknown(),
         pages: emptyPages(),
         problems: [],
         error: t('libraryShelfUnreadable'),
@@ -863,6 +891,7 @@
       entries: [],
       works: [],
       complete: emptyComplete(),
+      unknown: emptyUnknown(),
       pages: emptyPages(),
       problems: [],
       error: '',
@@ -974,6 +1003,9 @@
       }
       out.complete[name] = shelfPages.count !== null &&
         (readCount >= shelfPages.count || covered);
+      // No saved page said how many books this shelf has, so nothing can be said about
+      // whether the set is whole — and the merge must not claim it was partly saved.
+      out.unknown[name] = shelfPages.count === null;
     }
 
     out.ok = anyOk;

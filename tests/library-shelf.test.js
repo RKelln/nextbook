@@ -371,3 +371,54 @@ test('the reader output feeds merge.plan on an empty shelf', () => {
   assert.strictEqual(plain(nb.merge.plan(one, [], { now: NOW, practice: true })).refusals.length, 1,
     'the practice shelf still refuses a real import');
 });
+
+// ---- what a real saved page does and does not carry -------------------------------------------
+// Measured on a real page (RESEARCH.md, 2026-11-04): the state has `entities.shelves.<user>` and
+// no `shelfSearch` and no `meta`, so the number of books on a shelf is simply not in the file.
+
+test('a page with no shelf totals is unknown, not partly saved, and the merge stays quiet', () => {
+  const bare = plain(nb.libraryShelf.read(mini([item({ title: 'A Book', rating: 8 })]), { now: NOW }));
+
+  assert.strictEqual(bare.entries.length, 1);
+  assert.strictEqual(bare.complete.completed, false, 'nothing can be called whole without a count');
+  assert.strictEqual(bare.unknown.completed, true, 'and the reader says it was not told');
+
+  const plan = plain(nb.merge.plan(bare, [], { now: NOW }));
+  assert.deepStrictEqual(plan.refusals, [], 'no "not fully saved" claim about a shelf nobody counted');
+  assert.strictEqual(plan.report.gone, 0, 'and nothing is treated as removed');
+
+  // Combine keeps that: one page, no count anywhere, still unknown.
+  const together = plain(nb.libraryShelf.combine([bare]));
+  assert.strictEqual(together.unknown.completed, true);
+});
+
+test('a page that does state a short shelf is still named, and still marks nothing gone', () => {
+  const short = plain(nb.libraryShelf.read(
+    mini([item({ title: 'One Book', rating: 6 })], { completed: { count: 12, page: 1, pages: 2 } }),
+    { now: NOW }));
+  assert.strictEqual(short.complete.completed, false);
+  assert.strictEqual(short.unknown.completed, false, 'the page did state a count');
+
+  const plan = plain(nb.merge.plan(short, [], { now: NOW }));
+  assert.strictEqual(plan.refusals.length, 1, 'so the person is asked for the other pages');
+  assert.ok(plan.refusals[0].indexOf('Completed') !== -1);
+});
+
+test('a search page is refused by name, not read as an empty shelf', () => {
+  const search = JSON.stringify({
+    entities: { shelves: {}, bibs: { S1: { briefInfo: { id: 'S1', groupKey: 'g1', title: 'A Result' } } } }
+  });
+  const out = plain(nb.libraryShelf.read(search, { now: NOW }));
+
+  assert.strictEqual(out.ok, false);
+  assert.ok(out.error.indexOf('search page') !== -1, 'says what it is: ' + out.error);
+  assert.deepStrictEqual(out.entries, [], 'and brings nothing in');
+});
+
+test('an empty shelf page is a real answer, not a search page', () => {
+  const empty = JSON.stringify({ entities: { shelves: { N0TPERS0N: {} }, bibs: {} } });
+  const out = plain(nb.libraryShelf.read(empty, { now: NOW }));
+
+  assert.strictEqual(out.ok, true, 'a shelf with nothing on it reads fine');
+  assert.strictEqual(out.entries.length, 0);
+});
