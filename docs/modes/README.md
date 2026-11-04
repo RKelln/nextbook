@@ -34,21 +34,20 @@ build takes a fixed number of minutes, because no beginner has tried one yet.
 - **L — more than that.** More than three rules, a helper that changes the data every rule sees (club season's fold,
   which built a fourth profile out of the members'), or a design call the brief does not make. Does not fit the
   block: build it at home, or cut it until it is M. There is no L on the menu now: club season was the one as written,
-  and its fold and second sort key went in T6.4.
+  and its fold and second sort key went when the menu was re-timed.
 
 ## What the sizes rest on
 
-Three reference builds, all by an agent, all in `reference/modes/`. Survey (T6.1) has 68 assertions, and its commit
-did not record a build time. Journey (T6.2) has 69, and took about four minutes from the first line to a green
-check, or about twenty by that build's own count when the twelve minutes of shared reading is charged to it.
-Challenge (T6.3) has 75, and took about four minutes plus two lost to a `ctx` helper that was missing from the app
-and has since been added. Challenge is the heaviest of the three built, and it fitted a 26-minute block even with the
-shared reading charged.
+Three reference builds, all by an agent, all in `reference/modes/`. Survey has 68 assertions, and its build did not record a
+time. Journey has 69, and took about four minutes from the first line to a green check, or about twenty by that
+build's own count when the twelve minutes of shared reading is charged to it. Challenge has 75, and took about four
+minutes plus two lost to a `ctx` helper that was missing from the app and has since been added. Challenge is the
+heaviest of the three built, and it fitted a half-hour block even with the shared reading charged.
 
-**A beginner's time has not been measured.** T7.1, on a clean machine, is the first beginner to build one of these,
-and it builds survey from its brief there. Until it runs, the times above are an agent's, the beginner's are unknown, and
+**A beginner's time has not been measured.** The first-timer check, on a clean machine, is the first beginner to
+build one of these, and it builds survey from its brief there. Until it runs, the times above are an agent's, the beginner's are unknown, and
 "in the block" means the build is no larger than the measured ones and needs nothing set up. It is not a promise that
-a beginner finishes. T6.4 is re-checked after T7.1: if a beginner cannot get through an S brief in the block, the
+a beginner finishes. The sizes are re-checked after the first-timer check: if a beginner cannot get through an S brief in the block, the
 sizes come down; the block does not go up.
 
 Each brief has the same parts: what it is, the rule, done when, the logic to write and check, what usually goes

@@ -4,7 +4,7 @@
 
 **Why someone wants it:** a book club needs a sequence, not a list, and a group's taste is not one person's.
 
-*Cut in T6.4:* the folded group profile and the "raise the lowest member score" preference are gone. The fold was a
+*Cut when the menu was re-timed:* the folded group profile and the "raise the lowest member score" preference are gone. The fold was a
 third mechanism sitting under every week's choice, and the preference was a second sort key. The group's floor and
 the chain of weeks are what the block has room for.
 

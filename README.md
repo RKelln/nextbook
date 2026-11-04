@@ -49,6 +49,9 @@ are in `docs/CONTRACT.md`; `docs/modes/` holds ten more as briefs you can build.
 node tools/check-mode.js more-by        # or --all; on macOS, bash tools/check.sh more-by when there is no Node
 ```
 
+Only have a chat window? `python3 tools/packets.py` writes one self-contained packet per brief into `dist/packets/`:
+the job, the brief, the rules, the worked example, and what to do with the answer.
+
 The check runs the mode against seven standard shelves and fails a mode that picks nothing, picks without order, says
 nothing at all about a pick, or reaches for the network, a clock or the DOM.
 
