@@ -136,16 +136,16 @@ Forecloses: shipping a menu mode in the starter.
 A work links to `library.recordUrl` with its id; a typed book links to `library.searchUrl` with its title and author.
 Both templates live in `slice.json`, written by the adapter, so the app never contains a library's hostname (D10).
 
-## D18. Saturday Nov 7 is the target, with a fallback slice (2026-11-03, Ryan)
+## D18. A hard date, and a fallback slice (2026-11-03, Ryan)
 
-"We want this for the first run." Most of the foundation is a port of Search Desk, which was built and tested in four days;
+"We want this for the first run, and there is a date." Most of the foundation is a port of Search Desk, which was built and tested in four days;
 the library layers are the new part. The safety net is a slice built from the 30-book pack (the pack's own facets,
 search links instead of record links), made first so every lane has data on day one. If the real slice misses its
-numbers by Wed 18:00 the fallback ships, and if the starter misses gate 2 on Thu 18:00 the first run uses the earlier
-starter that already exists.
+numbers by the midweek gate the fallback ships, and if the starter misses the second gate the first run uses the
+earlier starter that already exists.
 
-Re-checked 2026-11-03 against the library's own event list: the session is listed for Sat Nov 7, 11:00-13:00, with
-repeats on Wed Nov 25 and Thu Nov 26, 6-8pm, all three full. The target in this entry stands.
+The dates belong to the workshop, not to this repo: the library's own event list is where they live. What this entry
+records is the decision — make the fallback slice first, so a hard date can never leave the app without data.
 
 Forecloses: nothing permanent. The real slice replaces the fallback whenever it lands.
 
@@ -250,12 +250,12 @@ practice shelf. Replacing them later changes data, not code.
 
 ## D30. Events are in for Nov 7, last in priority (2026-11-03, Ryan)
 
-"Events can be last but they are basically done" across Search Desk, the DDT finder and the kit's `fetch_events.py`.
+"Events can be last but they are basically done" across Search Desk and an earlier events finder.
 A dated snapshot for one branch, `ctx.events` for modes, an events screen, and "Books for this event" when event hook
 is loaded. The library's own event text is kept as `summary` (short, linked, dated); rule 4 is about publisher blurbs
 on book records, and there is no field named `description` anywhere.
 
-## D31. The room uses the practice shelf only (2026-11-03, Ryan)
+## D31. A workshop copy uses the practice shelf only (2026-11-03, Ryan)
 
 A workshop copy shows the practice shelf only and says why in its own words; the own shelf, friends' shelves from real
 people and the library import are for home. The welcome copy and the "describe it for one reader" step never invite a
@@ -271,7 +271,7 @@ Folded in from `docs/HANDOFF.md` (committed as written, then removed once its po
   A seventh standard shelf includes one.
 - **The check is a lint, and says so.** It reads code with comments and quoted words left out, matches call-shaped
   tokens, and names the word, the place and what to do instead.
-- **`check.sh` is never cut.** Node is in the workshop image, but where it sits on the PATH is untested.
+- **`check.sh` is never cut.** Node is not on every library machine, and where it sits on the PATH is untested.
 - **The build is continuous**, so the plan is a dependency order with a priority list, not a calendar; the human
   checks run early, on a clean machine, in a fresh standard account.
 - **"Up to six"** everywhere the product is described; fewer with a reason is a full answer.
@@ -285,7 +285,7 @@ clear enough to lead; each had an independent review pass, and each is named in 
 
 - **The model box is closed for `allowShelf` modes.** A mode that may pick books already on the shelf can put a shelf
   book into the finalists prompt, and rule 1 says a prompt never carries a title from the person's shelf. Closing the
-  box for that shape keeps the rule absolute without filtering candidates. Reopened if D34 is accepted.
+  box for that shape keeps the rule absolute without filtering candidates. Kept: D34 leaves this box closed.
 - **The practice shelf leaves one part of the library unvisited.** Its only two books in the 300s came out and two
   others went in (same twelve, same four-loved/three-liked spread), so survey's demo shows the widening pick its
   brief asks for instead of six "you have N books from…" fallbacks.

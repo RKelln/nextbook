@@ -17,12 +17,12 @@ than an M one, and a small brief is not a warm-up for a large one.
 | [ladder](ladder.md) | from beginner to deep on one subject | S | subjects, audience; one order (audience, then how many subjects), spread across it | yes |
 | [swap](swap.md) | two shelves: what each person should read from the other's | M | a second shelf file; two lists, one each way | with a friend's shelf added first |
 | [club-season](club-season.md) | six weeks of books for a group | M | a friend's shelf; the group's floor, then a chain of weeks | with a friend's shelf added first |
-| [event-hook](event-hook.md) | a library event becomes the seed | S | subjects; a profile from the event's subjects, the shelf at half weight | yes, from pasted text or picked subjects (no events snapshot yet) |
+| [event-hook](event-hook.md) | a library event becomes the seed | S | subjects; a profile from the event's subjects, the shelf at half weight | yes: the event's own text, or its subjects picked by hand |
 | [news-diet](news-diet.md) | headlines become books | S | subjects; the same, plus a point for non-fiction and a warning in the note | yes |
 
 ## What the sizes mean
 
-The session gives the build 26 minutes. A size says how much of that block the brief asks for; it does not say the
+A workshop gives the build about half an hour. A size says how much of that block the brief asks for; it does not say the
 build takes a fixed number of minutes, because no beginner has tried one yet.
 
 - **S — one judgement.** The rule answers one question: which books, or in what order. Two or three small helpers, at

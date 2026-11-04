@@ -6,11 +6,12 @@
 
 ## The rule
 
-1. Input: `about` (`facets`). The person picks the event's subjects by hand, or uses "From some words" on the event's
-   text (the app's model box turns words into subjects **from the list** and names the ones it drops, so the mode
-   only ever receives facet keys). If the app has the events snapshot, `ctx.events` holds this branch's events; the
-   event's `title`, `categories` and `summary` are the words to start from. Without it, the person pastes the text
-   from the library's event page.
+1. Inputs: `about` (`facets`), and `event` (`event`) when the app has the events snapshot. With an `event` input the
+   events screen's "Books for this event" button hands the window over by itself: the event's `title`, `categories` and
+   `summary` are the words to start from, and `ctx.events` holds the branch's events for a date check. Without that
+   input the person picks the event's subjects by hand, or uses "From some words" on the event's text (the app's model
+   box turns words into subjects **from the list** and names the ones it drops, so the mode only ever receives facet
+   keys), or pastes the text from the library's event page. A mode that lists both inputs must work with only `about`.
 2. Build a profile from the chosen facets (weight 3 each), plus the shelf's own profile at half weight, so the shelf
    breaks ties but does not take over.
 3. Score every work, take the top six.
@@ -36,5 +37,5 @@ pick by hand.
 **Out of scope:** fetching events from inside the mode (the snapshot is made ahead, with its date, by the app's
 tools).
 
-**Ideas for after:** once the events snapshot lands, a "Books for this event" button on each event; a "before" list
-and an "after" list.
+**Ideas for after:** a "before" list and an "after" list, chosen by the event's date; a walk from the event to the
+library's own reading list for it.

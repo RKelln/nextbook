@@ -192,7 +192,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
 
 - [x] **T1.9 Events snapshot** (A, M, S). Last in priority. Read first: `RESEARCH.md` "TPL events feed", D30. Port:
   the pattern from an events finder built for a town hall: its feed reader, its traps, and the "ids only, checked
-  against the list" guard (`DATA.md` "TPL events feed" has the traps and the URLs).
+  against the list" guard (`RESEARCH.md` "TPL events feed" has the traps and the URLs).
   `adapters/bibliocommons/events.py --branch CL --days 21` writes `data/events.json`:
   `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual, categories, summary, url}]}`.
   `summary` is the library's own event text, tags stripped, at most 300 characters; there is no field named
@@ -374,8 +374,8 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `libraries/tpl.json`), `.claude/commands/`, `LICENSE`, and a short `README.md`. Not `reference/`, `research/`,
   `tests/`, `docs/BUILD.md` or `.cache/`.
   *Done when:* inside `dist/starter/`, `node tools/check-mode.js --all` and `bash tools/check.sh more-by` pass,
-  `python3 tools/build.py` makes a working one-file copy, and `grep -rl reference dist/starter` and
-  `ls dist/starter/data/found.json` find nothing.
+  `python3 tools/build.py` makes a working one-file copy, `grep -rl 'reference/' dist/starter/app` finds nothing, and
+  `ls dist/starter/data/found.json` finds nothing.
 
 - [x] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
   reference modes loaded too. For a projector, and for a workshop if the network drops.
@@ -420,7 +420,7 @@ mechanism, give the facilitator a demo, and time the briefs.
 the practice shelf and finds each one true, and the commit says how long the build took.
 
 - [x] **T6.4 Re-time the menu** (E, S, S). From T6.1 to T6.3's times and T7.1's build, set each brief's size in
-  `docs/modes/README.md` to what a beginner with an agent really needs, against the session's 26-minute build block.
+  `docs/modes/README.md` to what a beginner with an agent really needs, against a half-hour build block.
   A brief that does not fit is cut down (fewer done-when lines) or its card says so.
 
 ## Phase 7: the human checks (early, on a clean machine)
@@ -451,8 +451,8 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
   - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
     `entities.shelves` and the matching `briefInfo` only (facets by the adapter's rules, ported to JS). A test asserts
     no key from `users`, `accounts` or `auth` comes out.
-  - **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
-    "stopped". Pure, in `core/sync.js`.
+  - [x] **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
+    "stopped". Pure, in `core/merge.js` (named for what it does, since the readers call it too). `Nextbook.merge.plan(brought, ours, {now, practice})`, tests in `tests/merge.test.js` and an end-to-end script through the store.
   - **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
     "Leave it" remembered, the last-imported date, off on the practice shelf and in a workshop copy.
 

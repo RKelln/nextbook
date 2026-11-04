@@ -46,5 +46,5 @@ If any test fails, nothing is published: the deploy job needs the build job. `di
 so the checkout never carries an older file to publish, and `_site/` holds exactly `index.html` and
 `CNAME`.
 
-No step fetches the catalogue, holds a secret, or needs a private pack. The Python tests
-skip the pack tests when `NEXTBOOK_PACK` is unset, and it is never set here.
+No step fetches the catalogue, holds a secret, or needs a private checkout. The pack the data is built from ships in
+`data/pack/`, so the Python tests run as they are.

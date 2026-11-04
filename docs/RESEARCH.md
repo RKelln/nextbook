@@ -1,6 +1,6 @@
 # Measurements
 
-Taken from Ryan's workstation against the live services, with `curl`, a browser user agent, or the probes in
+Taken from a development machine against the live services, with `curl`, a browser user agent, or the probes in
 `research/probes/`. Every line here is something we checked, not something we assumed. When a re-check moves a
 number, the line is corrected in place and says what changed.
 
@@ -19,7 +19,7 @@ number, the line is corrected in place and says what changed.
 | Live search route | `tpl.bibliocommons.com/v2/search?searchType=keyword&query=<title>+<author>` | 200, and it is what the library's own header search uses |
 
 | App state on a public page | same search page, with `saved_page_shape.py` (2026-11-03) | top-level `shelves`, `borrowing`, `user`, `auth` keys beside `entities`. `shelves.shelfSearch.shelf` has `userId`, `name`, `privateByDefault`, `items`, `pagination`, empty when signed out; `shelves.importResult` matches the account page's "Import Content from Previous Catalogue". Signed in: see the next row |
-| A saved signed-in shelf page | "Completed" shelf, saved by Ryan with Cmd-S, read with `saved_page_shape.py` (2026-11-03; shapes and codes only, no titles left this machine) | **server-rendered, items filled.** `entities.shelves.<userId>.<itemId>` = `{id, metadataId, shelf, privateItem, dateAdded, authors, title, rating}`; `metadataId` is the record id and is a key of `entities.bibs`, whose `briefInfo` carries `groupKey` and subject headings. `shelf` codes `for_later`, `in_progress`, `completed` (from `shelves.shelfSearch.summary`, with counts). `rating` is out of 10: a 4-star rating is `8`, unrated is `0`. 25 items a page (`pagination: {count, page, limit: 25, pages}`). The same page also carries the card barcode, name, email, a session id and an auth token |
+| A saved signed-in shelf page | "Completed" shelf, saved by hand with the browser's Save Page, read with `saved_page_shape.py` (2026-11-03; shapes and codes only, no titles left that page) | **server-rendered, items filled.** `entities.shelves.<userId>.<itemId>` = `{id, metadataId, shelf, privateItem, dateAdded, authors, title, rating}`; `metadataId` is the record id and is a key of `entities.bibs`, whose `briefInfo` carries `groupKey` and subject headings. `shelf` codes `for_later`, `in_progress`, `completed` (from `shelves.shelfSearch.summary`, with counts). `rating` is out of 10: a 4-star rating is `8`, unrated is `0`. 25 items a page (`pagination: {count, page, limit: 25, pages}`). The same page also carries the card barcode, name, email, a session id and an auth token |
 | A saved signed-in search page | same probe (2026-11-03) | the user and account entities are filled; no shelf state for the results (`shelves` empty). Nothing to read there |
 
 **CORS:** none of the catalogue pages send `access-control-allow-origin`. A page on another origin, or opened from a
@@ -56,7 +56,7 @@ rejected.
 
 ## Related, found earlier
 
-- The catalogue link format and the dead `search.jsp` were found while preparing the first workshop run.
+- The catalogue link format and the dead `search.jsp` were found while preparing the first run.
 - The events feed, its branch codes and its traps were measured for a town-hall demo. `CL` is North York Central.
 - TPL's Z39.50 endpoint (`symphony.tpl.ca:2200`, db `unicorn`) is live and official open data, returns MARC21, and has no
   holdings tags. It is the route to bibliographic metadata without scraping, and the fallback if the search pages
@@ -68,5 +68,5 @@ rejected.
   only, and says how many others it skipped.
 - How many works a broad subject search yields per page compared with an author search (20 for "le guin"). The
   first slice build reports it per query.
-- Whether a catalogue link opens correctly in a browser on a workshop MacBook; this machine's headless browser is
-  refused by the catalogue.
+- Whether a catalogue link opens correctly in an ordinary browser profile: the headless browser used here is refused
+  by the catalogue.

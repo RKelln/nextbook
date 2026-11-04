@@ -265,7 +265,8 @@ Nextbook.mode({
   id: 'more-by', name: 'More by them', purpose: 'Other books by authors you rated well.',
   shape: 'list',                 // 'list' or 'path'
   allowShelf: false,             // optional: true when picks may already be on the shelf
-  inputs: [],                    // optional: [{id:'seed', kind:'book'|'shelf-book'|'facet'|'text'|'number', label}]
+  inputs: [],                    // optional: [{id:'seed', kind:'book'|'shelf-book'|'facet'|'facets'|'text'
+                                 //   |'number'|'choice'|'event', label}]
   strings: { ... },
   logic: { ... },                // pure helpers, tested by the mode's check file
   choose(ctx, input) { return { picks: [{ id, why, group?, step? }], note? }; }
@@ -409,8 +410,8 @@ Three screens behind the address hash, so a link or a reload lands in the same p
   network request of any kind.
 - `tools/build.py --starter` writes `dist/starter/`, the workshop folder: the app with only the example mode listed
   and the workshop flag set, no found books, the contract, the mode briefs, and the tools a participant needs (check,
-  build, serve, find). The exact list is `BUILD.md` T5.2, and what the kit may rely on is `BUILD.md`, "What the
-  starter guarantees the kit". The session's own brief is added by the workshop kit, not by this repo.
+  build, serve, find). The exact list is `BUILD.md` T5.2, and what anything built on it may rely on is `BUILD.md`, "What the starter
+  guarantees". A workshop's own brief is added by that workshop, not by this repo.
 - `tools/build.py --demo` writes `dist/demo.html` with the reference modes loaded, for the projector.
 
 ## Hosted copy (later)

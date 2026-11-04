@@ -47,7 +47,7 @@ data/                   the canonical data: slice.json, tags.json, practice.json
 adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
                         file in libraries/ (tpl.json: subdomain, name, slice queries)
 tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py
-.claude/commands/       new-mode and check, for the Code tab (written once in tools/commands/)
+.claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
 tests/                  unit tests for core (Node) and the adapter (Python)
 reference/modes/        finished demo modes. Never copied into the starter.
 docs/                   design, data, contract, the build plan, the mode briefs
