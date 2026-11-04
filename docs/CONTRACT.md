@@ -135,11 +135,16 @@ A mode that needs something from the person lists it in `inputs`, and the app dr
 | `text` | a short text box | the text |
 | `number` | a number, with `min`, `max`, `default` | the number |
 | `choice` | buttons, from `options: [{value, label}]`, with `default` | the chosen `value` |
+| `event` | pick one of the library's events from the snapshot, by day and title | the event object: `{id, title, start, end, branch, virtual, categories, summary, url}` |
 
 ```js
 inputs: [{ id: 'from', kind: 'shelf-book', label: 'Start from a book you loved' }],
 choose(ctx, input) { const start = input.from; /* ... */ }
 ```
+
+An `event` input is always one of the library's events as the snapshot holds them, never a title
+typed into a box and never a model's words. The app groups the picker by day. In a copy with no
+event snapshot the control says so and `choose` is not called.
 
 Until every input has a value, `choose` is not called and the app asks for it.
 
@@ -198,7 +203,8 @@ Every mode is also run, with no check file needed, against these shelves built f
 
 For each one the mode must not crash, and its answer must pass the checks in section 3. A mode that needs inputs gets
 a sensible default for each (the first loved book, the first work not on the shelf, the most common subject, a short
-sample text, the number's `default`).
+sample text, the number's `default`, the first event in the snapshot or a two-event sample when the snapshot has
+none).
 
 ## 7. Running the checks
 
@@ -220,11 +226,21 @@ So a mode does not have to:
 - **Remembered inputs.** The last values of a mode's inputs are kept in this browser, so a person who picked a subject
   yesterday finds it picked today.
 - **The model box,** under every result (section 9).
+- **"Books for this event"** on `#events`. When the mode with the id `event-hook` is loaded, the button opens it on
+  `#find` with that event chosen in its `event` input, ready to pick books for it. A mode with only a `text` input
+  gets the event's title in that box instead, and the page says which path it took.
 
 ## 9. When a model is involved
 
-The app already has the model box: it writes a prompt with your six and asks a chat to argue for two of them, then
-reads the answer back and checks every id. A mode does not need to do anything for that to work.
+The app already has the model box: it writes a prompt with your candidates and asks a chat to argue for two of them,
+then reads the answer back and checks every id. A mode does not need to do anything for that to work.
+
+The prompt keeps each candidate's id, title, author, year and subjects, because that is what lets a chat curate the
+list rather than only restate the subject words. But **a candidate that is already on the person's shelf never goes
+in**: it is dropped by work id, `groupKey`, `recordId` or normalised title, so a book typed in that never matched the
+slice is caught too. Under the copy box the page says so in words, for example "The chat sees five of the six. One is
+already on your shelf, so it stays out of this box." When nothing is dropped, it says nothing. A mode with
+`allowShelf: true` has no box at all, because a mixed prompt would say which candidate came from the shelf.
 
 A mode whose seed is some words (event hook, news diet) asks for a `facets` input. The control lets the person pick
 subjects by hand, or press "From some words": paste the event text, copy the prompt the app writes into any chat,

@@ -99,7 +99,7 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `mode-panel` | The chosen mode's box: inputs, results, model box (not pressed) | — |
 | `find-needs-input` | The line "Pick something for … first" (not pressed) | Drawn instead of a result while an input has no value. |
 | `find-shuffle` | Button "Shuffle" | Moves the mode's seed on by one and runs it again. The seed is kept, so a reload gives the same mix and only a press changes it. |
-| `input-<input>` | The input's main control, named by the mode's input id: a select for `shelf-book`, `facet`; a search box for `book`; a text box for `text`; a number box for `number` | Saves the value in this browser and runs the mode again. |
+| `input-<input>` | The input's main control, named by the mode's input id: a select for `shelf-book`, `facet`, `event`; a search box for `book`; a text box for `text`; a number box for `number` | Saves the value in this browser and runs the mode again. An `event` select lists the snapshot's events by day and title and keeps the event's id; `choose` receives the event object. |
 | `input-<input>-pick-N` | Button "Use this book" on a `book` search result | Makes that work the input's value. |
 | `input-<input>-chosen` | The line "Chosen: title, by author." (not pressed) | — |
 | `input-<input>-facet-N` | A subject checkbox in a `facets` input | Adds or removes that subject; the fourth is the last one taken. |
@@ -132,6 +132,7 @@ Drawn under a result with at least one card. Nothing is sent anywhere.
 | `model-link-N` | "Open the library's page" on a kept pick | Opens the library's page. |
 | `model-said` | "This page could not find a pick in that answer." (not pressed) | — |
 | `model-dropped` | The dropped ids, named in words (not pressed) | — |
+| `model-excluded` | "The chat sees five of the six. One is already on your shelf, so it stays out of this box." (not pressed) | Drawn only when a candidate was left out of the prompt because it is on the shelf. Nothing is drawn when nothing was left out. |
 
 The numbering rule holds here too: `N` is the control's place on the page, counted from 1. `<id>`
 and `<input>` are names a mode chose, so they stay the same when cards move.
@@ -175,7 +176,7 @@ headings are numbered from 1 on their own.
 | `event-virtual-N` | "This event is online." (not pressed) | Drawn only for a virtual event. |
 | `event-summary-N` | The library's own words about the event, as text (not pressed) | — |
 | `event-summary-long-N` | The sentence shown instead when the snapshot's words are over 300 characters (not pressed) | Nothing is cut here: the page says the words are longer than the snapshot keeps and points at the library's page. |
-| `event-books-N` | Button "Books for this event" | Drawn only when a mode with the id `event-hook` is loaded. It opens that mode on `#find`; with no input kind that carries an event, it puts the event's title in the mode's words box, and one sentence says so. |
+| `event-books-N` | Button "Books for this event" | Drawn only when a mode with the id `event-hook` is loaded. It opens that mode on `#find`. When the mode lists an `event` input, that input is set to this event; with only a `text` input, the event's title goes into the words box. One sentence says which path ran. |
 
 ## Also marked
 

@@ -90,6 +90,15 @@
     return t(n === 1 ? oneKey : manyKey, all);
   }
 
+  // "five of the six": the prompt carries at most six candidates, so the small numbers are
+  // spelled out. A count outside that range is shown as its digits rather than guessed at.
+  var NUMBER_WORDS = ['none', 'one', 'two', 'three', 'four', 'five', 'six'];
+  function numberWord(n) {
+    var i = Number(n);
+    return isFinite(i) && i === Math.floor(i) && i >= 0 && i < NUMBER_WORDS.length
+      ? NUMBER_WORDS[i] : String(n);
+  }
+
   function dateOnly(value) {
     var s = typeof value === 'string' ? value : '';
     var cut = s.indexOf('T');
@@ -821,7 +830,8 @@
     facets: 'inputLabelFacets',
     text: 'inputLabelText',
     number: 'inputLabelNumber',
-    choice: 'inputLabelChoice'
+    choice: 'inputLabelChoice',
+    event: 'inputLabelEvent'
   };
 
   // validate()'s drop code -> the words for it. The id is always named beside these.
@@ -919,6 +929,7 @@
       if (!Array.isArray(raw)) return [];
       return raw.filter(function (k) { return typeof k === 'string' && k; }).slice(0, 4);
     }
+    if (kind === 'event') return typeof raw === 'string' ? raw : '';
     if (kind === 'text') return typeof raw === 'string' ? raw : '';
     return raw;
   }
@@ -1252,6 +1263,36 @@
       return wrap;
     }
 
+    if (kind === 'event') {
+      // D35: a picker of the snapshot's events, grouped by day. The value kept is the event's
+      // id, so the same machinery remembers it and `choose` never sees a typed title.
+      var allEvents = eventList();
+      if (!allEvents.length) {
+        wrap.appendChild(h('span', { class: 'nb-label' }, label));
+        wrap.appendChild(p(t('inputNoEvents'), 'nb-note'));
+        return wrap;
+      }
+      var eventOptions = [{ value: '', label: t('pickOne') }];
+      eventDays(allEvents).forEach(function (day) {
+        var dayWords = dayHeadingWords(day.parts);
+        day.events.forEach(function (ev) {
+          if (!ev || ev.id === undefined || ev.id === null || ev.id === '') return;
+          var eventTitle = typeof ev.title === 'string' && ev.title ? ev.title : t('eventUntitled');
+          eventOptions.push({
+            value: String(ev.id),
+            label: t('eventOption', { day: dayWords, title: eventTitle })
+          });
+        });
+      });
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label),
+        selectField(base, eventOptions, modeInputValue(spec), label, function (chosen) {
+          setInputValue(modeId, spec.id, chosen);
+          render();
+        })));
+      return wrap;
+    }
+
     if (kind === 'text') {
       var textBox = h('input', {
         class: 'nb-input',
@@ -1362,6 +1403,13 @@
         clean = value || null;
       } else if (kind === 'facets') {
         clean = Array.isArray(value) && value.length ? value : null;
+      } else if (kind === 'event') {
+        // The id remembers the choice; `choose` receives the snapshot's own event object.
+        clean = null;
+        var events = Array.isArray(ctx.events) ? ctx.events : [];
+        for (var j = 0; j < events.length; j++) {
+          if (events[j] && String(events[j].id) === String(value)) { clean = events[j]; break; }
+        }
       } else if (kind === 'text') {
         clean = value && String(value).trim() ? value : null;
       }
@@ -1627,8 +1675,10 @@
       sec.appendChild(p(t('modelShelfClosed'), 'nb-hint', { 'data-test': 'model-closed' }));
       return sec;
     }
-    var prompt = '';
-    try { prompt = Nextbook.seam.finalistsPrompt(result, ctx.profile(), poolResult()); } catch (e) { prompt = ''; }
+    var made = null;
+    try { made = Nextbook.seam.finalistsPrompt(result, ctx.profile(), poolResult(), ctx.shelf); } catch (e) { made = null; }
+    var prompt = made && typeof made.text === 'string' ? made.text : '';
+    var excluded = made && Array.isArray(made.excluded) ? made.excluded : [];
     sec.appendChild(h('h3', null, t('modelAsk')));
     sec.appendChild(p(t('modelNoSend'), 'nb-hint'));
 
@@ -1643,6 +1693,18 @@
     sec.appendChild(promptBox);
     sec.appendChild(h('div', { class: 'nb-model-actions' },
       button('model-copy', t('modelCopy'), function () { copyPrompt(prompt); }, 'nb-button nb-button-small')));
+
+    // D34: what the box left out, in words, right under the copy box. Nothing is said when
+    // every candidate went in. The chat sees only the candidates that are not on the shelf.
+    if (excluded.length) {
+      var total = picks.length;
+      var seen = Math.max(0, total - excluded.length);
+      sec.appendChild(p(seen === 0
+        ? t('modelExcludedAll')
+        : t(excluded.length === 1 ? 'modelExcludedOne' : 'modelExcludedMany', {
+          seen: numberWord(seen), total: numberWord(total), n: numberWord(excluded.length)
+        }), 'nb-hint', { 'data-test': 'model-excluded' }));
+    }
 
     sec.appendChild(p(t('modelAnswerLabel'), 'nb-label'));
     var answerBox = h('textarea', {
@@ -2100,27 +2162,36 @@
     return li;
   }
 
-  // Today's input kinds carry a shelf book, a book, a subject, subjects, words, a number or a
-  // choice; none of them carries an event. So the button cannot hand the event to `choose`.
-  // What it does instead: it opens the mode on #find and, when the mode has a `text` input,
-  // puts the event's title there, which is the one kind that can hold words about the event.
-  // Either way the page says so in one sentence, with the reason.
+  // The button hands the event itself to a mode that lists an `event` input (D35). A mode
+  // written before that kind can only take words, so it still gets the event's title in its
+  // `text` box (the old path, and its old sentence). A mode with neither gets nothing, and
+  // the page says so. Either way the mode opens on #find and the page says what happened.
   function openEventHook(event) {
     var def = eventHookDef();
     if (!def) return;
     var words = typeof event.title === 'string' ? event.title.trim() : '';
-    var textSpec = null;
+    var eventSpec = null, textSpec = null;
     (Array.isArray(def.inputs) ? def.inputs : []).forEach(function (spec) {
-      if (!textSpec && isObj(spec) && spec.id && String(spec.kind || '') === 'text') textSpec = spec;
+      if (!isObj(spec) || !spec.id) return;
+      var kind = String(spec.kind || '');
+      if (!eventSpec && kind === 'event') eventSpec = spec;
+      else if (!textSpec && kind === 'text') textSpec = spec;
     });
     chooseMode('event-hook');
-    if (textSpec) setInputValue('event-hook', textSpec.id, words);
+    if (eventSpec) {
+      var eventId = event.id === undefined || event.id === null ? '' : String(event.id);
+      if (eventId) setInputValue('event-hook', eventSpec.id, eventId);
+    } else if (textSpec) {
+      setInputValue('event-hook', textSpec.id, words);
+    }
     go('find');
     // Set after the move: a note belongs to the screen that made it, and the route change
     // would clear one set before it.
-    state.message = textSpec
-      ? t('eventHookWords', { words: words })
-      : t('eventHookNoInput');
+    state.message = eventSpec
+      ? t('eventHookEvent', { title: words || t('eventUntitled') })
+      : textSpec
+        ? t('eventHookWords', { words: words })
+        : t('eventHookNoInput');
     render();
   }
 
@@ -2454,8 +2525,10 @@
     inputLabelText: 'Type some words',
     inputLabelNumber: 'Pick a number',
     inputLabelChoice: 'Pick one',
+    inputLabelEvent: 'Pick a library event',
     inputUnknownKind: 'This page does not know how to ask for "{kind}".',
     inputNoShelf: 'The shelf is empty. Add a book on the shelf screen first.',
+    inputNoEvents: 'This copy has no library events, so there is nothing to pick here.',
     inputNoFacets: 'The book list has no subjects yet.',
     inputSearchHint: 'Type a title or an author to search the list.',
     inputUseBook: 'Use this book',
@@ -2500,6 +2573,9 @@
     modelNeedAnswer: 'Paste the answer first.',
     modelNothing: 'There are no books here to argue about, so this box stays closed.',
     modelShelfClosed: 'This way of choosing books can pick books already on your shelf, so this box stays closed. Your shelf never goes into a chat.',
+    modelExcludedOne: 'The chat sees {seen} of the {total}. One is already on your shelf, so it stays out of this box.',
+    modelExcludedMany: 'The chat sees {seen} of the {total}. {n} are already on your shelf, so they stay out of this box.',
+    modelExcludedAll: 'Every book offered is already on your shelf, so this box has nothing to send.',
     modelNoPick: 'This page could not find a pick in that answer.',
     modelDropped: 'Dropped: {said}',
     modelFromChat: 'From the chat',
@@ -2572,6 +2648,8 @@
     eventSummaryLong: "The library's words about this event are longer than 300 characters, so they are not shown here. Read them on the library's page.",
     eventUntitled: 'An event with no title',
     eventBooks: 'Books for this event',
+    eventOption: '{day}: {title}',
+    eventHookEvent: 'The event "{title}" is picked, so the books are chosen for that event.',
     eventHookWords: "This page cannot hand an event to a way of choosing books yet, so the event's title went into the words box.",
     eventHookNoInput: 'This page cannot hand an event to a way of choosing books yet, and this one asks for no words, so it opens with nothing chosen.',
     monthJanuary: 'January',

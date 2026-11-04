@@ -503,3 +503,49 @@ test('a mode sees the events in the snapshot and its date, and an empty list whe
   assert.deepStrictEqual(plain(bare.events), [], 'a copy with no snapshot gives an empty list');
   assert.ok(!bare.eventsFetched, 'and no date');
 });
+
+// D35: CONTRACT.md section 4's `event` kind, and the default the standard shelves need.
+test('an event input defaults to the first snapshot event, or the two-event fixture', () => {
+  const EVENT = {
+    id: 'ev-1', title: 'Introduction to Serger Sewing', start: '2026-11-03T18:00:00',
+    end: '2026-11-03T20:00:00', branch: 'North York Central Library', virtual: false,
+    categories: ['Crafts'], summary: 'Learn the basics.', url: 'https://example.test/events/ev-1',
+  };
+  const mode = {
+    id: 'event-default',
+    name: 'Event default',
+    purpose: 'For the tests.',
+    shape: 'list',
+    inputs: [{ id: 'event', kind: 'event', label: 'Which event' }],
+    strings: {},
+    logic: {},
+    choose(ctx, input) {
+      const w = ctx.works.find((x) => !ctx.onShelf(x.id));
+      if (!w) return { picks: [], note: 'Nothing in the list fits yet.' };
+      const e = input && input.event;
+      return { picks: [{ id: w.id, why: 'It was picked for "' + (e && e.title) + '" at the library.' }] };
+    },
+  };
+  nb.mode(mode);
+
+  // The snapshot's first event is handed over whole.
+  const withSnapshot = nb.makeCtx({ pool: pool, events: [EVENT], seed: 1 });
+  const fromSnapshot = plain(nb.defaultInput(mode, withSnapshot));
+  assert.deepStrictEqual(fromSnapshot.event, EVENT, 'the event object itself');
+
+  // No snapshot: a two-event fixture stands in, in the shape the contract promises.
+  const bare = nb.makeCtx({ pool: pool, seed: 1 });
+  const fallback = plain(nb.defaultInput(mode, bare));
+  assert.ok(fallback.event && fallback.event.id && fallback.event.title, 'a usable event');
+  ['id', 'title', 'start', 'end', 'branch', 'virtual', 'categories', 'summary', 'url']
+    .forEach((k) => assert.ok(Object.prototype.hasOwnProperty.call(fallback.event, k), 'has ' + k));
+  assert.ok(Array.isArray(fallback.event.categories), 'categories is a list');
+  assert.ok(fallback.event.start < '2030-01-01', 'a real-looking start');
+
+  // And a mode that needs one runs the seven standard shelves without a special case.
+  nb.check('event-default', (t) => { t.ok(mode.strings, 'has a strings table'); });
+  const run = nb.runModeChecks('event-default', { pool, practice: PRACTICE });
+  assert.deepStrictEqual(plain(run.results).filter((r) => !r.ok).map((r) => r.msg), []);
+  assert.strictEqual(run.ok, true);
+  assert.strictEqual(run.shelves.length, 7);
+});

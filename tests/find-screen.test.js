@@ -105,6 +105,72 @@ function numberMode() {
   };
 }
 
+// D34: two candidates, one of which has the same title as a typed shelf book.
+function shelfTitleMode() {
+  return {
+    id: 'shelf-title',
+    name: 'Two books',
+    purpose: 'Picks two books from the list.',
+    shape: 'list',
+    inputs: [],
+    strings: {},
+    choose() {
+      return { picks: [
+        { id: 'left-hand', why: 'It is the first book in the list that is not on your shelf.' },
+        { id: 'oryx', why: 'It is the second book in the list that is not on your shelf.' },
+      ] };
+    },
+  };
+}
+
+// The practice shelf, but with one book typed in that never matched the slice.
+const TYPED_PRACTICE = {
+  schema: 'nextbook/practice-1',
+  entries: [{
+    key: 't:the left hand of darkness|ursula k. le guin', title: 'THE LEFT HAND of Darkness',
+    author: 'Ursula K. Le Guin', state: 'read', rating: 'loved',
+  }],
+};
+
+// An event input (D35): the mode records what choose was given, so the test can see the
+// object itself and not only the words on the page.
+let lastEvent = null;
+function eventMode() {
+  return {
+    id: 'event-pick',
+    name: 'Something at the library',
+    purpose: 'Picks a book for an event.',
+    shape: 'list',
+    inputs: [{ id: 'event', kind: 'event', label: 'Which event' }],
+    strings: {},
+    choose(ctx, input) {
+      lastEvent = input && input.event ? input.event : null;
+      const w = ctx.works.find((x) => !ctx.onShelf(x.id));
+      if (!w) return { picks: [], note: 'Nothing in the list fits yet.' };
+      return { picks: [{ id: w.id, why: 'It is for ' + (input.event ? input.event.title : 'no event') + '.' }] };
+    },
+  };
+}
+
+const EVENTS = {
+  fetched: '2026-11-03T19:49:50-05:00',
+  branch: 'CL',
+  window: { start: '2026-11-03', end: '2026-11-24' },
+  source: 'example',
+  events: [
+    {
+      id: 'e2', title: 'Evening Talk', start: '2026-11-04T18:30:00', end: '2026-11-04T19:30:00',
+      branch: 'North York Central Library', virtual: true, categories: ['Talks'], summary: 'An author speaks.',
+      url: 'https://example.test/events/e2',
+    },
+    {
+      id: 'e1', title: 'Introduction to Serger Sewing', start: '2026-11-03T18:00:00',
+      end: '2026-11-03T20:00:00', branch: 'North York Central Library', virtual: false,
+      categories: [], summary: 'Learn the basics.', url: 'https://example.test/events/e1',
+    },
+  ],
+};
+
 // Load core through store.js, put the data in, register the modes, then load the shell, which
 // boots on load because the fake document is already complete.
 function openFind(opts) {
@@ -133,6 +199,7 @@ function openFind(opts) {
   nb.data.put('slice', options.slice || SLICE);
   nb.data.put('tags', { schema: 'nextbook/tags-1', vocab: {}, works: {} });
   nb.data.put('practice', options.practice || PRACTICE);
+  if (options.events) nb.data.put('events', options.events);
 
   const defs = options.defs || [];
   defs.forEach((def) => nb.mode(def));
@@ -256,4 +323,77 @@ test('F8: a remembered mode that is no longer listed falls back to the first', (
   storage.setItem('nextbook-mode-last-v1', '"gone"');
   const { doc } = openFind({ defs: [plainMode('alpha'), plainMode('beta')], storage });
   assert.ok(byTest(doc, 'mode-current-alpha'), 'the first listed mode is shown instead');
+});
+
+// ---- D34: the prompt keeps titles, but not a work on the shelf -------------------------------
+
+test('D34: a candidate the person has typed in stays out of the prompt, and the page says how many', () => {
+  const { nb, doc } = openFind({ defs: [shelfTitleMode()], practice: TYPED_PRACTICE });
+
+  const prompt = byTest(doc, 'model-prompt');
+  assert.ok(prompt, 'the box still offers a prompt');
+  assert.strictEqual(prompt.textContent.indexOf('The Left Hand of Darkness'), -1,
+    'the typed shelf title is not in the prompt');
+  assert.strictEqual(prompt.textContent.indexOf('left-hand'), -1, 'nor its id');
+  assert.ok(prompt.textContent.indexOf('oryx') !== -1, 'the other candidate keeps its title');
+  assert.ok(prompt.textContent.indexOf('Oryx and Crake') !== -1);
+
+  const said = byTest(doc, 'model-excluded');
+  assert.ok(said, 'the page says what was left out');
+  assert.strictEqual(said.textContent,
+    'The chat sees one of the two. One is already on your shelf, so it stays out of this box.');
+  assert.strictEqual(said.textContent, nb.t('modelExcludedOne', { seen: 'one', total: 'two' }));
+
+  // The card still names the book: only the prompt may not carry it.
+  assert.ok(byTest(doc, 'pick-1').textContent.indexOf('The Left Hand of Darkness') !== -1);
+});
+
+test('D34: with nothing left out there is no sentence, and the prompt is the usual one', () => {
+  const { nb, doc } = openFind({ defs: [plainMode('plain-pick')] });
+  assert.ok(byTest(doc, 'model-prompt'), 'a prompt is drawn');
+  assert.strictEqual(byTest(doc, 'model-excluded'), null, 'and no sentence about leaving books out');
+  assert.strictEqual(doc.body.textContent.indexOf(nb.t('modelExcludedOne', { seen: 'one', total: 'two' })), -1);
+});
+
+// ---- D35: an `event` input -------------------------------------------------------------------
+
+test('D35: an event input is a picker of the snapshot, and choose receives the event object', () => {
+  lastEvent = null;
+  const { nb, doc } = openFind({ defs: [eventMode()], events: EVENTS });
+
+  const picker = byTest(doc, 'input-event');
+  assert.ok(picker, 'the control is drawn');
+  assert.strictEqual(picker.tagName, 'SELECT');
+  assert.strictEqual(picker.getAttribute('aria-label'), 'Which event');
+
+  // Grouped by day, in the snapshot's own order: the 3rd, then the 4th.
+  const labels = picker.options.map((o) => o.textContent);
+  assert.deepStrictEqual(plain(labels), [
+    'Choose one',
+    'Tuesday, November 3: Introduction to Serger Sewing',
+    'Wednesday, November 4: Evening Talk',
+  ]);
+  assert.ok(byTest(doc, 'find-needs-input'), 'nothing is chosen yet, so choose is not called');
+  assert.strictEqual(lastEvent, null);
+
+  // Choosing one runs the mode again with the event itself.
+  picker.value = 'e1';
+  picker.dispatch('change', { type: 'change', target: picker });
+
+  assert.deepStrictEqual(plain(lastEvent), EVENTS.events[1], 'choose got the whole event object');
+  assert.ok(byTest(doc, 'pick-1').textContent.indexOf('It is for Introduction to Serger Sewing.') !== -1,
+    'and used it');
+  assert.strictEqual(byTest(doc, 'input-event').value, 'e1', 'the choice is remembered, as every input is');
+});
+
+test('D35: with no snapshot the page says so, and choose is not called', () => {
+  lastEvent = null;
+  const { nb, doc } = openFind({ defs: [eventMode()] });
+
+  assert.strictEqual(byTest(doc, 'input-event'), null, 'there is nothing to pick from');
+  const said = withPrefix(doc, 'input-event-').concat(all(doc, '.nb-note'))
+    .map((el) => el.textContent).join(' ');
+  assert.ok(said.indexOf(nb.t('inputNoEvents')) !== -1, 'a sentence says why, got: ' + said);
+  assert.strictEqual(lastEvent, null, 'choose was not called');
+  assert.strictEqual(byTest(doc, 'pick-1'), null);
 });

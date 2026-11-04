@@ -91,6 +91,26 @@ function eventHookMode(opts) {
   };
 }
 
+// D35: the same mode id, but it lists an `event` input, so the button hands over the event
+// itself rather than its title. `lastHookEvent` lets the test see the object choose was given.
+let lastHookEvent = null;
+function eventHookEventMode() {
+  return {
+    id: 'event-hook',
+    name: 'Books for an event',
+    purpose: 'Picks a book for something happening at the library.',
+    shape: 'list',
+    inputs: [{ id: 'event', kind: 'event', label: 'Which event' }],
+    strings: {},
+    choose(ctx, input) {
+      lastHookEvent = input && input.event ? input.event : null;
+      const w = ctx.works.find((x) => !ctx.onShelf(x.id));
+      if (!w) return { picks: [], note: 'Nothing in the list fits yet.' };
+      return { picks: [{ id: w.id, why: 'It is for ' + (input.event ? input.event.title : 'no event') + '.' }] };
+    },
+  };
+}
+
 function plainMode() {
   return {
     id: 'plain-pick',
@@ -300,6 +320,38 @@ test('E8: an event-hook mode that asks for no words still opens, and says so', (
   assert.strictEqual(byTest(doc, 'input-words'), null, 'it has no words box to fill');
   assert.strictEqual(statusText(doc), nb.t('eventHookNoInput'), 'the sentence says what happened instead');
   assert.ok(nb.t('eventHookNoInput').indexOf(nb.t('eventBooks')) === -1);
+});
+
+test('E10: an event input gets the event itself, and the page says which event', () => {
+  const storage = memoryStorage();
+  lastHookEvent = null;
+  const { nb, doc } = openPage({
+    events: EVENTS, defs: [eventHookEventMode(), plainMode()], storage,
+  });
+
+  const buttons = withPrefix(doc, 'event-books-');
+  assert.strictEqual(buttons.length, 3, 'one button per event');
+  buttons[0].click();
+
+  assert.strictEqual(nb.shell.route(), 'find', 'pressing it opens the mode on #find');
+  assert.ok(byTest(doc, 'mode-current-event-hook'), 'with that mode showing');
+  const picker = byTest(doc, 'input-event');
+  assert.ok(picker, 'its event input is drawn');
+  assert.strictEqual(picker.value, 'e1', 'and the event is chosen in it');
+  assert.deepStrictEqual(plain(lastHookEvent), EVENTS.events[1], 'choose received the event object');
+  assert.ok(byTest(doc, 'pick-1').textContent.indexOf('It is for Introduction to Serger Sewing.') !== -1);
+  assert.strictEqual(statusText(doc), nb.t('eventHookEvent', { title: 'Introduction to Serger Sewing' }),
+    'one sentence says which event was picked');
+  assert.strictEqual(nb.store.open(storage).inputs('event-hook').event, 'e1',
+    'the id is kept in this browser');
+
+  // The same event reaches choose on the next page, so the mode really was given it.
+  const second = openPage({
+    events: EVENTS, defs: [eventHookEventMode(), plainMode()], storage, hash: '#find',
+  });
+  assert.strictEqual(byTest(second.doc, 'input-event').value, 'e1', 'the picker remembers the event');
+  assert.ok(byTest(second.doc, 'pick-1').textContent.indexOf('It is for Introduction to Serger Sewing.') !== -1,
+    'the mode read it on a reload');
 });
 
 // The real snapshot, so the page is proved on the data it ships with and not only on fixtures.

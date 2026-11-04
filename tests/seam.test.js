@@ -51,7 +51,9 @@ const result = {
 };
 
 test('a reason that names a shelf book gives a prompt without that title', () => {
-  const prompt = nb.seam.finalistsPrompt(result, profile, pool);
+  const made = nb.seam.finalistsPrompt(result, profile, pool);
+  const prompt = made.text;
+  assert.deepStrictEqual(plain(made.excluded), [], 'nothing is on the shelf among these two');
   assert.ok(prompt.indexOf(SHELF_BOOK.title) === -1, 'the shelf title is not in the prompt');
   assert.ok(prompt.indexOf(result.picks[0].why) === -1, 'the reason itself is not in the prompt');
   // The candidates carry their own words, from the list.
@@ -65,7 +67,7 @@ test('a reason that names a shelf book gives a prompt without that title', () =>
 });
 
 test('the finalists prompt ends with the exact sentence, and the subjects prompt asks for lines it wants', () => {
-  const finalists = nb.seam.finalistsPrompt(result, profile, pool);
+  const finalists = nb.seam.finalistsPrompt(result, profile, pool).text;
   assert.strictEqual(finalists.split('\n').pop(), END);
   assert.strictEqual(nb.seam.end, END);
   assert.strictEqual(END, 'Answer with two lines. Do not change any files.');
@@ -221,18 +223,18 @@ test('a line of labels is split before anything is called unknown', () => {
 
 test('finalistsPrompt tolerates a null, an empty and a real pick', () => {
   const messy = { picks: [null, {}, { id: 'w2', why: 'A reason the prompt must not read.' }] };
-  const prompt = nb.seam.finalistsPrompt(messy, profile, pool);
+  const prompt = nb.seam.finalistsPrompt(messy, profile, pool).text;
   assert.ok(prompt.indexOf('The Tombs of Atuan') !== -1, 'the real pick is there');
   assert.ok(prompt.indexOf('A reason the prompt must not read.') === -1, 'and its reason is not');
   // One candidate is asked for one line, not two.
   assert.strictEqual(prompt.split('\n').pop(), END_ONE);
   assert.ok(prompt.indexOf(END) === -1, 'the two-line sentence is not there');
-  assert.strictEqual(nb.seam.finalistsPrompt(null, null, null).split('\n').pop(), END_ONE,
+  assert.strictEqual(nb.seam.finalistsPrompt(null, null, null).text.split('\n').pop(), END_ONE,
     'no candidates is not two candidates either');
 });
 
 test('the wording counts the candidates the prompt actually carries', () => {
-  const one = nb.seam.finalistsPrompt({ picks: [{ id: 'w2', why: 'x' }] }, profile, pool);
+  const one = nb.seam.finalistsPrompt({ picks: [{ id: 'w2', why: 'x' }] }, profile, pool).text;
   assert.match(one, /^One of these books could be this person's next read\. Argue for the one you would pick\./);
   assert.match(one, /Write exactly one line, for the book you pick, in this shape:/);
   assert.ok(one.indexOf('two lines') === -1 && one.indexOf('the two you would pick') === -1,
@@ -240,12 +242,12 @@ test('the wording counts the candidates the prompt actually carries', () => {
   assert.strictEqual(one.split('\n').pop(), 'Answer with one line. Do not change any files.');
   assert.strictEqual(nb.seam.endOne, 'Answer with one line. Do not change any files.');
 
-  const two = nb.seam.finalistsPrompt(result, profile, pool);
+  const two = nb.seam.finalistsPrompt(result, profile, pool).text;
   assert.match(two, /^Two of these books could be this person's next read\. Argue for the two you would pick\./);
   assert.match(two, /Write exactly two lines, one for each book you pick, in this shape:/);
   assert.strictEqual(two.split('\n').pop(), END, 'two or more keeps the exact two-line sentence');
 
-  const none = nb.seam.finalistsPrompt({ picks: [] }, profile, pool);
+  const none = nb.seam.finalistsPrompt({ picks: [] }, profile, pool).text;
   assert.match(none, /No books were offered, so there is nothing to argue about\./);
   assert.ok(none.indexOf('Argue for the two') === -1);
 });
@@ -259,6 +261,70 @@ test('an id with capitals keeps the real id spelling', () => {
 
   const six = plain(nb.seam.parseFinalists('W2: It is short and strange.\nw5: It is about gender.', SIX));
   assert.deepStrictEqual(six.kept.map((k) => k.id), ['w2', 'w5']);
+});
+
+// ---- D34: titles stay, a work on the shelf goes ---------------------------------------------
+
+const shelfOf = (w, extra) => [Object.assign({
+  key: 'w:' + (w.groupKey || w.id), id: w.id, groupKey: w.groupKey,
+  title: w.title, author: w.author, state: 'read', rating: 'loved', work: w,
+}, extra || {})];
+
+test('a candidate on the shelf by work id is left out, and the prompt counts the rest', () => {
+  const made = plain(nb.seam.finalistsPrompt(
+    { picks: [{ id: 'w1', why: 'A reason.' }, { id: 'w5', why: 'Another reason.' }] },
+    profile, pool, shelfOf(SHELF_BOOK)));
+
+  assert.deepStrictEqual(made.excluded, [{ id: 'w1', title: 'A Wizard of Earthsea' }]);
+  assert.strictEqual(made.text.indexOf('A Wizard of Earthsea'), -1, 'its title is gone');
+  assert.strictEqual(made.text.indexOf('w1'), -1, 'and its id');
+  assert.ok(made.text.indexOf('w5') !== -1 && made.text.indexOf('The Left Hand of Darkness') !== -1,
+    'the other candidate keeps its own words');
+  assert.match(made.text, /^One of these books could be this person's next read\./,
+    'the wording counts the one it actually carried');
+});
+
+test('a candidate whose title is a typed shelf book is left out, even with no id to match', () => {
+  // A book typed in that never matched the slice: its title is in the person's own list.
+  const typed = [{
+    key: 't:the tombs of atuan|ursula k. le guin', title: 'THE TOMBS of Atuan',
+    author: 'Ursula K. Le Guin', state: 'read', rating: 'loved', work: null,
+  }];
+  const made = plain(nb.seam.finalistsPrompt(result, profile, pool, typed));
+
+  assert.deepStrictEqual(made.excluded, [{ id: 'w2', title: 'The Tombs of Atuan' }]);
+  assert.strictEqual(made.text.indexOf('Tombs of Atuan'), -1, 'the normalised title matched');
+  assert.strictEqual(made.text.indexOf('w2'), -1);
+  assert.ok(made.text.indexOf('w5') !== -1, 'the other candidate is still there');
+});
+
+test('groupKey and recordId match a shelf entry too', () => {
+  const byGroup = plain(nb.seam.finalistsPrompt(
+    { picks: [{ id: 'w2', why: 'x' }, { id: 'w5', why: 'y' }] }, profile, pool,
+    [{ key: 'other', groupKey: 'tombs_of_atuan', title: '', work: null }]));
+  assert.deepStrictEqual(byGroup.excluded, [{ id: 'w2', title: 'The Tombs of Atuan' }]);
+
+  const slice = plain(SLICE);
+  slice.works[1].recordId = 'S2C3';
+  const withRecord = makePool(slice);
+  const byRecord = plain(nb.seam.finalistsPrompt(
+    { picks: [{ id: 'w2', why: 'x' }] }, profile, withRecord,
+    [{ key: 'other', id: 'a different handle', recordId: 'S2C3', title: '', work: null }]));
+  assert.deepStrictEqual(byRecord.excluded, [{ id: 'w2', title: 'The Tombs of Atuan' }]);
+});
+
+test('every candidate on the shelf leaves a prompt with nothing to argue about', () => {
+  const made = plain(nb.seam.finalistsPrompt(
+    { picks: [{ id: 'w1', why: 'x' }] }, profile, pool, shelfOf(SHELF_BOOK)));
+  assert.strictEqual(made.excluded.length, 1);
+  assert.match(made.text, /No books were offered, so there is nothing to argue about\./);
+});
+
+test('with nothing excluded the prompt is byte-identical to the one before D34', () => {
+  const BEFORE = "Two of these books could be this person's next read. Argue for the two you would pick.\n\nWhat their shelf adds up to: fantasy, quiet books, fantasy and myth, the Earthsea series, wizards\n\nid | title | author | year | subjects | why it fits\n- w2 | The Tombs of Atuan | Ursula K. Le Guin | 1970 | the Earthsea series, fantasy, fantasy and myth, dark books | matches other books by Ursula K. Le Guin\n- w5 | The Left Hand of Darkness | Ursula K. Le Guin | 1969 | gender, science fiction, science fiction, the science fiction shelves, quiet books | matches other books by Ursula K. Le Guin\n\nWrite exactly two lines, one for each book you pick, in this shape:\n<id>: <one sentence>\n\nAnswer with two lines. Do not change any files.";
+  const made = nb.seam.finalistsPrompt(result, profile, pool, []);
+  assert.strictEqual(made.text, BEFORE);
+  assert.deepStrictEqual(plain(made.excluded), []);
 });
 
 test('a JSON array of bare ids is read, and a pick with no sentence is dropped by name', () => {

@@ -559,6 +559,32 @@
   }
 
   // ---- A sensible default for every input kind ----------------------------------------------
+  // An `event` input needs something to hand over in the checks. The snapshot's first event is
+  // the real default; when the standard shelves carry no events (they carry none), a two-event
+  // fixture stands in, so a mode can be checked with the shape the contract promises.
+  var DEFAULT_EVENTS = [
+    {
+      id: 'sample-event-1', title: 'An evening talk at the library',
+      start: '2026-11-03T18:30:00', end: '2026-11-03T19:30:00', branch: 'the library',
+      virtual: false, categories: [], summary: 'A talk about books and reading.', url: ''
+    },
+    {
+      id: 'sample-event-2', title: 'A morning story time',
+      start: '2026-11-04T10:00:00', end: '2026-11-04T10:30:00', branch: 'the library',
+      virtual: false, categories: [], summary: 'Stories for young readers.', url: ''
+    }
+  ];
+
+  // The fixture is shared by every shelf, so it is copied before a mode can edit it: shelves
+  // 5 and 6 must still give the same answer.
+  function eventCopy(e) {
+    var out = {};
+    Object.keys(e || {}).forEach(function (k) {
+      out[k] = Array.isArray(e[k]) ? e[k].slice() : e[k];
+    });
+    return out;
+  }
+
   function commonFacet(ctx) {
     var facets = ctx && ctx.facets ? ctx.facets : {};
     var best = '', count = -1;
@@ -579,6 +605,7 @@
     var list = def && Array.isArray(def.inputs) ? def.inputs : [];
     var shelf = ctx && Array.isArray(ctx.shelf) ? ctx.shelf : [];
     var works = ctx && Array.isArray(ctx.works) ? ctx.works : [];
+    var events = ctx && Array.isArray(ctx.events) ? ctx.events : [];
     var facet = commonFacet(ctx);
     var firstLoved = null, firstShelfBook = null, firstOffShelf = null;
     shelf.forEach(function (e) {
@@ -595,6 +622,7 @@
       else if (kind === 'book') input[spec.id] = firstOffShelf || works[0] || null;
       else if (kind === 'facet') input[spec.id] = facet;
       else if (kind === 'facets') input[spec.id] = facet ? [facet] : [];
+      else if (kind === 'event') input[spec.id] = events[0] || eventCopy(DEFAULT_EVENTS[0]);
       else if (kind === 'text') input[spec.id] = 'a quiet book about the sea';
       else if (kind === 'number') input[spec.id] = spec['default'] !== undefined ? spec['default'] : (spec.min !== undefined ? spec.min : 1);
       else if (kind === 'choice') {

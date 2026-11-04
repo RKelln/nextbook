@@ -5,8 +5,10 @@
 // prompts are built from the list's own words and never from a reason sentence, because a
 // reason may name a book on the person's shelf (AGENTS.md rule 1).
 //
-//   Nextbook.seam.finalistsPrompt(result, profile, pool) -> a prompt asking for one line
-//     when it offers one candidate, two lines when it offers two or more
+//   Nextbook.seam.finalistsPrompt(result, profile, pool, shelf) -> { text, excluded }
+//     text asks for one line when it offers one candidate, two lines when it offers two or
+//     more; excluded is [{id, title}] for candidates left out because the person already has
+//     that work (AGENTS.md rule 1, D34).
 //   Nextbook.seam.parseFinalists(answer, result, idPattern) -> { kept, dropped, reason }
 //   Nextbook.seam.labelsPrompt(text, facets) -> a prompt asking for up to four labels
 //   Nextbook.seam.parseLabels(answer, facets) -> { kept, dropped, reason }
@@ -441,17 +443,60 @@
       str(work.year) + ' | ' + labels + ' | ' + (facts || 'from the library list');
   }
 
-  // finalistsPrompt(result, profile, pool): the candidates as the list's own words.
-  // Never reads pick.why: a reason may name a book on the shelf. The wording counts the
-  // candidates it actually wrote: one book is asked for one line, two or more for two.
-  function finalistsPrompt(result, profile, pool) {
+  // A work is on the person's shelf when any of its handles, or its own normalised title,
+  // meets an entry's. The title is the narrow hole rule 1 must still close: a book typed in
+  // that never matched the slice still puts its title in the person's own list (D34).
+  function normTitle(v) {
+    if (typeof Nextbook.norm === 'function') return Nextbook.norm(v);
+    return clean(v).toLowerCase();
+  }
+
+  function shelfIndex(shelf) {
+    var ids = Object.create(null), groups = Object.create(null),
+      records = Object.create(null), titles = Object.create(null);
+    function add(o) {
+      if (!o || typeof o !== 'object') return;
+      var id = str(o.id), gk = str(o.groupKey), rec = str(o.recordId), title = normTitle(o.title);
+      if (id) ids[id] = true;
+      if (gk) groups[gk] = true;
+      if (rec) records[rec] = true;
+      if (title) titles[title] = true;
+    }
+    (Array.isArray(shelf) ? shelf : []).forEach(function (entry) {
+      if (!entry || typeof entry !== 'object') return;
+      add(entry);
+      add(entry.work);
+    });
+    return { ids: ids, groups: groups, records: records, titles: titles };
+  }
+
+  function onPersonShelf(work, index) {
+    if (!work) return false;
+    var id = str(work.id), gk = str(work.groupKey), rec = str(work.recordId), title = normTitle(work.title);
+    return !!((id && index.ids[id]) || (gk && index.groups[gk]) ||
+      (rec && index.records[rec]) || (title && index.titles[title]));
+  }
+
+  // finalistsPrompt(result, profile, pool, shelf): the candidates as the list's own words,
+  // less any candidate the person already has. Never reads pick.why: a reason may name a book
+  // on the shelf. The wording counts the candidates it actually wrote: one book is asked for
+  // one line, two or more for two. Returns { text, excluded }; with nothing excluded the text
+  // is exactly what this prompt has always been.
+  function finalistsPrompt(result, profile, pool, shelf) {
+    var index = shelfIndex(shelf);
     var picks = result && Array.isArray(result.picks) ? result.picks : [];
     var top = topLabels(profile, pool, 5);
-    var candidates = [];
+    var candidates = [], excluded = [];
     picks.forEach(function (p) {
       if (!p || typeof p !== 'object') return;   // a null or a string pick is not a book
       var line = candidateLine(p, profile, pool);
-      if (line) candidates.push(line);
+      if (!line) return;
+      var work = workOf(pool, p.id);
+      if (onPersonShelf(work, index)) {
+        excluded.push({ id: str(work.id), title: clean(work.title) });
+        return;
+      }
+      candidates.push(line);
     });
     var count = candidates.length;
     var lines = [];
@@ -474,7 +519,7 @@
     lines.push('<id>: <one sentence>');
     lines.push('');
     lines.push(count >= 2 ? END : END_ONE);
-    return lines.join('\n');
+    return { text: lines.join('\n'), excluded: excluded };
   }
 
   var HEADINGS = {
