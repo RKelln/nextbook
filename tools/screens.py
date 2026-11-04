@@ -60,6 +60,8 @@ SHOTS = {
     "find": ("find", None),
     "shelf": ("shelf", None),
     "shelf-own-empty": ("shelf", OWN),
+    # The way back from the library: the import panel open on the own shelf, steps and drop box.
+    "shelf-own-import": ("shelf", OWN + "; document.querySelector('[data-test=fold-library]').open = true"),
     "shelf-reading": ("shelf", FIRST_READING),
     "shelf-want": ("shelf", FIRST_WANT),
     "shelf-filter": ("shelf", "document.querySelector('[data-test=shelf-filter-read]').click()"),

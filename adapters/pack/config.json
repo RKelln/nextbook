@@ -51,6 +51,8 @@
       "signIn": "https://tpl.bibliocommons.com/user/login?destination={path}",
       "holds": "/holds",
       "forLater": "/collection/show/my/library/for_later",
+      "inProgress": "/collection/show/my/library/in_progress",
+      "completed": "/collection/show/my/library/completed",
       "checkedOut": "/checkedout"
     }
   },

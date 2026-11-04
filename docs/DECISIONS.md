@@ -441,3 +441,20 @@ Playwright, a dev tool that never ships, ported from Search Desk) takes every sc
 Forecloses: rating a book you have not started. Leaves open: how much you want to read a book (`BUILD.md`, Open
 questions).
 
+## D41. Changes at the library come back in one round trip (2026-11-04, Ryan and Claude)
+
+Ryan: after a hold or a change to a list at the library, getting it back into the app should be as easy as possible.
+The way back stays D23's: the person saves the library's page and the app reads the file. No sign-in, no request, no
+sync (D20). What changed is the length of the trip:
+
+- The library block is three steps with the doors in them: open For Later, In Progress or Completed (each through
+  the library's sign-in, as T8.12), save the page, choose it or drop it on the box.
+- Coming back to the tab after pressing any library link, on the own shelf, says once how to bring a change in and
+  opens that block. Nothing is read and nothing is assumed: the app cannot see what happened over there.
+- Bringing in again is safe, and says so: the three-way merge keeps the newer answer and asks about a book changed
+  in both places (`ARCHITECTURE.md`, the merge table). Each bring-in is still one import the person starts, from a
+  file they saved: D20's "import once, never sync" holds for every trip.
+
+Saving a page is a computer's job; the step says so rather than pretend a phone can. Holds cannot come back yet: no
+one has measured what a saved holds page carries (`BUILD.md`, Open questions).
+

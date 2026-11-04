@@ -112,7 +112,9 @@ function openShelf(opts) {
     console,
     document: doc,
     location: { hash: options.hash || '#shelf' },
-    addEventListener() {},
+    // kept, so a test can fire the window's focus as a person coming back to the tab would
+    __on: {},
+    addEventListener(name, fn) { (window.__on[name] = window.__on[name] || []).push(fn); },
     setTimeout() { return 0; },
     clearTimeout() {},
     localStorage: storage,
@@ -132,7 +134,8 @@ function openShelf(opts) {
   if (options.seed) options.seed(nb.store.open(storage));
 
   run('app/core/shell.js');
-  return { nb, doc, app, storage };
+  const fire = (name) => (window.__on[name] || []).forEach((fn) => fn({ type: name }));
+  return { nb, doc, app, storage, fire };
 }
 
 // Someone's own shelf in use, with the four books from above on it.
@@ -466,3 +469,48 @@ test('L13: a tidy row opens the record page for a work, and a catalogue search o
   assert.ok(/\/search\?/.test(search.getAttribute('href')), 'it is the catalogue search: ' + search.getAttribute('href'));
   assert.ok(search.getAttribute('href').indexOf('Tombs') !== -1, 'for the right book');
 });
+
+// The round trip: open a shelf at the library, save it, bring it in. Make each step short.
+test('the steps open each library shelf through its sign-in, and the box takes a drop', () => {
+  const { nb, doc } = ownShelf();
+  assert.ok(byTest(doc, 'lib-steps'), 'the steps are drawn');
+  const lib = SLICE.library;
+  [['forLater', 'for_later'], ['inProgress', 'in_progress'], ['completed', 'completed']].forEach(([page, path]) => {
+    const link = byTest(doc, 'lib-open-' + page);
+    assert.ok(link, 'a link to the ' + page + ' shelf');
+    assert.strictEqual(link.getAttribute('href'),
+      lib.account.signIn.replace('{path}', encodeURIComponent('/collection/show/my/library/' + path)));
+    assert.strictEqual(link.getAttribute('target'), '_blank');
+  });
+  assert.ok(doc.body.textContent.indexOf(nb.t('libStepSave')) !== -1, 'how to save the page');
+  const drop = byTest(doc, 'lib-drop');
+  assert.ok(drop && drop.getAttribute('class').indexOf('nb-drop') !== -1, 'the picker is a box a file can be dropped on');
+  assert.strictEqual(byTest(doc, 'shelf-library-file').parentNode, drop);
+});
+
+test('back from the library: one note on how to bring a change in, and the panel opens', () => {
+  const { nb, doc, fire } = ownShelf();
+  const status = () => all(doc, '[role]').filter((el) => el.getAttribute('role') === 'status')
+    .map((el) => el.textContent).join(' ');
+  fire('focus');
+  assert.strictEqual(status(), '', 'a focus with no trip to the library says nothing');
+
+  byTest(doc, 'lib-open-completed').click();
+  fire('focus');
+  assert.strictEqual(status(), nb.t('libBackHere'));
+  assert.strictEqual(byTest(doc, 'fold-library').hasAttribute('open'), true, 'and the way to bring it in is open');
+
+  byTest(doc, 'message-close').click();
+  fire('focus');
+  assert.strictEqual(status(), '', 'said once per trip, not on every focus');
+});
+
+test('back from the library on the practice shelf says nothing, because it cannot bring anything in', () => {
+  const { doc, fire } = openShelf({});
+  const link = byTest(doc, 'shelf-account-holds');
+  assert.ok(link, 'the account links are there on practice too');
+  link.click();
+  fire('focus');
+  assert.strictEqual(all(doc, '[role]').filter((el) => el.getAttribute('role') === 'status').length, 0);
+});
+

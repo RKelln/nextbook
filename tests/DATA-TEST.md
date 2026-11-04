@@ -43,6 +43,9 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `shelf-rating-N` | The rating group; its `aria-label` is the question. Absent on a book to read with no rating | — |
 | `shelf-rating-N-<rating>` | Chip: `loved` / `liked` / `ok` / `not-for-me` (`aria-pressed`) | Saves that rating; pressing the chip that is on takes the rating off. |
 | `shelf-remove-N` | Button "Remove" | Takes the book off the shelf in use. |
+| `lib-steps` | The library block's three steps (not pressed) | — |
+| `lib-open-<page>` | Link in step 1: `forLater`, `inProgress`, `completed` | Opens that shelf at the library through its sign-in, in a new tab. Coming back to this tab afterwards on the own shelf says once how to bring a change in (`libBackHere`) and opens the library block. |
+| `lib-drop` | The box around `shelf-library-file`: a click chooses, a drop of saved pages lands | As `shelf-library-file`. |
 | `shelf-hold-N` | Link "Sign in and hold", on a book to read that has a catalogue record | Opens the library's sign-in page in a new tab, which lands on the book's own page after signing in. |
 | `shelf-account`, `find-account` | The "At the library" box (not pressed) | — |
 | `shelf-account-<page>`, `find-account-<page>` | Link: `holds`, `forLater`, `checkedOut` | Opens the library's sign-in page in a new tab, which lands on that page of the person's account. |

@@ -45,6 +45,7 @@
     // which of the shelf screen's folding panels are open, by name, for this visit only
     folds: {},
     shelfFilter: 'all',   // the shelf screen's filter: 'all' or one state
+    libraryTrip: false,   // a link to the library's account was pressed; cleared on the way back
     model: blankModel(),  // the pasted answer, if there is one
     words: {}             // per facets input: the pasted words, the prompt and its answer
   };
@@ -208,8 +209,28 @@
   function holdLinkNode(work, test) {
     var href = holdLinkFor(work);
     if (!href) return null;
-    return h('a', { class: 'nb-button nb-button-small nb-button-quiet nb-hold', href: href, 'data-test': test },
-      t('holdLink'));
+    return h('a', {
+      class: 'nb-button nb-button-small nb-button-quiet nb-hold', href: href, 'data-test': test,
+      on: { click: noteLibraryTrip }
+    }, t('holdLink'));
+  }
+
+  // Back from the library. A link to the person's account opened the library in another tab;
+  // when this tab is looked at again, say once how to bring a change back, and open the panel
+  // that does it. Only on the own shelf, where bringing a library shelf in is allowed. Nothing
+  // is read and nothing is assumed: the app cannot see what happened over there.
+  function noteLibraryTrip() { state.libraryTrip = true; }
+
+  function backFromLibrary() {
+    if (!state.libraryTrip) return;
+    try { if (doc.visibilityState && doc.visibilityState !== 'visible') return; } catch (e) { /* carry on */ }
+    state.libraryTrip = false;
+    var own = false;
+    try { own = !!state.store && state.store.which() === 'own'; } catch (e) { own = false; }
+    if (!own || isWorkshop()) return;
+    state.folds.library = true;
+    state.message = routeName() === 'shelf' ? t('libBackHere') : t('libBackThere');
+    render();
   }
 
   // The library account, one click away: each link signs in on the library's own page and
@@ -224,7 +245,11 @@
     ACCOUNT_PAGES.forEach(function (page) {
       var href = '';
       try { href = Nextbook.links.accountLink(lib, page[0]) || ''; } catch (e) { href = ''; }
-      if (href) links.push(h('a', { class: 'nb-account-link', href: href, 'data-test': test + '-' + page[0] }, t(page[1])));
+      if (href) {
+        links.push(h('a', {
+          class: 'nb-account-link', href: href, 'data-test': test + '-' + page[0], on: { click: noteLibraryTrip }
+        }, t(page[1])));
+      }
     });
     if (!links.length) return null;
     return h('section', { class: 'nb-account', 'data-test': test, 'aria-label': t('accountHead') },
@@ -1632,6 +1657,24 @@
     var last = lastBroughtIn();
     if (last) wrap.appendChild(p(t('libLastSeen', { date: last }), 'nb-note', { 'data-test': 'lib-last' }));
     wrap.appendChild(p(t('libHelp'), 'nb-hint'));
+    // The round trip, as steps, with the doors in them: each shelf opens on the library's own
+    // page (signed in there, as T8.12's links do), so "save the page" is the only new thing.
+    var steps = h('ol', { class: 'nb-steps', 'data-test': 'lib-steps' });
+    var shelfLinks = [['forLater', 'accountForLater'], ['inProgress', 'accountInProgress'], ['completed', 'accountCompleted']]
+      .map(function (page) {
+        var href = '';
+        try { href = Nextbook.links.accountLink(library(), page[0]) || ''; } catch (e) { href = ''; }
+        return href ? h('a', {
+          class: 'nb-account-link', href: href, 'data-test': 'lib-open-' + page[0],
+          on: { click: noteLibraryTrip }
+        }, t(page[1])) : null;
+      })
+      .filter(function (a) { return !!a; });
+    steps.appendChild(h('li', null, p(t('libStepOpen'), 'nb-text'),
+      shelfLinks.length ? h('div', { class: 'nb-account-links' }, shelfLinks) : null));
+    steps.appendChild(h('li', null, p(t('libStepSave'), 'nb-text')));
+    steps.appendChild(h('li', null, p(t('libStepChoose'), 'nb-text')));
+    wrap.appendChild(steps);
     wrap.appendChild(p(t('libPrivacy'), 'nb-note'));
 
     var input = h('input', {
@@ -1660,8 +1703,8 @@
         }
       }
     });
-    wrap.appendChild(h('label', { class: 'nb-field' },
-      h('span', { class: 'nb-label' }, t('libChoose')), input));
+    wrap.appendChild(h('label', { class: 'nb-field nb-drop', 'data-test': 'lib-drop' },
+      h('span', { class: 'nb-drop-words' }, t('libChoose')), input));
 
     if (state.libReport && state.libReport.which === which) wrap.appendChild(libraryReportBox());
     return wrap;
@@ -3651,7 +3694,9 @@
     try {
       if (typeof window.addEventListener === 'function') {
         window.addEventListener('hashchange', function () { render(); });
+        window.addEventListener('focus', backFromLibrary);
       }
+      if (typeof doc.addEventListener === 'function') doc.addEventListener('visibilitychange', backFromLibrary);
     } catch (e) { /* no router: the page still draws */ }
 
     render();
@@ -3789,9 +3834,16 @@
     shelfCompleted: 'Completed',
     // bringing in the library's shelf (T8.8c)
     libHeading: 'Bring in your library shelf',
-    libHelp: "Save the shelf pages from the library's site. Choose the pages here, and save every page of a long shelf.",
+    libHelp: 'Moved a book at the library, or finished one? Bring the change in here. Do it again any time: a book changed here and there is shown so you can choose.',
+    libStepOpen: "Open a shelf at the library. You sign in there, not here.",
+    libStepSave: 'Save the page, on a computer: press Ctrl+S, or Command+S on a Mac. A long shelf has more than one page: save each one.',
+    libStepChoose: 'Choose the saved pages below, or drop them on the box.',
     libPrivacy: 'The page keeps the books, not the file. Delete the saved pages afterwards.',
-    libChoose: 'Choose the saved shelf pages',
+    libChoose: 'Choose the saved shelf pages, or drop them here',
+    libBackHere: 'Back from the library? If you changed a shelf there, save that page and bring it in below.',
+    libBackThere: 'Back from the library? If you changed a shelf there, save that page and bring it in on the Shelf screen.',
+    accountInProgress: 'In Progress',
+    accountCompleted: 'Completed',
     libOff: "Do this at home, on your own shelf: a shared library computer is not the place for anyone's reading history.",
     libFileBad: '{name}: {error}',
     libLastSeen: 'Last brought in from the library: {date}',

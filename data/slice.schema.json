@@ -21,6 +21,8 @@
             "signIn": { "type": "string", "minLength": 1 },
             "holds": { "type": "string", "pattern": "^/[^/]" },
             "forLater": { "type": "string", "pattern": "^/[^/]" },
+            "inProgress": { "type": "string", "pattern": "^/[^/]" },
+            "completed": { "type": "string", "pattern": "^/[^/]" },
             "checkedOut": { "type": "string", "pattern": "^/[^/]" }
           }
         },

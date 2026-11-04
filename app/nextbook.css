@@ -543,6 +543,41 @@
   .nb-hold::after { content: "\2197"; margin-inline-start: 6px; font-weight: 400; }
   .nb-hold { text-decoration: none; }
 
+  /* ---- Numbered steps ---- */
+  .nb-steps {
+    margin: var(--nb-s2) 0;
+    padding-inline-start: 1.4rem;
+    list-style: decimal;
+    display: grid;
+    gap: var(--nb-s2);
+    font-size: var(--nb-small);
+  }
+  .nb-steps .nb-text { margin: 0; }
+  .nb-steps > li::marker { font-weight: 700; color: var(--nb-accent); }
+  .nb-steps .nb-account-links { margin-block-start: var(--nb-s1); }
+
+  /* ---- A file box: the picker's input covers the box, so a click chooses and a drop lands ---- */
+  .nb-drop {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 88px;
+    padding: var(--nb-s4);
+    border: 2px dashed var(--nb-line-strong);
+    border-radius: var(--nb-radius);
+    background: var(--nb-paper);
+    color: var(--nb-muted);
+    font-weight: 600;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color var(--nb-ease), background var(--nb-ease);
+  }
+  .nb-drop:hover,
+  .nb-drop:has(.nb-file:focus-visible) { border-color: var(--nb-accent); background: var(--nb-accent-soft); color: var(--nb-ink); }
+  .nb-drop .nb-file { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+  .nb-drop:has(.nb-file:focus-visible) { outline: 3px solid var(--nb-accent); outline-offset: 2px; }
+
   /* ---- Choice pills (an input's choices on the find screen) ---- */
   .nb-choices { display: flex; flex-wrap: wrap; gap: var(--nb-s2); margin-block-start: var(--nb-s1); }
   .nb-choice {

@@ -500,6 +500,8 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
   a request to any of these pages, never a word about whether the person is signed in. Checked by hand
   (2026-11-04): a person already signed in goes straight through `/user/login?destination=` to the page, with no
   sign-in form, so "Sign in and hold" is right whether or not they are signed in.
+- [x] **T8.13 The way back from the library** (D41). Steps with links to each library shelf, a drop box for the
+  saved pages, and one note on coming back to the tab after a library link, on the own shelf only.
 - [ ] **T8.10 Look further, with Open Library** (D26). For the hosted copy, where there is no agent: a "Look further"
   button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never shelf
   titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off
@@ -544,6 +546,12 @@ Found by the build's reviews, judged not worth a change now, and written down so
   challenge's "no mood words" count are exercised by their checks, not by the practice data.
 
 ## Open questions
+
+- **Can holds come back in?** (2026-11-04, from D41.) A saved holds page (`/holds`, signed in) has not been measured.
+  If it carries the books with record ids, as a saved shelf page does, an import could mark a want-to-read book as on
+  hold, and hold-next could skip it. That needs a way to say "on hold" (a new state, or a note on the entry like
+  `library.shelf`), which is a design call. Measure first: save the page by hand, read it with
+  `research/probes/saved_page_shape.py`, never commit it.
 
 - **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how
   much. It would be a new stored field (store, merge, export, the CSV and shelf readers, the contract's standard
