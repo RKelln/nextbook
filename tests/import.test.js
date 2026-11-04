@@ -18,6 +18,12 @@ const sgText = READ('storygraph.csv');
 const gr = plain(nb.csv.goodreads(grText));
 const sg = plain(nb.csv.storygraph(sgText));
 
+// A published export from each site, kept as it was (see tests/fixtures/import/README.md).
+const grRealText = READ('goodreads-real.csv');
+const sgRealText = READ('storygraph-real.csv');
+const grReal = plain(nb.csv.goodreads(grRealText));
+const sgReal = plain(nb.csv.storygraph(sgRealText));
+
 const byTitle = (out, start) => out.entries.filter((e) => e.title.indexOf(start) === 0)[0];
 
 // ---- The CSV reader -------------------------------------------------------------------------
@@ -51,11 +57,13 @@ test('rows: each fixture is a header and six rows, five of them readable', () =>
 
 // ---- Goodreads ------------------------------------------------------------------------------
 
-test('goodreads: five entries, five works, one problem, and the file is complete', () => {
+test('goodreads: five entries, five works, one problem, and the read shelf is unfinished', () => {
   assert.strictEqual(gr.entries.length, 5);
   assert.strictEqual(gr.works.length, 5);
   assert.deepStrictEqual(gr.problems, ['Row 7 has no title, so it was left out.']);
-  assert.deepStrictEqual(gr.complete, { for_later: true, in_progress: true, completed: true });
+  // The row that was left out said "read", so the file no longer proves what is on the
+  // completed shelf: the merge must not treat a missing book there as gone.
+  assert.deepStrictEqual(gr.complete, { for_later: true, in_progress: true, completed: false });
 
   gr.entries.forEach((entry) => {
     assert.strictEqual(entry.id, null, 'no invented record id');
@@ -134,11 +142,12 @@ test('goodreads: Date Added is the file\'s own text, untouched', () => {
 
 // ---- StoryGraph -----------------------------------------------------------------------------
 
-test('storygraph: five entries, five works, one problem, and the file is complete', () => {
+test('storygraph: five entries, five works, one problem, and the read shelf is unfinished', () => {
   assert.strictEqual(sg.entries.length, 5);
   assert.strictEqual(sg.works.length, 5);
   assert.deepStrictEqual(sg.problems, ['Row 7 has no title, so it was left out.']);
-  assert.deepStrictEqual(sg.complete, { for_later: true, in_progress: true, completed: true });
+  assert.deepStrictEqual(sg.complete, { for_later: true, in_progress: true, completed: false },
+    'the row with no title said "read"');
   sg.entries.forEach((entry) => assert.strictEqual(entry.from, 'storygraph'));
 });
 
@@ -175,6 +184,119 @@ test('storygraph: the series suffix stays and the ISBN/UID is read', () => {
   const memory = byTitle(sg, 'A Memory Called Empire');
   assert.strictEqual(memory.title, 'A Memory Called Empire (Teixcalaan, #1)');
   assert.strictEqual(memory.isbn, '9780062886480');
+});
+
+// ---- The real exports ------------------------------------------------------------------------
+// A published export per site, kept as it was (provenance in tests/fixtures/import/README.md).
+// These say what the sites actually write, where the hand-written files say what to decide.
+
+test('the real Goodreads sample: 31 columns, ten rows, nine books and one named row', () => {
+  const table = nb.csv.rows(grRealText);
+  assert.strictEqual(table.length, 11);
+  assert.strictEqual(table[0].length, 31, 'the current Goodreads header');
+  assert.ok(table[0].indexOf('Bookshelves with positions') >= 0);
+
+  assert.strictEqual(grReal.entries.length, 9);
+  assert.strictEqual(grReal.works.length, 9);
+  assert.strictEqual(grReal.problems.length, 1);
+  assert.ok(/^Row 6 /.test(grReal.problems[0]), 'the row number is named');
+  assert.ok(/waiting/.test(grReal.problems[0]), 'the person\'s own shelf word is named');
+  assert.deepStrictEqual(grReal.complete, { for_later: false, in_progress: false, completed: false },
+    'a shelf word we cannot read puts every shelf in doubt');
+});
+
+test('the real Goodreads sample: every ISBN wrapper is stripped', () => {
+  grReal.entries.forEach((entry) => {
+    assert.ok(/^[0-9X]{10,13}$/.test(entry.isbn), entry.title + ' should carry a bare ISBN');
+    assert.ok(entry.isbn.indexOf('=') === -1, 'the ="..." wrapper is gone');
+    assert.ok(entry.isbn.indexOf('"') === -1, 'the quotes are gone');
+  });
+  assert.strictEqual(byTitle(grReal, 'La somme de nos folies').isbn, '9782843048302',
+    'an empty ISBN falls back to the 13-digit column');
+  assert.strictEqual(byTitle(grReal, 'Un Sale Boulot').isbn, '9782702138397');
+});
+
+test('the real Goodreads sample: a comma inside Bookshelves stays in its own cell', () => {
+  const table = nb.csv.rows(grRealText);
+  assert.strictEqual(table[1][16], 'to-read, test-aad, avec-espace');
+  assert.strictEqual(table[1][17], 'to-read (#80), test-aad (#1), avec-espace (#1)');
+  assert.strictEqual(grReal.entries[0].title, 'La somme de nos folies', 'the shelf list is not a title');
+  assert.strictEqual(grReal.entries[0].author, 'Shih-Li Kow');
+  assert.strictEqual(grReal.entries[0].state, 'want');
+});
+
+test('the real Goodreads sample: a column we do not use is left out, not invented', () => {
+  const entry = byTitle(grReal, 'La somme de nos folies');
+  ['dateRead', 'pages', 'bookshelves', 'binding'].forEach((k) => {
+    assert.ok(!Object.prototype.hasOwnProperty.call(entry, k), k + ' is not on the entry');
+  });
+  assert.strictEqual(entry.dateAdded, '2021/04/02', 'Date Added, not Date Read');
+});
+
+test('the real StoryGraph sample: 23 columns, twelve rows, twelve books, no problems', () => {
+  const table = nb.csv.rows(sgRealText);
+  assert.strictEqual(table.length, 13);
+  assert.strictEqual(table[0].length, 23, 'the StoryGraph header');
+  assert.strictEqual(sgReal.entries.length, 12);
+  assert.strictEqual(sgReal.works.length, 12);
+  assert.deepStrictEqual(sgReal.problems, []);
+  assert.deepStrictEqual(sgReal.complete, { for_later: true, in_progress: true, completed: true });
+  assert.strictEqual(sgReal.entries.filter((e) => e.state === 'want').length, 1);
+  assert.strictEqual(sgReal.entries.filter((e) => e.state === 'read').length, 11);
+});
+
+test('the real StoryGraph sample: an ISBN-10 is kept and an empty Star Rating is not rated', () => {
+  const whipping = byTitle(sgReal, 'Whipping Star');
+  assert.strictEqual(whipping.isbn, '042504355X', 'the ISBN/UID column may hold an ISBN-10');
+  assert.strictEqual(whipping.rating, null);
+  assert.strictEqual(whipping.rating10, 0);
+  assert.strictEqual(whipping.dateAdded, '2024/12/12');
+  sgReal.entries.forEach((entry) => assert.ok(entry.isbn, entry.title + ' has an ISBN/UID'));
+  // This export carries no ratings at all: a real file may have none.
+  sgReal.entries.forEach((entry) => assert.strictEqual(entry.rating, null));
+});
+
+test('storygraph: paused is in progress, not a row to leave out', () => {
+  const text = 'Title,Authors,ISBN/UID,Star Rating,Read Status,Date Added\n' +
+    'A Book,An Author,9780000000000,3.0,paused,2025/01/01\n';
+  const out = plain(nb.csv.storygraph(text));
+  assert.deepStrictEqual(out.problems, [], 'a paused book is not a problem');
+  assert.strictEqual(out.entries.length, 1);
+  assert.strictEqual(out.entries[0].state, 'reading', 'set aside, not given up on');
+  assert.strictEqual(out.entries[0].shelf, 'in_progress');
+});
+
+test('a row that cannot be read leaves its shelf unfinished, and no book is called gone', () => {
+  const text = 'Title,Author,My Rating,ISBN,ISBN13,Exclusive Shelf,Date Added\n' +
+    'A Book,A Writer,four,,,read,2024/01/01\n';
+  const brought = plain(nb.csv.goodreads(text));
+  assert.strictEqual(brought.entries.length, 0);
+  assert.deepStrictEqual(brought.complete, { for_later: true, in_progress: true, completed: false },
+    'only the shelf the row named is in doubt');
+
+  const ours = [{
+    key: 't:still here|a writer',
+    title: 'Still Here',
+    author: 'A Writer',
+    state: 'read',
+    rating: 'loved',
+    shelf: 'completed',
+    library: { shelf: 'completed', rating10: 10 }
+  }];
+  const out = plain(nb.merge.plan(brought, ours, { now: NOW, practice: false }));
+  assert.strictEqual(out.report.gone, 0, 'an unfinished shelf never says gone');
+  assert.deepStrictEqual(out.tidy, [], 'and nothing is sent to "Tidy up at the library"');
+  assert.deepStrictEqual(out.refusals,
+    ['Your Completed shelf was not fully saved, so nothing was taken off it.']);
+});
+
+test('a did-not-finish row that cannot be read leaves every shelf complete', () => {
+  const text = 'Title,Authors,ISBN/UID,Star Rating,Read Status,Date Added\n' +
+    'A Book,An Author,9780000000000,four,did-not-finish,2025/01/01\n';
+  const out = plain(nb.csv.storygraph(text));
+  assert.strictEqual(out.problems.length, 1);
+  assert.deepStrictEqual(out.complete, { for_later: true, in_progress: true, completed: true },
+    'that shelf has no library shelf to be in doubt');
 });
 
 // ---- The shape the merge takes --------------------------------------------------------------
@@ -219,7 +341,9 @@ test('end to end: a fixture through merge.plan adds every readable row with a li
 
   assert.strictEqual(out.report.added, 5);
   assert.strictEqual(out.entries.length, 5);
-  assert.deepStrictEqual(out.refusals, [], 'a file export is whole, so nothing is refused');
+  assert.deepStrictEqual(out.refusals,
+    ['Your Completed shelf was not fully saved, so nothing was taken off it.'],
+    'a row was left out, so the file no longer speaks for the whole shelf');
   out.entries.forEach((entry) => {
     assert.ok(entry.library && typeof entry.library === 'object', entry.title + ' has a memory');
     assert.strictEqual(entry.library.seen, NOW, 'the memory says when it was brought in');

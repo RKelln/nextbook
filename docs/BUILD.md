@@ -547,6 +547,9 @@ Write here; do not guess. Each one is Ryan's to answer.
 - `Nextbook.pool.load()` returned `{works, byId, byGroupKey, facets}` while `makeCtx` asks that object for `tagsOf`,
   `sections` and `labelOf`, so `ctx.tagsOf` was always `null` and CONTRACT.md section 4 was wrong on paper. The
   snapshot now carries the same functions the pool exposes.
+- An import row that could not be read left its shelf marked complete, so the merge could read an absent
+  book as gone from the library. A dropped row now marks its shelf unfinished, and an unknown shelf word marks all
+  three (D37's neighbour: a claim is only true if the data supports it).
 - The check's scan is a lint, and `CONTRACT.md` section 5 now says so: a name built from pieces, a name inside a
   template interpolation and `fetch?.(` are not seen. The rule is for the accident, not for a file written around it.
 ### Lane C

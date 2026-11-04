@@ -214,6 +214,23 @@
     };
   }
 
+  // A shelf is only complete if every row that named it could be read. A row left out may
+  // have been a book the library still holds, so that shelf can no longer be called whole:
+  // the merge must not read an absent book as gone. A shelf word we do not know puts every
+  // shelf in doubt, because the row's shelf is exactly what we could not read.
+  function noteIncomplete(complete, shelves, shelfWord) {
+    var state = has(shelves, shelfWord) ? shelves[shelfWord] : null;
+    if (state === 'stopped') return; // the library has no such shelf, so none is in doubt
+    var shelf = state ? SHELF_OF_STATE[state] : '';
+    if (shelf) {
+      complete[shelf] = false;
+      return;
+    }
+    complete.for_later = false;
+    complete.in_progress = false;
+    complete.completed = false;
+  }
+
   function parse(text, shape) {
     var spec = isObj(shape) ? shape : {};
     var from = str(spec.from);
@@ -231,15 +248,17 @@
       var line = r + 1; // the header is row 1, so the first book is row 2
       var title = cell(row, at, columns.title).trim();
       var author = cell(row, at, columns.author).trim();
+      var shelfRaw = cell(row, at, columns.shelf).trim();
+      var shelfWord = shelfRaw.toLowerCase();
 
       if (!title || !normText(title)) {
+        noteIncomplete(result.complete, shelves, shelfWord);
         result.problems.push(t('importNoTitle', { row: line }));
         continue;
       }
 
-      var shelfRaw = cell(row, at, columns.shelf).trim();
-      var shelfWord = shelfRaw.toLowerCase();
       if (!has(shelves, shelfWord)) {
+        noteIncomplete(result.complete, shelves, shelfWord);
         result.problems.push(t('importUnknownShelf', { row: line, title: title, shelf: shelfRaw }));
         continue;
       }
@@ -247,6 +266,7 @@
 
       var rating = ratingOf(cell(row, at, columns.rating));
       if (has(rating, 'bad')) {
+        noteIncomplete(result.complete, shelves, shelfWord);
         result.problems.push(t('importBadRating', { row: line, title: title, rating: rating.bad }));
         continue;
       }
@@ -321,7 +341,10 @@
       'currently-reading': 'reading',
       'to-read': 'want',
       // The library has no such shelf, but the person does. This is our "stopped".
-      'did-not-finish': 'stopped'
+      'did-not-finish': 'stopped',
+      // StoryGraph shipped "Paused" in December 2024: started, set aside, not given up on.
+      // That is in progress, not a did-not-finish, so it keeps the book and its shelf.
+      paused: 'reading'
     }
   };
 
