@@ -322,7 +322,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Click:* paste an answer with an invented id (named as dropped); paste nonsense (says so); never touch it (the app is
   complete).
 
-- [ ] **T3.3b The model box: from some words** (C, S, S). The same box inside a `facets` input: paste words, copy
+- [x] **T3.3b The model box: from some words** (C, S, S). The same box inside a `facets` input: paste words, copy
   the prompt, paste the answer, see the kept subjects and the dropped ones named.
   *Click:* an answer with one real subject and one invented keeps one and names the other.
 
@@ -331,7 +331,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   prints passes and failures in plain words; whether the browser is saving.
   *Click:* green with the example mode; break its check on purpose and see it fail by name.
 
-- [ ] **T3.5 Words, keyboard and phone** (C, S, S). Every control reachable by keyboard with a visible focus; no
+- [x] **T3.5 Words, keyboard and phone** (C, S, S). Every control reachable by keyboard with a visible focus; no
   sideways scroll at 360 px; dark mode via `prefers-color-scheme`; every string read once for grade 6 and for claims
   the app cannot make ("recommends", "knows you", "learns").
   *Done when:* the commit message lists what changed and says it was checked at 360 px and 1280 px, light and dark.
@@ -402,7 +402,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Done when:* `/new-mode` in the Code tab starts from the contract and writes `app/PLAN.md`; `/find-books birds`
   adds books on the Mac mini.
 
-- [ ] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
+- [x] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
   `python3 tools/build.py`, publish `dist/nextbook.html` as `index.html` with a `CNAME` of `nextbook.ryankelln.com`).
   Ryan does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
   *Done when:* a push to `main` publishes, and the network panel shows no request beyond the page itself.
@@ -413,8 +413,8 @@ Built to their briefs in `reference/modes/`, with checks, on the pack data. They
 mechanism, give the facilitator a demo, and time the briefs.
 
 - [x] **T6.1 Survey** (E, S, S). `docs/modes/survey.md`. The facilitator's demo.
-- [ ] **T6.2 Journey** (E, M, S). `docs/modes/journey.md`.
-- [ ] **T6.3 Challenge** (E, M, S). `docs/modes/challenge.md`.
+- [x] **T6.2 Journey** (E, M, S). `docs/modes/journey.md`.
+- [x] **T6.3 Challenge** (E, M, S). `docs/modes/challenge.md`.
 
 *Done when (each):* `node tools/check-mode.js --dir reference/modes <id>` passes, a person reads the six reasons on
 the practice shelf and finds each one true, and the commit says how long the build took.
