@@ -29,19 +29,16 @@ def read(name):
 
 
 def resolve_pack_path():
-    """The pack's books.json: NEXTBOOK_PACK when set, else the documented default."""
-    override = os.environ.get("NEXTBOOK_PACK")
-    if override:
-        return os.path.expanduser(override)
-    return os.path.expanduser(adapter.load_config()["packPath"])
+    """The same order the tool uses: NEXTBOOK_PACK, config packPath, then data/pack/books.json."""
+    return adapter.pack_path()
 
 
-# The residency pack is not part of this repo; on another machine (or in CI)
-# these tests skip, loudly, instead of erroring at import.
+# A pack is not part of this repo; on a machine without one (or in CI) these
+# tests skip, loudly, instead of erroring at import.
 PACK_PATH = resolve_pack_path()
 if not os.path.isfile(PACK_PATH):
     raise unittest.SkipTest(
-        "the W13 residency pack is not on this machine: %s\n"
+        "no pack file on this machine: %s\n"
         "  set NEXTBOOK_PACK=<path to books.json> to run the pack tests" % PACK_PATH)
 
 PACK, PACK_PATH = adapter.load_pack(PACK_PATH)

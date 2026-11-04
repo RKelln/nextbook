@@ -31,7 +31,7 @@ then shows a plain sentence ("The book list did not load. The rest of the app st
 
 ### `slice.json`, the starting list
 
-**For now (D28) it is made from the W13 pack** by `adapters/pack/pack_to_slice.py`: 30 real books with our own facets,
+**For now (D28) it is made from the 30-book pack** by `adapters/pack/pack_to_slice.py`: 30 real books with our own facets,
 search links instead of record links (`library.recordUrl` is `null`), `section:` and `contentType` derived from the
 pack's genres through one table, and `formats: []`. Every mode on the menu runs on it. Real catalogue records join it
 when a person's helper finds books (`found.json`, below), and a found record of a pack book enriches that book (its
@@ -93,7 +93,7 @@ How raw subject headings become facets is specified in `DATA.md`, "From headings
 ### `tags.json`, our own words
 
 Hand-written, keyed by `groupKey`. This is where the things the catalogue does not carry live: mood, pace, and a
-one-line note in our own words. Seeded from the W13 reading pack (30 books with mood, pace and a note, written for the
+one-line note in our own words. Seeded from the 30-book reading pack (books with mood, pace and a note, written for the
 workshop rather than copied from a publisher).
 
 ```json
@@ -134,7 +134,7 @@ Open Library lookup (`BUILD.md` T8.10).
 ### `practice.json`, the practice shelf
 
 A list of shelf entries (shape below) pointing at slice works, with states and ratings already set, so the app has
-something to show in its first second. Twelve of the W13 pack's books.
+something to show in its first second. Twelve of the pack's books.
 
 ### `events.json`, the events snapshot (last in priority, D30)
 
@@ -374,7 +374,7 @@ prompt, paste it into any chat, paste the answer back. Two jobs, one guard.
    a title that is not on the shelf is public catalogue data and a title that is, is the reading list. The call
    returns `{text, excluded}`, and the box says how many it left out. It asks for one line per candidate,
    `<id>: <one sentence>`, and ends "Answer with N lines. Do not change any files.", because the prompt may be pasted
-   into an agent's tab rather than a chat. No title from the shelf is ever in a prompt, so the room's "do not type
+   into an agent's tab rather than a chat. No title from the shelf is ever in a prompt, so a workshop's "do not type
    your reading history into an AI" and the app tell the same truth.
 2. **Text to facets.** `labelsPrompt(text, facetLabels)` asks a model to choose up to four labels **from the slice's
    own facet list** for a piece of text (an event, a headline, a wish). Event hook and news diet use it.

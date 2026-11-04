@@ -29,7 +29,7 @@ build takes a fixed number of minutes, because no beginner has tried one yet.
   most one input, nothing to set up.
 - **M — two or three rules of the same kind, or one rule plus something to set up.** Each rule filters or scores and
   can be checked on its own (two kinds of "other side"; a group's floor, then a chain of weeks), or one rule needs
-  something the room must have ready. Without the setup, the build is still the size of the reference builds below.
+  something the workshop must have ready. Without the setup, the build is still the size of the reference builds below.
   With it, the setup has to happen before the block starts.
 - **L — more than that.** More than three rules, a helper that changes the data every rule sees (club season's fold,
   which built a fourth profile out of the members'), or a design call the brief does not make. Does not fit the
@@ -45,8 +45,8 @@ Challenge (T6.3) has 75, and took about four minutes plus two lost to a `ctx` he
 and has since been added. Challenge is the heaviest of the three built, and it fitted a 26-minute block even with the
 shared reading charged.
 
-**A beginner's time has not been measured.** T7.1, on the Mac mini, is the first beginner to build one of these, and
-it builds survey from its brief there. Until it runs, the times above are an agent's, the beginner's are unknown, and
+**A beginner's time has not been measured.** T7.1, on a clean machine, is the first beginner to build one of these,
+and it builds survey from its brief there. Until it runs, the times above are an agent's, the beginner's are unknown, and
 "in the block" means the build is no larger than the measured ones and needs nothing set up. It is not a promise that
 a beginner finishes. T6.4 is re-checked after T7.1: if a beginner cannot get through an S brief in the block, the
 sizes come down; the block does not go up.

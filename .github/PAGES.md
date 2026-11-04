@@ -1,4 +1,4 @@
-# The hosted copy: what Ryan does, once
+# The hosted copy: what a maintainer does, once
 
 `.github/workflows/pages.yml` tests, builds and publishes `dist/nextbook.html` to
 `https://nextbook.ryankelln.com` on every push to `main`. Two steps are the repo owner's, and only
@@ -46,5 +46,5 @@ If any test fails, nothing is published: the deploy job needs the build job. `di
 so the checkout never carries an older file to publish, and `_site/` holds exactly `index.html` and
 `CNAME`.
 
-No step fetches the catalogue, holds a secret, or needs the residency pack repo. The Python tests
+No step fetches the catalogue, holds a secret, or needs a private pack. The Python tests
 skip the pack tests when `NEXTBOOK_PACK` is unset, and it is never set here.

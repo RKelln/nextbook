@@ -1,6 +1,6 @@
 {
   "schema": "nextbook/pack-config-1",
-  "packPath": "~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/seed_src/pack/books.json",
+  "packPath": "",
   "facetPrefix": {
     "genre": "genre",
     "theme": "topic",

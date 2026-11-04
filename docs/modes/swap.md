@@ -2,7 +2,7 @@
 
 **In plain words:** two shelves, and what each person should read from the other's.
 
-**Why someone wants it:** people already lend each other books. Two exported files make that a game the room can
+**Why someone wants it:** people already lend each other books. Two exported files make that a game a group can
 play: trade files, run the swap.
 
 ## The rule

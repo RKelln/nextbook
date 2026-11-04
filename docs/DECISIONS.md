@@ -59,7 +59,7 @@ Forecloses: a menu of modes that produce incomparable artifacts, which is what m
 
 Participants choose what to build, or bring their own idea. Nothing on the menu reads as the intended answer.
 
-Forecloses: a single "correct" build for the room, and means every mode offered needs its own working demo.
+Forecloses: a single "correct" build for a workshop, and means every mode offered needs its own working demo.
 
 ## D9. Practice mode is prebuilt, not a participant exercise (2026-11-03, Ryan)
 
@@ -93,7 +93,7 @@ order). Supersedes the source list in the first `BUILD.md`.
 ## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, accepted by Ryan)
 
 The first `AGENTS.md` said "one HTML file, no build step". For a foundation that participants extend, one large file is
-the most fragile thing a beginner's agent can edit, and the residency starter is already 119 KB. Search Desk's answer
+the most fragile thing a beginner's agent can edit, and an earlier starter was already 119 KB. Search Desk's answer
 works: one file per feature behind a contract, classic `<script src>` so the folder opens from `file://`, and a
 standard-library `tools/build.py` that packs one file for carrying home and hosting. Nothing needs the build to run.
 
@@ -117,7 +117,7 @@ breaks), a repeat registration replaces with a warning, the banned-word scan ove
 ## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, accepted by Ryan)
 
 Facets come from the catalogue (topics, BISAC, genre, call-number sections, series). What the catalogue does not carry
-(mood, pace, a one-line note) lives in `data/tags.json`, keyed by `groupKey`, hand-written, seeded from the W13 pack.
+(mood, pace, a one-line note) lives in `data/tags.json`, keyed by `groupKey`, hand-written, seeded from the 30-book pack.
 Modes that need mood or pace say how many untagged works they skipped.
 
 Forecloses: inventing mood or length for works nobody tagged.
@@ -126,7 +126,7 @@ Forecloses: inventing mood or length for works nobody tagged.
 
 The starter ships `more-by` (more by authors you rated well) as the contract's worked example, and no menu mode. Survey,
 journey and challenge are reference builds in `reference/modes/`, packed into the demo file only. Same reasoning as Search
-Desk's example feature and the residency kit keeping the demo out of the seed set: an agent that can see the finished
+Desk's example feature and a kit keeping its demo out of a seed set: an agent that can see the finished
 mode copies it.
 
 Forecloses: shipping a menu mode in the starter.
@@ -138,8 +138,8 @@ Both templates live in `slice.json`, written by the adapter, so the app never co
 
 ## D18. Saturday Nov 7 is the target, with a fallback slice (2026-11-03, Ryan)
 
-"We want this for Nov 7." Most of the foundation is a port of Search Desk, which was built and tested in four days;
-the library layers are the new part. The safety net is a slice built from the W13 pack (30 books, the pack's own facets,
+"We want this for the first run." Most of the foundation is a port of Search Desk, which was built and tested in four days;
+the library layers are the new part. The safety net is a slice built from the 30-book pack (the pack's own facets,
 search links instead of record links), made first so every lane has data on day one. If the real slice misses its
 numbers by Wed 18:00 the fallback ships, and if the starter misses gate 2 on Thu 18:00 Saturday runs on the residency
 starter that already exists.
@@ -148,7 +148,7 @@ Forecloses: nothing permanent. The real slice replaces the fallback whenever it 
 
 ## D19. The menu lives in the docs, not in the app (2026-11-03, Ryan)
 
-The mode menu is `docs/modes/`, for people and the agents in the room. The app lists only modes that are built
+The mode menu is `docs/modes/`, for people and their agents. The app lists only modes that are built
 (`app/modes/list.js`). Search Desk showed planned features as stubs inside the app; here that would put the menu on
 screen with one item marked as the answer, which D8 forbids.
 
@@ -158,7 +158,7 @@ Forecloses: "not built yet" cards in the app.
 
 BiblioCommons already keeps a signed-in person's shelves (For Later, In Progress, Completed) and 1 to 5 star ratings,
 and other library systems have the same. The library's shelf is the tracker; this app is the decision layer beside it,
-and does not compete with it (the W13 thesis since 2026-09-01).
+and does not compete with it (the project's thesis since 2026-09-01).
 
 Decided now, because it costs nothing and avoids a migration: our states and ratings map one to one onto theirs
 (`ARCHITECTURE.md`, "Lining up with the library's own shelves"), entries keep the library's `groupKey` and record id,
@@ -178,8 +178,8 @@ exists.
 ## D21. No fallback to the old starter (2026-11-03, Ryan)
 
 "I don't think we want a fallback demo." Replaces the last clause of D18: if a gate is missed, the build cuts from the
-list in `BUILD.md` and carries on; Saturday does not switch back to the residency starter. The fallback slice from the
-W13 pack stays, as data every lane needs on day one.
+list in `BUILD.md` and carries on; the build does not switch back to an earlier starter. The fallback slice from the
+30-book pack stays, as data every lane needs on day one.
 
 ## D22. Repo and domain (2026-11-03, Ryan)
 
@@ -233,7 +233,7 @@ Revises the pacing part of D12.
 
 ## D28. No batch catalogue slice for now; the pack is the starting list (2026-11-03, Ryan)
 
-"I thought we decided against the slice for now?" The app starts from the 30-book W13 pack, made into the slice's shape
+"I thought we decided against the slice for now?" The app starts from the 30-book pack, made into the slice's shape
 with sections and fiction/non-fiction derived from its genres, so every mode on the menu runs on it. Real catalogue
 records arrive only when a person asks their helper to find books (D26), and stay in their own copy. Supersedes the
 batch-slice parts of D12 and D18; the batch builder becomes a later task (T8.11), with the open question of whether a
@@ -241,7 +241,7 @@ public repo may carry catalogue records in bulk (`DATA.md`).
 
 ## D29. The pack's books and notes are kept (2026-11-03, Ryan)
 
-The residency material is a placeholder, but the pack's 30 books and their hand-written mood, pace and one-line notes
+The earlier material is a placeholder, but the pack's 30 books and their hand-written mood, pace and one-line notes
 are the only source of words the catalogue does not carry (D15). They seed the starting list, `tags.json` and the
 practice shelf. Replacing them later changes data, not code.
 
@@ -269,11 +269,11 @@ Folded in from `docs/HANDOFF.md` (committed as written, then removed once its po
 - **The check is a lint, and says so.** It reads code with comments and quoted words left out, matches call-shaped
   tokens, and names the word, the place and what to do instead.
 - **`check.sh` is never cut.** Node is in the workshop image, but where it sits on the PATH is untested.
-- **The build is continuous** (Hermes, once locked), so the plan is a dependency order with a priority list, not a
-  calendar; the human checks run early, on the Mac mini, in a fresh standard user.
+- **The build is continuous**, so the plan is a dependency order with a priority list, not a calendar; the human
+  checks run early, on a clean machine, in a fresh standard account.
 - **"Up to six"** everywhere the product is described; fewer with a reason is a full answer.
-- **The residency repo's starter, kit and event file are placeholders.** Port code from them, never requirements.
-- **The starter's interface to the kit is written down** (`BUILD.md`), and the kit relies on nothing else.
+- **Material from before this design is a placeholder.** Port code from it, never requirements.
+- **The starter's interface to whatever is built on it is written down** (`BUILD.md`), and that is all it relies on.
 
 ## D33. What the build changed in the product (2026-11-03, Hermes, each reviewed)
 

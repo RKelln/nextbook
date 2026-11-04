@@ -39,7 +39,7 @@ hour and a quarter, run once and cached. The same slice from record pages would 
 
 **CORS:** none. A browser page cannot fetch this either.
 
-Other traps (from the residency repo's DDT finder notes): the date filter is mandatory, past the last page the feed
+Other traps (measured for an events finder built earlier): the date filter is mandatory, past the last page the feed
 answers 200 with an empty body, virtual events carry no location, and a misspelled parameter is ignored rather than
 rejected.
 
@@ -54,10 +54,10 @@ rejected.
 | Google Books | 429 on the first unauthenticated call; 1,000 a day with a key |
 | Project Gutenberg / Gutendex | public-domain texts, not summaries; gutendex.com timed out from here |
 
-## Related, already in the residency repo
+## Related, found earlier
 
-- The catalogue link format and the dead `search.jsp` were found while preparing W13.
-- The events feed, its branch codes and its traps were measured for the DDT town hall demo. `CL` is North York Central.
+- The catalogue link format and the dead `search.jsp` were found while preparing the first workshop run.
+- The events feed, its branch codes and its traps were measured for a town-hall demo. `CL` is North York Central.
 - TPL's Z39.50 endpoint (`symphony.tpl.ca:2200`, db `unicorn`) is live and official open data, returns MARC21, and has no
   holdings tags. It is the route to bibliographic metadata without scraping, and the fallback if the search pages
   change or the crawl delay grows.

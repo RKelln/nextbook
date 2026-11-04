@@ -73,7 +73,7 @@ in the design it appears:
 - As a **link**: "the library's own suggestions" opens that page. Legitimate, needs no CORS, and makes the app a good
   citizen of the catalogue.
 - As a **three-minute comparison** in a workshop or a demo: the vendor's suggestion and ours for the same book, side by
-  side, and the room says which they would actually read and why.
+  side, and a group says which they would actually read and why.
 
 That comparison is the clearest statement of what this tool is for, and of what a licensed recommender structurally
 cannot do.
@@ -112,7 +112,7 @@ working, and that is the residency's actual product.
 2. Whether the hosted copy fetches anything at runtime. **Proposed (2026-11-03):** not in the first release. An optional
    Open Library lookup for a typed book is a P1 task, off by default.
 3. A curated pack or an empty start. **Proposed (2026-11-03):** both, separated. The catalogue slice is the list; the
-   W13 pack's 30 books become our own words (`data/tags.json`: mood, pace, a note) and the practice shelf. The own shelf
+   30-book pack becomes our own words (`data/tags.json`: mood, pace, a note) and the practice shelf. The own shelf
    starts empty.
 4. Which modes ship first. **Proposed (2026-11-03):** none on the menu; the example `more-by` ships, and survey, journey
    and challenge are reference builds, because between them they exercise coverage, sequencing and inversion.

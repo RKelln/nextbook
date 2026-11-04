@@ -1,16 +1,17 @@
 # Build plan
 
-For the builder (Hermes, continuously, or agents one task at a time). Each task says what to read, what to make,
+For a builder — a person, or an agent working one task at a time. Each task says what to read, what to make,
 what to port, and a check that can fail. The design is `ARCHITECTURE.md`; the data is `DATA.md`; the mode contract is
-`CONTRACT.md`. Rewritten 2026-11-03 after Ryan's design review: a dependency order instead of a calendar, the human
+`CONTRACT.md`. Rewritten 2026-11-03 after the design review: a dependency order instead of a calendar, the human
 checks at the front, and a priority order instead of a cut list.
 
-**Target:** the W13 starter, in the room on Sat Nov 7, 11:00; the kit is published Fri Nov 6 evening. There is no
-fallback to the old starter (D21). If time runs short, stop at a line in the priority order and say what was left.
+**Target:** a starter a beginner can open on a shared library machine with nothing installed, and a contract they
+can build against. There is no fallback to an earlier starter (D21). If time runs short, stop at a line in the
+priority order and say what was left.
 
 **Where it lives:** `github.com/RKelln/nextbook` (branch `main`), published at `nextbook.ryankelln.com` (D22).
 
-**What the app starts with (D28):** the 30-book W13 pack, turned into the slice by T1.0. There is no batch catalogue
+**What the app starts with (D28):** the 30-book pack, turned into the slice by T1.0. There is no batch catalogue
 slice for now. Real catalogue records arrive when a person asks their agent to find books (T1.8).
 
 ## How to work
@@ -20,13 +21,11 @@ slice for now. Real catalogue records arrive when a person asks their agent to f
 3. Pure functions get a unit test in the same commit. Node: `tests/<name>.test.js`, run with
    `node --test tests/*.test.js`. Python: `tests/test_<name>.py`, run with
    `python3 -m unittest discover -s tests -p 'test_*.py'`.
-4. **Port, don't reinvent.** "Port:" names a file and the repo it is in. Two repos are used:
-   - `searchdesk/...` means `~/Documents/Projects/searchdesk/...`
-   - `kit/...` means `~/Documents/work/tpl/applied_ai_2026/events/W13-personal-library-app/...` (the residency repo)
-
-   Read the file, keep what applies, rename `Desk` to `Nextbook`, and put one line at the top:
-   `// Ported from <repo>/<path> (MIT, same author).` Port the named file only, never its features. The residency
-   material is a placeholder from before this design: port code from it, never requirements.
+4. **Port, don't reinvent.** "Port:" names a file and the public repo it is in; `searchdesk/...` is
+   [github.com/RKelln/searchdesk](https://github.com/RKelln/searchdesk). Read the file, keep what applies, rename
+   `Desk` to `Nextbook`, and put one line at the top: `// Ported from <repo>/<path> (MIT, same author).` Port the
+   named file only, never its features. Where a file named here is not public, take the pattern and say so in the
+   file's header; never make a reader of this repo depend on something they cannot see.
 5. Run the task's "Done when" checks and paste the summary lines in the commit body.
 6. A design call the docs do not make is not yours: write it under "Open questions" and stop that task.
 7. Anything else you notice goes under "Found while working", in its lane's part.
@@ -62,11 +61,11 @@ Dependencies, not dates. Anything on the same line can run in parallel.
 3. **T1.2**, **T1.3**, **T1.7**, **T2.2**, **T2.3**, **T2.4**, **T2.5**.
 4. **T1.8**, **T2.6**, **T2.7**, **T2.8**, **T3.1**.
 5. **T4.1**, **T4.2**, **T3.2**, **T3.3a**, **T3.4**, **T5.1**, **T5.2**, **T5.5a**.
-6. **T7.1 on the Mac mini, as soon as `dist/starter/` opens.** Every finding becomes a task before more features land.
+6. **T7.1 on a clean machine, as soon as `dist/starter/` opens.** Every finding becomes a task before more features land.
 7. **T6.1**, **T5.5b**, **T5.3**, **T3.3b**, **T5.4**, **T6.2**, **T6.3**, **T6.4**, **T3.5**, **T7.2**.
 8. **T1.9**, **T2.9**, **T3.6** (events, last).
 9. **T5.6** (the hosted copy), then the stretch, **T8.8**.
-10. The kit, **K1** to **K5**, and **T7.1 again** on the installed kit before publishing.
+10. **T7.1 again** on the built starter, before it is handed to anyone.
 
 ## Priority order
 
@@ -88,9 +87,9 @@ property, `check.sh`, and "the shelf's titles never go in a prompt".
 12. The hosted copy: T5.6.
 13. Stretch: the library shelf sync, T8.8.
 
-## What the starter guarantees the kit
+## What the starter guarantees
 
-The kit is rebuilt after this lock and may rely on these, and nothing else:
+Anything built on the starter — a workshop kit, another app — may rely on these, and nothing else:
 
 - `app/index.html` opens in Chrome from `file://` with nothing installed, and works with the network off.
 - The practice shelf is the default and the only shelf in a workshop copy; reset puts it back.
@@ -124,7 +123,7 @@ The kit is rebuilt after this lock and may rely on these, and nothing else:
 Python, standard library only. Every network call goes through `adapters/bibliocommons/fetch.py`.
 
 - [x] **T1.0 The starting list, from the pack** (A, M, S). Read first: `ARCHITECTURE.md` "The data files", D28,
-  D29. Port from: `kit/seed_src/pack/books.json` (the data, not code).
+  D29. The pack's data is the source: books, genres, themes, mood, pace and a note per book, not its code.
   `adapters/pack/pack_to_slice.py` and `adapters/pack/config.json` write `data/slice.json`, `data/tags.json`,
   `data/practice.json`, and their schemas (`data/*.schema.json`, with a small hand-written validator in
   `adapters/validate.py`: required keys and types; no `description`, `jacket` or `rating` in any book).
@@ -172,7 +171,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   `section:science-fiction`; "813.54 L2453.109" gives `section:800`; "Kimmerer, Robin Wall, 1953-" gives nothing; a
   ` fast` heading gives nothing; `Fiction` alone gives nothing); `work_from` over the fixture gives 20 works.
 
-- [x] **T1.7 Data for the browser** (A, S, H). Port: `kit/seed_src/app/build_app.py`, its `safe()`.
+- [x] **T1.7 Data for the browser** (A, S, H). Port: the `safe()` pattern from an earlier single-file shelf app — an element builder that never takes HTML.
   `tools/gen_data.py` writes `app/data/<name>.js` for `slice`, `tags`, `practice`, `found` and `events` (each only if
   its JSON exists) as `Nextbook.data.put('<name>', <json>);`, with every `<`, `>` and `&` written as the JSON
   escapes `\u003c`, `\u003e` and `\u0026` (six characters each: backslash, u, four hex digits), so no text can end
@@ -192,7 +191,8 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   data/found.json` succeeds.
 
 - [x] **T1.9 Events snapshot** (A, M, S). Last in priority. Read first: `RESEARCH.md` "TPL events feed", D30. Port:
-  `kit/seed_src/tools/fetch_events.py`; read `~/Documents/Projects/tpl-finder-3/feed.py` for the feed's traps.
+  the pattern from an events finder built for a town hall: its feed reader, its traps, and the "ids only, checked
+  against the list" guard (`DATA.md` "TPL events feed" has the traps and the URLs).
   `adapters/bibliocommons/events.py --branch CL --days 21` writes `data/events.json`:
   `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual, categories, summary, url}]}`.
   `summary` is the library's own event text, tags stripped, at most 300 characters; there is no field named
@@ -226,7 +226,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   sections.
 
 - [x] **T2.3 Scoring** (B, M, S). Read first: `ARCHITECTURE.md` "Weights" and "The scoring core". Port the shape of
-  `profile`/`scoreAgainst` from `kit/seed_src/app/discovery.js`, with the changes the architecture names
+  the `profile`/`scoreAgainst` shape from an earlier single-file shelf app, with the changes the architecture names
   (square-root normalisation, parts kept, kind weights). `core/score.js`: `weightOf(entry)`, `profile(entries)`,
   `score(work, profile)`, `similar(a, b)`, `kindWeight`.
   *Done when:* tests: loved weighs 3; not-for-me is negative; want is 0; a typed book with no match adds nothing; more
@@ -378,7 +378,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `ls dist/starter/data/found.json` find nothing.
 
 - [x] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
-  reference modes loaded too. For the projector, and for the room if the network drops.
+  reference modes loaded too. For a projector, and for a workshop if the network drops.
   *Done when:* the reference modes show and `#selftest` is green.
 
 - [x] **T5.4 Live reload** (D, M, S). Port: `searchdesk/tools/serve.py`, only its serving, reload and `.dev-go`
@@ -390,7 +390,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
 - [x] **T5.5a The no-Node check** (D, S, H). Never cut. Port: `searchdesk/checks/check.sh` as `tools/check.sh`,
   running `tools/check-mode.js` through `osascript -l JavaScript`. Bash 3.2 and BSD-safe: no associative arrays, no
   `${var,,}`, `sed -i ''`, no `grep -P`, no `timeout`, `shasum -a 256`.
-  *Done when:* `bash tools/check.sh more-by` passes on the Mac mini in a standard user (T7.1).
+  *Done when:* `bash tools/check.sh more-by` passes on a clean machine in a standard account (T7.1).
 
 - [x] **T5.5b The commands** (D, S, H). Port: `searchdesk/tools/commands/new-feature.md` and `check.md` as
   `tools/commands/new-mode.md` and `check.md`, plus `find-books.md`, copied into `.claude/commands/`.
@@ -400,7 +400,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   - `find-books` runs `python3 tools/find.py` with the person's words, shows them the search line before it runs, and
     then says what was added and that the page will show it.
   *Done when:* `/new-mode` in the Code tab starts from the contract and writes `app/PLAN.md`; `/find-books birds`
-  adds books on the Mac mini.
+  adds books on a clean machine.
 
 - [x] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
   `python3 tools/build.py`, publish `dist/nextbook.html` as `index.html` with a `CNAME` of `nextbook.ryankelln.com`).
@@ -423,13 +423,13 @@ the practice shelf and finds each one true, and the commit says how long the bui
   `docs/modes/README.md` to what a beginner with an agent really needs, against the session's 26-minute build block.
   A brief that does not fit is cut down (fewer done-when lines) or its card says so.
 
-## Phase 7: the human checks (early, on the Mac mini)
+## Phase 7: the human checks (early, on a clean machine)
 
-Run in a **fresh standard (non-admin) user** on the Mac mini: the Mini's own account has developer tools and a newer
-Python, so it does not show what a workshop account sees.
+Run in a **fresh standard (non-admin) account** on a machine that is not the one you built on: a developer's own
+account has tools and a newer Python, so it does not show what a library machine sees.
 
-- [ ] **T7.1 The baseline** (Ryan, or Hermes on the Mini). As soon as `dist/starter/` opens, and again on the
-  installed kit before publishing. Record each line in `RESEARCH.md` with the date:
+- [ ] **T7.1 The baseline** (a person, on a clean machine). As soon as `dist/starter/` opens, and again on a built
+  starter before it is handed out. Record each line in `RESEARCH.md` with the date:
   - `node -v` in a new Terminal, nothing exported by hand;
   - `python3 --version`;
   - `bash tools/check.sh more-by`;
@@ -443,7 +443,7 @@ Python, so it does not show what a workshop account sees.
 
 ## Stretch: the library shelf sync
 
-After everything above. Not for the room (the import is off in a workshop copy); for anyone who takes the app home or
+After everything above. Not for a workshop (the import is off in a workshop copy); for anyone who takes the app home or
 opens the hosted copy and already keeps shelves at the library. The hand-made test page follows the shape in
 `DATA.md`, "A person's own shelf page", with a made-up user.
 
@@ -456,20 +456,11 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
   - **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
     "Leave it" remembered, the last-imported date, off on the practice shelf and in a workshop copy.
 
-## The kit (residency repo, not this repo)
+## What is not here
 
-The work and its words live in `kit/`; this repo never holds them. The kit relies only on "What the starter guarantees
-the kit", above.
-
-- [ ] **K1** `assemble.py` takes the app from `nextbook/dist/starter/`.
-- [ ] **K2** The kit's `AGENTS.md` rewritten for the new layout (a mode is `app/modes/<id>.js` plus its check and
-  `app/PLAN.md`; the contract is `docs/CONTRACT.md`; the menu is `docs/modes/`; run the check after every change).
-  "What not to do on this machine" gains one exception: `python3 tools/find.py` when the person asks to find books.
-  The practice-shelf rule is said in the brief **and** shown by the app; do not rely on a Code-tab announcement.
-- [ ] **K3** The projected menu is `docs/modes/README.md`, shuffled, with T6.4's sizes.
-- [ ] **K4** `show.sh` runs `python3 tools/serve.py --workshop` if T5.4 landed, else opens the file. `check_set.py`
-  checks the new paths. Ryan's laptop gets `dist/demo.html`.
-- [ ] **K5** Publish the set (`publish_payload.py --push`). **Needs Ryan's go.**
+A workshop's own material — its brief, its session files, its kit — lives with the workshop and is not in this repo.
+Nothing here needs it: a kit adds its own files on top of `dist/starter/` and relies only on "What the starter
+guarantees", above. The original plan's rows K1 to K5 were that work, and they belong to the workshop's repo.
 
 ---
 

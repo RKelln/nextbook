@@ -1,12 +1,16 @@
 #!/usr/bin/env python3
-"""Turn the W13 reading pack into nextbook's data files.
+"""Turn a reading pack into nextbook's data files.
 
-Ported from kit/seed_src/pack/books.json (MIT, same author). The data is ported,
-not the residency material's requirements: the pack's books, moods, paces and
-one-line notes are the only source of words the catalogue does not carry (D29).
+The pack is a plain `books.json`: books with genres, themes, mood, pace,
+audience and a one-line note. The pack's words are the only source of what the
+catalogue does not carry (D29). Ported from the first workshop starter (MIT,
+same author); its data is the source, never its requirements.
 
 Writes data/slice.json, data/tags.json and data/practice.json from the pack and
 the tables in adapters/pack/config.json. Standard library only.
+
+Where the pack comes from: `--pack`, then `NEXTBOOK_PACK`, then `packPath` in
+the config, then `data/pack/books.json`.
 
     python3 adapters/pack/pack_to_slice.py            # write the three files
     python3 adapters/pack/pack_to_slice.py --report   # write, then print the report
@@ -21,6 +25,8 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 REPO = os.path.dirname(os.path.dirname(HERE))
 CONFIG_PATH = os.path.join(HERE, "config.json")
 DATA_DIR = os.path.join(REPO, "data")
+# A pack that lives in the repo, so a copy of this repo can rebuild its own data.
+DEFAULT_PACK = os.path.join(DATA_DIR, "pack", "books.json")
 
 SLICE_SCHEMA = "nextbook/slice-1"
 TAGS_SCHEMA = "nextbook/tags-1"
@@ -45,9 +51,18 @@ def load_config(path=CONFIG_PATH):
     return load_json(os.path.expanduser(path))
 
 
+def pack_path(explicit=None, config=None):
+    """`--pack`, then NEXTBOOK_PACK, then the config's packPath, then data/pack/books.json."""
+    config = config or load_config()
+    for candidate in (explicit, os.environ.get("NEXTBOOK_PACK"), config.get("packPath")):
+        if candidate:
+            return os.path.expanduser(str(candidate))
+    return DEFAULT_PACK
+
+
 def load_pack(path=None, config=None):
     config = config or load_config()
-    path = os.path.expanduser(path or config["packPath"])
+    path = pack_path(path, config)
     return load_json(path), path
 
 
@@ -276,15 +291,20 @@ def write_json(path, doc):
 
 def main(argv=None):
     parser = argparse.ArgumentParser(
-        description="Turn the W13 reading pack into data/slice.json, data/tags.json and data/practice.json.")
-    parser.add_argument("--pack", help="the pack's books.json (default: config packPath)")
+        description="Turn a reading pack into data/slice.json, data/tags.json and data/practice.json.")
+    parser.add_argument("--pack", help="the pack's books.json (default: NEXTBOOK_PACK, then config packPath, "
+                                      "then data/pack/books.json)")
     parser.add_argument("--config", default=CONFIG_PATH)
     parser.add_argument("--out", default=DATA_DIR, help="where the three JSON files go")
     parser.add_argument("--report", action="store_true", help="print sections and facet counts")
     args = parser.parse_args(argv)
 
     config = load_config(args.config)
-    pack, pack_path = load_pack(args.pack, config)
+    try:
+        pack, pack_path = load_pack(args.pack, config)
+    except FileNotFoundError:
+        sys.exit("No pack file at %s.\n"
+                 "  Put your books.json there, or set NEXTBOOK_PACK=<path to books.json>." % pack_path(args.pack, config))
 
     slice_doc, dropped = build_slice(pack, config, pack_path)
     tags_doc = build_tags(pack, config)

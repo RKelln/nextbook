@@ -119,7 +119,8 @@ Text from the catalogue, a model, an imported file or a person is shown as text.
 
 - Do not add a dependency, a bundler, a framework or a network call to the app.
 - Do not edit `app/data/*.js` by hand; regenerate it from `data/*.json` with `python3 tools/gen_data.py`.
-- Do not put workshop arrangements (dates, rooms, people, the session plan) in this repo. `docs/W13.md` states the
+- Do not put workshop arrangements (dates, rooms, people, the session plan) in this repo. `docs/WORKSHOP.md` states the
   boundary.
-- Do not build a mode from the menu (`docs/modes/`) into `app/modes/`. That is the participants' work. The briefs are
-  the spec; the reference builds in `reference/modes/` are for the projector.
+- Do not build a mode from the menu (`docs/modes/`) into `app/modes/`. Those briefs are deliberately unbuilt: writing
+  one is the work the app leaves to its reader. The briefs are the spec; the reference builds in `reference/modes/`
+  are finished examples, there to be read.
