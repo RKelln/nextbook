@@ -44,3 +44,10 @@ exist only so `tests/library-shelf.test.js` can prove the reader never returns t
 - `shelf-page-2.html` — page 2 of the same For Later shelf, one book. With the first
   page it covers the shelf (pages 1 and 2 of 2, 2 of 2 books), which is what
   `Nextbook.libraryShelf.combine()` is for.
+
+Both pages carry the library's own count line (`1 to 2 of 2 items`, `2 to 2 of 2 items`) in a
+header and a footer, because a real saved page carries it: the state has no totals, but the page's
+words do (D39, measured on two real pages 2026-11-04). The first page holds items from three
+shelves -- the case a real shelf page never has -- so its line is deliberately not attributed;
+the second holds one shelf's items, so its line is. The line is the only reason those numbers are
+in the fixtures, and the reader is not told about them any other way.

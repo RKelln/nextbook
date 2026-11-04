@@ -413,8 +413,10 @@ So the number is there, the word distinguishes the two page types, and both are 
   size, `Y` says whether this page reaches the end, and `X..Y` is the range this page covers.
 - Attribute the line to the shelf its items name (a shelf page shows one shelf). If a page carries no such line, or
   the word is not `items`, the shelf stays **unknown** — a French or changed page must not make the app guess.
-- Complete across saved pages by covering `1..N` with the ranges, not by counting page numbers (the file never says
-  which page it is). Pages 1 and 3 saved, with 2 missing, is a gap, and nothing is marked gone.
+- A page alone is the shelf only when it starts at the first book **and** reaches the last: `21 to 40 of 40 items`
+  reaches the end but has never seen book 1, and one page must never be enough to mark a book gone.
+- Complete across saved pages by covering `1..N` with the merged ranges, not by counting page numbers (the file never
+  says which page it is). Pages 1 and 3 saved, with 2 missing, is a gap, and nothing is marked gone.
 
 Rejected: a tick asking the person to promise they saved every page. It shifts a fact the file already states onto the
 person, and it is the kind of promise someone mis-remembers.

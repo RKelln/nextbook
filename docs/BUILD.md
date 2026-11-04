@@ -463,7 +463,7 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
     no key from `users`, `accounts` or `auth` comes out.
   - [x] **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
     "stopped". Pure, in `core/merge.js` (named for what it does, since the readers call it too). `Nextbook.merge.plan(brought, ours, {now, practice})`, tests in `tests/merge.test.js` and an end-to-end script through the store.
-  - [ ] **T8.8e Read the shelf's own count (D39)** (B, S, S): the saved page says `1 to 2 of 2 items` in its header
+  - [x] **T8.8e Read the shelf's own count (D39)** (B, S, S): the saved page says `1 to 2 of 2 items` in its header
     and footer even though the state carries no totals. Parse it from the page text, attribute it to the shelf its
     items name, mark the shelf complete when the range reaches the total, and cover `1..N` with ranges across saved
     pages when combining. A page with no such line, or a search page's `1 to 20 of 1,744 results`, leaves the shelf

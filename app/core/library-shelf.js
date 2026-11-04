@@ -458,6 +458,73 @@
     return stateOfBody(text);
   }
 
+  // ---- the page's own count (D39) --------------------------------------------------------------
+  // A saved shelf page carries no totals in its state (docs/DATA.md), but it does carry the line
+  // `1 to 2 of 2 items` in its header and footer (measured on two saved pages, 2026-11-04). The
+  // word matters: a search page says `1 to 20 of 1,744 results`, and results are not a shelf.
+  // Numbers are not padded, a thousand may carry a comma, and another locale may put an en dash
+  // or a hyphen where English puts `to`. Anything else is not understood, and the shelf stays
+  // unknown: a changed or French page must not make the app guess.
+  var TALLY = /(\d[\d,]*)\s*(?:to|[\u2013-])\s*(\d[\d,]*)\s*of\s*(\d[\d,]*)\s+(items?|results?|titles?)/i;
+
+  var ENTITY = { amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ' };
+
+  // One level of unescaping, the entities a saved page uses for text it shows. Numeric first, so
+  // `&amp;lt;` comes out as the text `&lt;` and not as `<`.
+  function unescapeText(text) {
+    return String(text)
+      .replace(/&#(\d+);/g, function (whole, digits) {
+        var n = Number(digits);
+        return n > 0 && n <= 1114111 ? String.fromCodePoint(n) : whole;
+      })
+      .replace(/&#x([0-9a-f]+);/gi, function (whole, digits) {
+        var n = parseInt(digits, 16);
+        return n > 0 && n <= 1114111 ? String.fromCodePoint(n) : whole;
+      })
+      .replace(/&([a-z]+);/gi, function (whole, name) {
+        var key = name.toLowerCase();
+        return has(ENTITY, key) ? ENTITY[key] : whole;
+      });
+  }
+
+  // What the page says in words: its scripts gone (the state's own digits are not a page line),
+  // its tags gone, its entities read, its whitespace collapsed. Pure text in, text out.
+  function pageText(page) {
+    var text = str(page);
+    if (!text) return '';
+    return collapse(unescapeText(text.replace(SCRIPT_BLOCK, ' ').replace(/<[^>]*>/g, ' ')));
+  }
+
+  function countOf(part) { return Number(String(part).replace(/,/g, '')); }
+
+  // The first `X to Y of N units` the page says, or null. `unit` is kept so a caller can see it
+  // was `results` or `titles`; only `items` is a shelf count (tallyShelfOf decides that).
+  function tallyOf(page) {
+    var match = TALLY.exec(pageText(page));
+    if (!match) return null;
+    var from = countOf(match[1]);
+    var to = countOf(match[2]);
+    var total = countOf(match[3]);
+    if (!isFinite(from) || !isFinite(to) || !isFinite(total)) return null;
+    // A line that contradicts itself is a line we did not understand (D39: no guessing).
+    if (from < 1 || to < from || total < to) return null;
+    return { from: from, to: to, total: total, unit: match[4].toLowerCase() };
+  }
+
+  // Which shelf the line belongs to: the shelf its items name, and only when the page shows one
+  // shelf (a real shelf page does; a page of search results names none). Zero items, or items
+  // from two shelves, or a word other than `items`, and the line is not attributed at all.
+  function tallyShelfOf(items, tally) {
+    if (!isObj(tally) || typeof tally.unit !== 'string' || tally.unit.indexOf('item') !== 0) return null;
+    var named = null;
+    for (var i = 0; i < items.length; i++) {
+      var shelf = str(items[i] && items[i].item.shelf);
+      if (named === null) named = shelf;
+      else if (shelf !== named) return null;
+    }
+    return named !== null && has(SHELF_STATE, named) ? named : null;
+  }
+
   // ---- the shelves on the page ----------------------------------------------------------------
   // `entities.shelves.<userId>` maps a shelf item id to one item. `shelfSearch` sits beside
   // the person's map and carries the page's own totals; it is picked out separately.
@@ -725,7 +792,9 @@
   }
 
   // ---- read -----------------------------------------------------------------------------------
-  function readState(state) {
+  // `tally` is the page's own line (tallyOf), when the page was given as text. It is optional:
+  // a caller with a state object only has the JSON, and then the shelf stays unknown.
+  function readState(state, tally) {
     var entities = state.entities;
     var shelves = isObj(entities.shelves) ? entities.shelves : {};
     var bibs = isObj(entities.bibs) ? entities.bibs : {};
@@ -809,6 +878,16 @@
       };
     }
 
+    // D39: the page's own line is the shelf's count, when the line is a shelf line and the page
+    // shows one shelf. Its range says both how much of the shelf this page holds and whether it
+    // reached the end, so the shelf stops being unknown the moment the page was read.
+    var tallied = tallyShelfOf(items, tally);
+    if (tallied) {
+      pages[tallied].from = tally.from;
+      pages[tallied].to = tally.to;
+      pages[tallied].count = tally.total;
+    }
+
     // `complete` is "this page alone covers the shelf". With no stated count it cannot be
     // said, so it is false: a missing number is not a whole shelf.
     var complete = emptyComplete();
@@ -818,6 +897,14 @@
       unknown[shelfName] = doubtful || pages[shelfName].count === null;
       complete[shelfName] = !doubtful &&
         pages[shelfName].count !== null && pages[shelfName].got >= pages[shelfName].count;
+    }
+    if (tallied) {
+      // The line's own word: this page alone covers the shelf only when it starts at the
+      // first book and reaches the last (D39). A page saying "21 to 40 of 40 items" reaches
+      // the end but has never seen book 1, so on its own it is not the shelf — and one page
+      // must never be enough to mark a book gone. `combine` covers ranges across pages.
+      complete[tallied] = !doubtful && tally.from <= 1 && tally.to >= tally.total;
+      unknown[tallied] = false;
     }
 
     return {
@@ -846,7 +933,9 @@
         result.error = t('libraryShelfNotPage');
         return result;
       }
-      var built = readState(state);
+      // The state carries no totals, but the page's own words may (D39). Read from the text
+      // only: an already-parsed state has no page words, and then nothing is stated.
+      var built = readState(state, tallyOf(page));
       // A search page carries the same `entities` with results in `bibs` and nothing on a shelf.
       // Reading it would say "0 books" as if the shelf were empty, so it is refused instead.
       var bibCount = isObj(state.entities.bibs) ? Object.keys(state.entities.bibs).length : 0;
@@ -884,6 +973,24 @@
   // deduped by key with the furthest state, works unioned by groupKey, and a shelf complete
   // only when the saved pages cover it -- every page of it, or enough items to reach its
   // stated count. The same page saved twice is counted once, by its own page number.
+  // D39: the ranges the saved pages state, merged into one answer to "is 1..N covered?".
+  // Ranges that touch or overlap join; a range that starts past the gap so far is a gap, and a
+  // shelf with a page saved is not the same as a shelf with every page saved. Pages 1 and 3 of
+  // 3 is not complete, and nothing is marked gone from it.
+  function rangesCover(ranges, total) {
+    if (!Array.isArray(ranges) || !ranges.length) return false;
+    if (typeof total !== 'number' || !isFinite(total) || total < 1) return false;
+    var sorted = ranges.slice().sort(function (a, b) { return a.from - b.from || a.to - b.to; });
+    var reach = 1; // 1 to reach - 1 is covered; the next range must start at or before reach
+    for (var i = 0; i < sorted.length; i++) {
+      if (sorted[i].to < reach) continue;
+      if (sorted[i].from > reach) return false;
+      reach = sorted[i].to + 1;
+      if (reach > total) return true;
+    }
+    return reach > total;
+  }
+
   function combine(list) {
     var results = arr(list).filter(function (r) { return isObj(r) && Array.isArray(r.entries); });
     var out = {
@@ -907,7 +1014,10 @@
     var firstError = '';
     var perShelf = Object.create(null);
     for (var i = 0; i < SHELF_ORDER.length; i++) {
-      perShelf[SHELF_ORDER[i]] = { byPage: Object.create(null), loose: 0, count: null, pages: null };
+      perShelf[SHELF_ORDER[i]] = {
+        byPage: Object.create(null), loose: 0, count: null, pages: null,
+        ranges: [], rangeKeys: Object.create(null)
+      };
     }
 
     var entries = [];
@@ -939,13 +1049,27 @@
         var total = typeof stated.pages === 'number' && isFinite(stated.pages) ? stated.pages : null;
         if (total !== null) mine.pages = mine.pages === null ? total : Math.max(mine.pages, total);
         var gotHere = typeof stated.got === 'number' && isFinite(stated.got) ? stated.got : 0;
+        // D39: the page's own line, `1 to 2 of 2 items`, covers a range of the shelf and never
+        // says which page of it this is. Both kinds of evidence are kept, and either may be
+        // enough on its own.
+        var from = typeof stated.from === 'number' && isFinite(stated.from) ? stated.from : null;
+        var to = typeof stated.to === 'number' && isFinite(stated.to) ? stated.to : null;
+        var repeated = false; // the same page saved twice, by the range it states
+        if (from !== null && to !== null) {
+          var rangeKey = from + '-' + to;
+          if (has(mine.rangeKeys, rangeKey)) repeated = true;
+          else {
+            mine.rangeKeys[rangeKey] = true;
+            mine.ranges.push({ from: from, to: to });
+          }
+        }
         if (typeof stated.page === 'number' && isFinite(stated.page)) {
           // The same page saved twice is not two pages of reading; and a page saved while
           // looking at another shelf carries a total but none of that shelf's items, which
           // must not erase the items the shelf's own page did carry.
           var before = has(mine.byPage, stated.page) ? mine.byPage[stated.page] : 0;
           mine.byPage[stated.page] = Math.max(before, gotHere);
-        } else {
+        } else if (!repeated) {
           mine.loose += gotHere;
         }
       }
@@ -1001,8 +1125,11 @@
       for (var q = 1; covered && q <= shelfPages.pages; q++) {
         if (numbers.indexOf(q) === -1) covered = false;
       }
+      // Whole when the saved pages cover 1..count by their stated ranges, or when their page
+      // numbers cover 1..pages, or when the books read reach the stated count.
       out.complete[name] = shelfPages.count !== null &&
-        (readCount >= shelfPages.count || covered);
+        (readCount >= shelfPages.count || covered ||
+          rangesCover(shelfPages.ranges, shelfPages.count));
       // No saved page said how many books this shelf has, so nothing can be said about
       // whether the set is whole — and the merge must not claim it was partly saved.
       out.unknown[name] = shelfPages.count === null;

@@ -103,7 +103,7 @@ These come from the app's job, not from taste. `docs/DECISIONS.md` records what 
 
 ## Status
 
-The foundation is built and checked: 272 Node tests, 335 Python tests, the three reference modes and the example mode
+The foundation is built and checked: 287 Node tests, 335 Python tests, the three reference modes and the example mode
 passing, and a one-file build with no network requests. A reading list can be imported from Goodreads or StoryGraph,
 merged with the shelves the library already keeps, and matched to the catalogue a book at a time. A shelf page saved
 from the library's own site can be brought in too, with one Undo, a list of what the two disagree about, and nothing
