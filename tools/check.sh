@@ -2,8 +2,8 @@
 # Ported from searchdesk/checks/check.sh (MIT, same author).
 # Check one mode on a Mac with no Node:    bash tools/check.sh <id>
 # Every mode the app lists:                bash tools/check.sh --all
-# Every mode in a folder (name order):     bash tools/check.sh --all --dir reference/modes
-# A folder of modes, one mode:             bash tools/check.sh --dir reference/modes <id>
+# Every mode in a folder (name order):     bash tools/check.sh --all --dir <folder>
+# A folder of modes, one mode:             bash tools/check.sh --dir <folder> <id>
 # It runs tools/check-mode.js through osascript (JavaScript for Automation), so it has the same checks,
 # the same lines and the same exit codes as `node tools/check-mode.js`: 0 ok, 1 a check failed, 2 STOP.
 # Written for bash 3.2 and BSD tools: no associative arrays, no ${var,,}, no sed -i '', no grep -P, no
@@ -37,7 +37,7 @@ for arg in "$@"; do
       dir=${arg#--dir=}
       dir_given=1
       if [ -z "$dir" ]; then
-        stop '--dir needs a folder, for example: --dir reference/modes'
+        stop '--dir needs a folder, for example: --dir <folder>'
       fi
       ;;
     -*) stop "I do not know the option \"$arg\". Use a mode id, --all, or --dir <folder>." ;;
@@ -48,9 +48,9 @@ for arg in "$@"; do
   esac
 done
 
-[ -z "$want_dir" ] || stop '--dir needs a folder, for example: --dir reference/modes'
+[ -z "$want_dir" ] || stop '--dir needs a folder, for example: --dir <folder>'
 if [ -n "$dir_given" ] && [ -z "$dir" ]; then
-  stop '--dir needs a folder, for example: --dir reference/modes'
+  stop '--dir needs a folder, for example: --dir <folder>'
 fi
 if [ -n "$all" ] && [ -n "$id" ]; then stop 'Use either a mode id or --all, not both.'; fi
 if [ -z "$all" ] && [ -z "$id" ]; then

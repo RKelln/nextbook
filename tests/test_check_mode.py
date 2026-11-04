@@ -162,7 +162,7 @@ class CheckModeTest(unittest.TestCase):
                                 "probe.check.js": check_text("probe", EMPTY_CHECK)}, ["probe"])
         result = run(root, "probe")
         self.assertEqual(result.returncode, 1, result.stdout + result.stderr)
-        self.assertIn("FAIL an empty shelf: This mode found nothing and did not say why.", result.stdout)
+        self.assertIn("FAIL an empty shelf: This way of choosing books found nothing and did not say why.", result.stdout)
         self.assertIn("FAILED probe: ", result.stdout)
 
     def test_code_outside_the_mode_call_fails(self):
@@ -460,7 +460,7 @@ class CheckShTest(unittest.TestCase):
     def test_check_sh_stops_on_an_empty_dir_argument(self):
         result = self.run_sh(self.make(), "--dir=")
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("STOP: --dir needs a folder, for example: --dir reference/modes", result.stdout)
+        self.assertIn("STOP: --dir needs a folder, for example: --dir <folder>", result.stdout)
 
     def test_check_sh_does_not_eat_all_as_a_folder(self):
         result = self.run_sh(self.make(), "--dir", "--all")

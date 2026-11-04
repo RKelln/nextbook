@@ -358,7 +358,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
 
 ## Phase 5: packing and the workshop tools (lane D)
 
-- [ ] **T5.1 One file** (D, M, S). Port: `searchdesk/tools/build.py` (its `inline()` and escaping). `tools/build.py`:
+- [x] **T5.1 One file** (D, M, S). Port: `searchdesk/tools/build.py` (its `inline()` and escaping). `tools/build.py`:
   reads `app/index.html`, inlines every local script and stylesheet in order, turns the data scripts into
   `<script type="application/json" id="nb-<name>">` blocks, writes `dist/nextbook.html`. Includes `found` when the
   folder has one (a participant's take-home keeps what their helper found). Fails if a `src` or `href` points off the
@@ -366,7 +366,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Done when:* the file opens from `file://` with the network off and passes `#selftest`; a test asserts the output
   holds no `http` outside the data's `library` templates and links.
 
-- [ ] **T5.2 The starter folder** (D, S, H). `tools/build.py --starter` writes `dist/starter/`: `app/` (only the
+- [x] **T5.2 The starter folder** (D, S, H). `tools/build.py --starter` writes `dist/starter/`: `app/` (only the
   example mode listed, `app/data/workshop.js` setting the workshop flag, **no `found.js`**), an empty `app/PLAN.md`
   with its headings (the mode in a sentence, the output, the rule, two ways to test it, still broken), `data/` (no
   `found.json`), `docs/CONTRACT.md`, `docs/modes/`, `tools/check-mode.js`, `tools/check.sh`, `tools/build.py`,
@@ -377,7 +377,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `python3 tools/build.py` makes a working one-file copy, and `grep -rl reference dist/starter` and
   `ls dist/starter/data/found.json` find nothing.
 
-- [ ] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
+- [x] **T5.3 The demo file** (D, S, H). `tools/build.py --demo` writes `dist/demo.html`: the one file with the
   reference modes loaded too. For the projector, and for the room if the network drops.
   *Done when:* the reference modes show and `#selftest` is green.
 

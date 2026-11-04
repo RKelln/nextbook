@@ -5,7 +5,7 @@
 //   osascript -l JavaScript tools/check-mode.js <id>          (from the repo root; see tools/check.sh)
 // --all on its own checks every mode app/modes/list.js lists. With --dir, --all checks every
 // *.js in that folder except the *.check.js files, in name order, because a folder of modes
-// (reference/modes) is not in the app's manifest.
+// (any folder you name) is not in the app's manifest.
 // Order: the pure core files, then the data files that are there (including workshop.js, so a
 // workshop copy behaves the same), then the manifest, the mode file and its check file. Then
 // Nextbook.runModeChecks, plus the rules the browser does not have: a mode file that does
@@ -213,13 +213,13 @@ function parseArgs(args) {
     if (a === '--all') out.all = true;
     else if (a === '--dir') {
       if (i + 1 >= args.length || args[i + 1].charAt(0) === '-') {
-        out.bad = '--dir needs a folder, for example: --dir reference/modes';
+        out.bad = '--dir needs a folder, for example: --dir <folder>';
         break;
       }
       out.dir = args[++i];
     } else if (a.indexOf('--dir=') === 0) {
       out.dir = a.slice(6);
-      if (!out.dir) { out.bad = '--dir needs a folder, for example: --dir reference/modes'; break; }
+      if (!out.dir) { out.bad = '--dir needs a folder, for example: --dir <folder>'; break; }
     } else if (a.charAt(0) === '-') {
       out.bad = 'I do not know the option "' + a + '". Use a mode id, --all, or --dir <folder>.';
       break;
