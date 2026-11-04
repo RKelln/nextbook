@@ -192,6 +192,55 @@ headings are numbered from 1 on their own.
 | `event-summary-long-N` | The sentence shown instead when the snapshot's words are over 300 characters (not pressed) | Nothing is cut here: the page says the words are longer than the snapshot keeps and points at the library's page. |
 | `event-books-N` | Button "Books for this event" | Drawn only when a mode with the id `event-hook` is loaded. It opens that mode on `#find`. When the mode lists an `event` input, that input is set to this event; with only a `text` input, the event's title goes into the words box. One sentence says which path ran. |
 
+## Bringing a reading list in (Goodreads or StoryGraph)
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `shelf-list-import` | The block under the shelf (not pressed; it takes the cursor after a report) | — |
+| `shelf-list-file` | File input, "Choose a reading list file" | Reads the CSV, merges it with the shelf, says what changed. Not drawn on the practice shelf or in a workshop copy, with one sentence saying why. |
+| `shelf-list-undo` | Button "Undo this import" | Puts the shelf back as it was before the import. |
+| `list-said` | The report sentence (not pressed) | — |
+| `list-report` | The report box (not pressed) | — |
+| `list-refused-N` | One refusal sentence (not pressed) | — |
+| `list-problem-N` | One reader problem, a row it could not use (not pressed) | — |
+| `list-tidy` | The "Tidy up at the library (N)" panel (not pressed) | — |
+| `list-choose` | The "Which is right? (N)" panel (not pressed) | — |
+| `list-not-yet-row-N` | One book with no catalogue match, with its search link | — |
+
+## Bringing the library's own shelf in (saved pages)
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `shelf-library` | The block (not pressed; it takes the cursor after a report) | — |
+| `shelf-library-file` | File input, more than one page at a time | Reads each saved page, combines them, merges, says what changed. Not drawn on the practice shelf or in a workshop copy. |
+| `lib-off` | The sentence shown instead in those copies (not pressed) | — |
+| `lib-said` | The report sentence (not pressed) | — |
+| `lib-report` | The report box (not pressed) | — |
+| `lib-refused-N` | One refusal sentence (not pressed) | — |
+| `lib-file-error-N` | One page that could not be read, named (not pressed) | — |
+| `lib-problem-N` | One reader problem (not pressed) | — |
+| `lib-not-saved` | The sentence when the write did not persist (not pressed) | — |
+| `lib-last` | "Last brought in from the library: <date>" (not pressed) | — |
+| `shelf-library-undo` | Button "Undo this library import" | Puts the shelf back as it was. |
+| `lib-tidy` | The "Tidy up at the library (N)" panel (not pressed) | — |
+| `lib-tidy-row-N` | One book that changed here and not at the library (not pressed) | — |
+| `lib-tidy-open-N` | "Open at the library" | Opens the library's page for that book. |
+| `lib-tidy-use-N` | "Use the library's" | Copies the library's shelf and rating onto the book. |
+| `lib-tidy-leave-N` | "Leave it" | Remembers the choice, so the same book is not listed again until either side changes. |
+| `lib-tidy-gone-N` | A book the library no longer has on your shelf (not pressed) | The book stays on the shelf, marked. |
+| `lib-choose` | The "Which is right? (N)" panel (not pressed) | — |
+| `lib-choose-row-N` | One book that changed on both sides, both shown (not pressed) | — |
+| `lib-choose-keep-N` | "Keep mine" | Dismisses the row for this visit. |
+| `lib-choose-use-N` | "Use the library's" | Copies the library's answer onto the book. |
+| `shelf-gone-N` | The note on a shelf row the library no longer lists (not pressed) | The book is never removed automatically. |
+
+## The model box
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `model-closed` | The sentence shown instead of the box when a mode may pick books already on the shelf (not pressed) | — |
+| `model-prompt`, `model-copy`, `model-answer`, `model-check`, `model-result`, `model-excluded` | The prompt, its copy button, the answer box, the check button, the result, and the line saying how many candidates were left out because they are on the shelf | As their names say. |
+
 ## Also marked
 
 `not-saving` is the sentence shown on every screen when the store says `persistent: false`.

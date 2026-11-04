@@ -62,16 +62,16 @@ nothing at all about a pick, or reaches for the network, a clock or the DOM.
 | `app/` | the app. `core/` is the foundation (shelf, data, scoring, reasons, links, contract, model seam, shell); `modes/` is where one file per mode goes |
 | `data/` | the data: `slice.json` (works), `tags.json` (facets and a note in our own words), `practice.json`, `events.json`, and their schemas |
 | `adapters/` | the only code that knows the library's platform, plus the pack converter. Which library is one file, `adapters/bibliocommons/libraries/` |
-| `tools/` | `build.py` (one file, demo, starter), `serve.py`, `find.py`, `check-mode.js` + `check.sh`, `gen_data.py` |
-| `tests/` | Node tests for the core, Python tests for the adapters, and `DATA-TEST.md` (the `data-test` names) |
+| `tools/` | `build.py` (one file, demo, starter), `serve.py`, `find.py`, `check-mode.js` + `check.sh`, `gen_data.py`, `packets.py`, `inbox.py` |
+| `tests/` | Node tests for the core and the screens, Python tests for the adapters and the tools, fixtures, and `DATA-TEST.md` (the `data-test` names) |
 | `reference/modes/` | three finished modes with their checks, for a projector or a reading |
 | `docs/` | design, architecture, data, contract, decisions, the build plan, the mode briefs |
 | `research/probes/` | the throwaway scripts that produced the measurements. Not the product |
 
 ## Bring your own books
 
-The app starts from a snapshot, not a live catalogue: `data/slice.json` is 30 real Toronto Public Library works,
-`data/tags.json` is our own facet words for them. Two ways to make it yours:
+The app starts from a snapshot, not a live catalogue: `data/slice.json` is 30 real books taken from a reading pack
+(not yet matched to the catalogue, so their links are searches), and `data/tags.json` is our own facet words for them. Two ways to make it yours:
 
 - **A pack you write** (books, genres, themes, mood, pace) → `adapters/pack/pack_to_slice.py`. The pack that made
   this repo's data is `data/pack/books.json`; put yours there, or point `NEXTBOOK_PACK` at it, and run the converter.
@@ -110,8 +110,8 @@ from the library's own site can be brought in too, with one Undo, a list of what
 of the page's account data kept. The ten mode briefs in `docs/modes/` are deliberately
 unbuilt — that is the work the app leaves to its reader. `docs/BUILD.md` is the plan and the record of how it was made.
 
-The catalogue measurements in `docs/DATA.md` and `docs/RESEARCH.md` carry the URL and the date they were taken, so
-they can be re-checked rather than believed. The fallback-sources table is a survey, not a measurement.
+Where `docs/` reports a measurement of a catalogue page it carries the date it was taken, and usually the URL, so it
+can be re-checked rather than believed; where it is a survey of sources it says so. `docs/RESEARCH.md` is the list.
 
 ## Licence
 

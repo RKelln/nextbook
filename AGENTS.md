@@ -47,7 +47,7 @@ app/                    the app. Open app/index.html in a browser. Nothing to in
   modes/                one file per mode, plus its check. list.js says which load. Nothing else.
   data/                 generated .js wrappers of data/*.json. Never edit by hand. workshop.js and
                         inbox.js are one machine's flag and one machine's message: gitignored, never packed
-  PLAN.md               the empty plan a mode is written against (CONTRACT.md section 8)
+  PLAN.md               the empty plan a mode is written against (CONTRACT.md section 5, rule 8)
 data/                   the canonical data: slice.json, tags.json, practice.json, events.json, pack/books.json,
                         and a schema for each
 adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
@@ -120,7 +120,9 @@ Most of this repo is built by models working one task at a time. These rules are
 
 User-facing words are about grade 6: short sentences, no jargon. Say "the library's page", not "record". Say "saved in
 this browser only", which is the truth about `localStorage`. Never say the app "knows you", "learns" or "recommends";
-it has a list, a rule and a reason. All user-facing strings live in a `strings` table (core or the mode's own).
+it has a list, a rule and a reason. All user-facing strings live in a `strings` table (core or the mode's own) — except
+the three lines of shell copy in `app/index.html`, which are static so the page still says what it is with no
+JavaScript at all.
 
 ## Safe by construction
 

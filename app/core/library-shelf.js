@@ -43,10 +43,10 @@
     libraryShelfIsSearch: 'This is a search page, not one of your shelves. Open your shelf at the library, '
       + 'save that page, and choose it here.',
     libraryShelfUnreadable: 'This file could not be read. Save the shelf page again from the library.',
-    libraryShelfNoTitle: 'A book on the {shelf} shelf (id {id}) has no title, so it was left out.',
-    libraryShelfUnknownShelf: '{title} (id {id}): the page says its shelf is "{shelf}", which is ' +
-      'not a shelf this app knows, so it was left out.',
-    libraryShelfNoRecord: '{title}: the page has no record for this book, so it was left out.'
+    libraryShelfNoTitle: 'A book on the {shelf} shelf has no title on the page, so it was left out.',
+    libraryShelfUnknownShelf: '{title}: the page says it is on a shelf called "{shelf}", which this app ' +
+      'does not know, so it was left out.',
+    libraryShelfNoRecord: '{title}: the page does not carry this book\'s details, so it was left out.'
   });
 
   function t(key, vars) {

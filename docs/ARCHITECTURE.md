@@ -196,11 +196,13 @@ line up with theirs without a lookup table nobody wrote down:
 | (none) | `stopped` | 1 or 2 | `not-for-me` |
 
 Measured on a saved shelf page (`DATA.md`): the codes are `for_later`, `in_progress`, `completed`, and `rating` is out of
-10 (stars times two; `0` is unrated), so `stars = rating / 2` and half stars round down.
+10 (stars times two; `0` is unrated). The number is kept exactly; only its bucket is compared. A half star has no
+separate bucket, so it lands on the nearer one of the ten — 9 is loved, 7 is liked, 5 is ok — which is the rule the
+import readers use too.
 
 Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
-lands on the same works with no fuzzy matching. Bringing it in is a later task (D20); the shapes are fixed now so it
-needs no migration.
+lands on the same works with no fuzzy matching — which is what `app/core/library-shelf.js` relies on. The shapes were
+fixed before it was built, so it needed no migration.
 - `key` is `w:<groupKey>` for a book from the slice, and `t:<normalised title>|<normalised author>` for a book typed in.
   A typed book that matches a slice work (same normalised title and author) is linked to it on entry.
 - A typed book with no match keeps `id` and `groupKey` null. It has no facets, so it does not move the profile, and it
@@ -300,7 +302,7 @@ the registered mode (`fn.toString()`, comments stripped), which works in a page 
 ported from `checks/run.js` and `checks/check.sh`, so it runs under Node and under `osascript` on a Mac with no
 Node.
 
-## Bringing in the library's shelf: one-way sync (later, D20, D23, D25)
+## Bringing in the library's shelf: one-way sync (D20, D23, D25)
 
 The library's shelves flow **into** the app, as often as the person likes; nothing flows back. Where the two disagree
 because of something the person did here, the app lists it so they can fix it at the library with one click, which is
@@ -349,9 +351,9 @@ The memory B is updated to L on every import, whatever the person decides, so a 
 ### The edges
 
 - **Partial files.** A saved page may carry each shelf's total; measured pages do not (DATA.md, 2026-11-04). When a
-  total is there and the items fall short, the reader says "You brought in 25 of 112 Completed books. Save the other
-  pages too." When no total is there at all, the shelf is **unknown**: the import says nothing about it, and still
-  **nothing is treated as removed from an incomplete or uncounted shelf.**
+  total is there and the items fall short, the merge says "Your Completed shelf was not fully saved, so nothing was taken off it." When no total is there at
+  all, the shelf is **unknown**: the import says nothing about it, and still **nothing is treated as removed from an
+  incomplete or uncounted shelf.**
 - **Editions.** Match on `groupKey`, not on record id: the library shelf may hold the e-book and the app the paper
   copy. Two editions of one work on the library shelf become one entry with the furthest-along state.
 - **"Stopped".** The library has no such shelf. An app `stopped` against a library `in_progress` is listed under
@@ -397,7 +399,7 @@ Never stored; always derived.
 
 ## The shell (`core/shell.js`)
 
-Three screens behind the address hash, so a link or a reload lands in the same place:
+Four screens behind the address hash, so a link or a reload lands in the same place:
 
 - `#shelf`: the practice banner and switch, add a book (search the slice by title or author first, type it in
   second), the list with state and rating controls, export and import.
@@ -415,11 +417,12 @@ Three screens behind the address hash, so a link or a reload lands in the same p
   guarantees". A workshop's own brief is added by that workshop, not by this repo.
 - `tools/build.py --demo` writes `dist/demo.html` with the reference modes loaded, for the projector.
 
-## Hosted copy (later)
+## Hosted copy
 
-The same single file on a static host. The only runtime network call ever permitted is an optional Open Library
-lookup for a typed book outside the slice (CORS `*`, measured), off by default, and the app says what it will send
-before it sends it. Not in the first release.
+The same single file on a static host. `tools/build.py` makes it and `.github/workflows/pages.yml` publishes it;
+turning the workflow on is the maintainer's one-time step (`.github/PAGES.md`). Nothing in the app reaches the network
+to run. The only runtime call that would ever be permitted is an optional Open Library lookup for a typed book outside
+the slice (CORS `*`, measured), off by default, saying what it will send — and it is not built (T8.10).
 
 ## What the thin build deliberately lacks
 

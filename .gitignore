@@ -7,6 +7,8 @@ data/raw/
 # A person's own searches, from tools/find.py. Never committed.
 data/found.json
 app/data/found.js
+# A workshop copy's flag. A stray one in the source tree would make every build practice-only.
+app/data/workshop.js
 
 # The helper's note, written by tools/inbox.py or tools/find.py. One machine's message to the
 # page, not data: never committed, and never packed into a build.

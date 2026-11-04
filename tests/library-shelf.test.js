@@ -137,7 +137,7 @@ test('a shelf the page does not mention is not complete', () => {
   assert.strictEqual(out.pages.for_later.count, null);
 });
 
-test('a book with no record on the page is named and left out', () => {
+test('a book the page has no details for is named and left out', () => {
   const it = item({ id: 'S7', metadataId: 'S7', title: 'A Ghost Book', shelf: 'completed' });
   const page = mini([{ ...it, brief: false }], { completed: { count: 2, page: 1, pages: 1 } });
   const out = plain(nb.libraryShelf.read(page));
@@ -145,7 +145,7 @@ test('a book with no record on the page is named and left out', () => {
   assert.strictEqual(out.entries.length, 0);
   assert.strictEqual(out.problems.length, 1);
   assert.match(out.problems[0], /A Ghost Book/);
-  assert.match(out.problems[0], /no record/);
+  assert.match(out.problems[0], /does not carry/);
   assert.strictEqual(out.complete.completed, false, 'a book was read for that shelf, so it is not whole');
 });
 

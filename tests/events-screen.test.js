@@ -196,7 +196,7 @@ test('E1: the events are grouped by day, in date order, with day, time, title, w
     "the library's own words are shown as text");
 
   const said = byTest(doc, 'events-snapshot').textContent;
-  assert.strictEqual(said, "Snapshot taken November 3, 2026. Check the library's page before you go.");
+  assert.strictEqual(said, "Copied from the library on November 3, 2026. Check the library's page before you go.");
   assert.ok(doc.body.textContent.indexOf(BRANCH) !== -1, 'the branch is named');
   assert.strictEqual(nb.t('eventsHeading'), 'Events at the library');
 });

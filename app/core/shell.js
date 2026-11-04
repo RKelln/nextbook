@@ -3549,7 +3549,7 @@
     importNoFile: 'This browser could not read that file.',
     // bringing in a reading list (T8.9b)
     listHeading: 'Bring in my reading list',
-    listHelp: 'Choose the CSV file you saved from Goodreads or StoryGraph. It is read in this browser only. Nothing is sent anywhere.',
+    listHelp: 'Choose the file you saved from Goodreads or StoryGraph. It is read in this browser only. Nothing is sent anywhere.',
     listChoose: 'Choose a reading list file',
     listOff: 'A real reading list does not go on this shelf. A shared computer is not the place for anyone\'s reading list, so do this on your own shelf at home.',
     listBadHeader: 'That file says {found} at the top. It is not a Goodreads or StoryGraph list, so nothing was changed.',
@@ -3756,7 +3756,7 @@
     navEvents: 'Events',
     eventsHeading: 'Events at the library',
     eventsIntro: "These are the library's events at {branch}, in date order.",
-    eventSnapshot: "Snapshot taken {date}. Check the library's page before you go.",
+    eventSnapshot: "Copied from the library on {date}. Check the library's page before you go.",
     eventSnapshotNoDate: "This snapshot has no date, so check the library's page before you go.",
     eventsNone: 'This copy has no library events, so there is nothing to show here.',
     eventDayHeading: '{weekday}, {month} {day}',

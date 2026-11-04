@@ -282,7 +282,7 @@ def main(argv=None) -> int:
         print(f"inbox: {err}", file=sys.stderr)
         return 2
     count = len(doc["records"])
-    print(f"Wrote {_shown(target)} with " + (f"{count} record." if count == 1 else f"{count} records."))
+    print(f"Wrote {_shown(target)} with " + (f"{count} change." if count == 1 else f"{count} changes."))
     return 0
 
 

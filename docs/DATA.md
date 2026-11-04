@@ -150,8 +150,9 @@ weights.
 
 ## A person's own shelf page (measured 2026-11-03, re-checked on two saved pages 2026-11-04)
 
-What a signed-in "Completed" shelf page carries when the person saves it from their browser. For the later import
-(D20, D23); nothing in the first release reads it.
+What a signed-in "Completed" shelf page carries when the person saves it from their browser. Read by
+`app/core/library-shelf.js` (T8.8, D20/D23); the reader takes `entities.shelves` and the matching `briefInfo` and
+nothing else.
 
 - `entities.shelves.<userId>` maps a shelf item id to `{id, metadataId, shelf, privateItem, dateAdded, authors,
   title, rating}`.

@@ -63,7 +63,7 @@ class ItWritesAFileThePageCanRead(InboxTestCase):
         self.assertIn("\\u0026", text)
         self.assertEqual(doc["records"][0]["title"], "A <B> & C", "the escape reads back as itself")
         self.assertIn("Wrote ", out)
-        self.assertIn("1 record.", out)
+        self.assertIn("1 change.", out)
 
     def test_the_id_is_sixteen_hex_and_the_date_has_its_offset(self):
         code, out, err = self.main(["--add", "Piranesi", "--author", "Susanna Clarke"])
@@ -104,7 +104,7 @@ class ItWritesAFileThePageCanRead(InboxTestCase):
             "t:kindred|octavia e butler",
         ])
         self.assertEqual(doc["matched"], 1)  # only the one with no id given: the others already name their work
-        self.assertIn("4 records.", out)
+        self.assertIn("4 changes.", out)
 
     def test_add_makes_one_entry_with_the_state_and_rating_asked_for(self):
         code, out, err = self.main(["--add", "Piranesi", "--author", "Susanna Clarke",

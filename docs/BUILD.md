@@ -242,7 +242,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   `recordId` (or an `id` and `library.recordUrl` is set), otherwise the search URL with title and author
   (`encodeURIComponent`, spaces as `+`).
   *Done when:* tests for a pack work, a pack work enriched by a find, a found work, a typed book, and a title with
-  `&` and `#`; `grep -r bibliocommons app/core app/modes` finds nothing.
+  `&` and `#`; `grep -rn 'bibliocommons.com' app/core app/modes` finds nothing (naming the platform in a comment is fine).
 
 - [x] **T2.6 The contract** (B, M, S). Read first: `CONTRACT.md`, all of it. Port: `searchdesk/core/contract.js` (the
   scan, `strip`, `scanFeature`, `same`, `runCheck`, `check`), changed as `CONTRACT.md` section 5 says: comments **and
@@ -265,7 +265,8 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   `finalistsPrompt(result, profile, pool)`, `parseFinalists(answer, result, idPattern)`, `labelsPrompt(text,
   facets)`, `parseLabels(answer, facets)`. The finalists prompt is built from each candidate's own id, title, author,
   year and facet labels, plus `factsClause()`, **never from `reason()`**, and the profile's top five facet labels.
-  Both prompts end with: "Answer with two lines. Do not change any files."
+  The finalists prompt ends with one line per candidate — "Answer with two lines. Do not change any files." for two,
+  "one line" for one — and the labels prompt ends "Answer with up to four lines. Do not change any files."
   *Done when:* tests: **a result whose reason names a shelf book gives a prompt without that title**; the last line is
   as above; one good id plus one invented keeps one and names the other; a fenced, JSON or bulleted answer parses; no
   valid id says so; a title in the answer is ignored; `parseLabels` keeps only labels in the list, by `norm()`.
@@ -524,10 +525,10 @@ Found by the build's reviews, judged not worth a change now, and written down so
 - An events snapshot is labelled with its date, never blocked for age. A room that opens a copy months later sees the
   date, which is the promise `ARCHITECTURE.md` makes.
 - The events feed's host is not asked for `robots.txt` on every run; the 404 is re-checked by hand (A lane, above).
-- The saved shelf page's per-shelf summary (`entities.shelves.shelfSearch`) is not in `DATA.md`, so the reader
-  accepts several spellings of count, page and pages. A shape it does not recognise leaves that shelf **incomplete**,
-  which errs towards nothing being marked gone — the safe direction, and the one a person can fix by saving the
-  other pages.
+- A saved shelf page's state carries no totals at all (measured 2026-11-04), so the count comes from the page's own
+  words, `1 to 2 of 2 items` (D39). A page whose line is missing or not English's leaves that shelf **unknown**: the
+  import says nothing about it and nothing is marked gone — the safe direction, and one the person can fix by saving
+  the page that carries the line.
 - No shipped work carries `series:` facets and every pack work is tagged, so journey's series sentence and
   challenge's "no mood words" count are exercised by their checks, not by the practice data.
 
