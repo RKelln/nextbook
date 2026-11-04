@@ -27,3 +27,20 @@
 
 The pages are snapshots; the catalogue changes. The counts and the fields they
 carry are recorded in `docs/DATA.md` and `docs/RESEARCH.md`.
+
+## Shelf pages
+
+`shelf-page.html` and `shelf-page-2.html` are **made up**. No library page was saved,
+and no account was read: they are written in the shape `docs/DATA.md` measured
+("A person's own shelf page", 2026-11-03), with an invented person (`N0TPERS0N`),
+an invented barcode, and decoys — a name, an email, a session id and a token — that
+exist only so `tests/library-shelf.test.js` can prove the reader never returns them.
+
+- `shelf-page.html` — page 1. Four shelf items across three shelves; two of them are
+  editions of one work (same `groupKey`, different record id), so they make one entry.
+  The page states 2 Completed (both here: whole), 1 of 2 In Progress, and page 1 of 2
+  for For Later, so one shelf is complete and two are not. Its briefs carry
+  `description`, `jacket` and `rating` on purpose, to prove those are dropped.
+- `shelf-page-2.html` — page 2 of the same For Later shelf, one book. With the first
+  page it covers the shelf (pages 1 and 2 of 2, 2 of 2 books), which is what
+  `Nextbook.libraryShelf.combine()` is for.

@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>For Later (page 2) | Toronto Public Library | BiblioCommons</title>
+</head>
+<body>
+<!--
+  The second saved page of the same made-up account's For Later shelf: page 2 of 2,
+  one book. With tests/fixtures/tpl/shelf-page.html it covers the shelf (2 items of 2,
+  pages 1 and 2 of 2), which is what Nextbook.libraryShelf.combine() is for. Invented,
+  like its sibling; the decoys exist only so a test can prove they are never returned.
+-->
+<div id="app"><h1>For Later, page 2</h1></div>
+
+<script type="application/json" id="bc-initial-state">
+{
+  "entities": {
+    "shelves": {
+      "N0TPERS0N": {
+        "2997315203": {
+          "id": "S1005",
+          "metadataId": "S1005",
+          "shelf": "for_later",
+          "privateItem": true,
+          "dateAdded": "2026-11-01",
+          "authors": ["Ursula K. Le Guin"],
+          "title": "The Dispossessed",
+          "rating": 0
+        }
+      },
+      "shelfSearch": {
+        "summary": {
+          "for_later": { "count": 2, "page": 2, "pages": 2 },
+          "in_progress": { "count": 2, "page": 1, "pages": 2 },
+          "completed": { "count": 2, "page": 1, "pages": 1 }
+        }
+      }
+    },
+    "bibs": {
+      "S1005": {
+        "briefInfo": {
+          "id": "S1005",
+          "metadataId": "S1005",
+          "groupKey": "the_dispossessed\ufffdguin_ursula_k_le\ufffdtext_eng",
+          "title": "The Dispossessed",
+          "subtitle": null,
+          "authors": ["Guin, Ursula K. Le"],
+          "publicationDate": "1974",
+          "isbns": ["9780061054884"],
+          "callNumber": "FIC LEG",
+          "format": "BK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [{ "name": "Hainish Cycle", "volume": null }],
+          "subjectHeadings": ["Science fiction", "Anarchism -- Fiction", "Fiction"],
+          "genreForm": ["Science Fiction"],
+          "description": "<p>A blurb the reader must never keep.</p>",
+          "jacket": "https://example.invalid/jacket/dispossessed.jpg",
+          "rating": 4.5
+        }
+      }
+    },
+    "users": {
+      "N0TPERS0N": {
+        "name": "Nora Notaperson",
+        "email": "n0ra.notaperson@example.invalid",
+        "barcode": "99999000000000"
+      }
+    },
+    "accounts": {
+      "acct-N0TR3AL": { "displayName": "Nora Notaperson", "plan": "NOT REAL" }
+    },
+    "auth": {
+      "sessionId": "session-N0TR3ALSESSION",
+      "token": "token-N0TR3ALTOKEN",
+      "expires": "2026-11-04T00:00:00Z"
+    }
+  },
+  "meta": { "page": "shelf", "shelf": "for_later", "pageNumber": 2 }
+}
+</script>
+</body>
+</html>

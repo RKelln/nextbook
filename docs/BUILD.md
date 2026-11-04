@@ -458,7 +458,7 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
   a future date is refused, a bad schema changes nothing.
 
 - [ ] **T8.8 One-way sync from a saved library shelf.** Spec: `ARCHITECTURE.md`, "Bringing in the library's shelf".
-  - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
+  - [x] **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
     `entities.shelves` and the matching `briefInfo` only (facets by the adapter's rules, ported to JS). A test asserts
     no key from `users`, `accounts` or `auth` comes out.
   - [x] **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and

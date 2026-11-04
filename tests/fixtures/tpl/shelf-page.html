@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Completed | Toronto Public Library | BiblioCommons</title>
+</head>
+<body>
+<!--
+  A MADE-UP saved shelf page, in the shape docs/DATA.md measured on 2026-11-03
+  ("A person's own shelf page"). No real person, no real barcode, no real shelf:
+  "N0TPERS0N" is a placeholder, and the decoy name, email, session and token exist
+  only so a test can prove the reader never returns them.
+
+  Four shelf items across three shelves. Two of them (S1001 paper, S1002 e-book) are
+  editions of one work, so they make one entry. The page is page 1 of the For Later
+  shelf and page 1 of the In Progress shelf; completed is whole.
+-->
+<div id="app"><h1>Completed</h1><p>Your shelves</p></div>
+
+<script>
+  window.__bc_timing = { render: 41, shelf: "completed", ok: true };
+</script>
+
+<script type="application/json" id="bc-initial-state">
+{
+  "entities": {
+    "shelves": {
+      "N0TPERS0N": {
+        "2997315199": {
+          "id": "S1001",
+          "metadataId": "S1001",
+          "shelf": "completed",
+          "privateItem": true,
+          "dateAdded": "2026-04-07",
+          "authors": ["Ursula K. Le Guin"],
+          "title": "The Left Hand of Darkness",
+          "rating": 8
+        },
+        "2997315200": {
+          "id": "S1002",
+          "metadataId": "S1002",
+          "shelf": "in_progress",
+          "privateItem": true,
+          "dateAdded": "2026-09-02",
+          "authors": ["Ursula K. Le Guin"],
+          "title": "The Left Hand of Darkness",
+          "rating": 0
+        },
+        "2997315201": {
+          "id": "S1003",
+          "metadataId": "S1003",
+          "shelf": "completed",
+          "privateItem": true,
+          "dateAdded": "2026-06-11",
+          "authors": ["Robin Wall Kimmerer"],
+          "title": "Braiding Sweetgrass",
+          "rating": 9
+        },
+        "2997315202": {
+          "id": "S1004",
+          "metadataId": "S1004",
+          "shelf": "for_later",
+          "privateItem": true,
+          "dateAdded": "2026-10-20",
+          "authors": ["Susanna Clarke"],
+          "title": "Piranesi",
+          "rating": 7
+        }
+      },
+      "shelfSearch": {
+        "summary": {
+          "for_later": { "count": 2, "page": 1, "pages": 2 },
+          "in_progress": { "count": 2, "page": 1, "pages": 2 },
+          "completed": { "count": 2, "page": 1, "pages": 1 }
+        }
+      }
+    },
+    "bibs": {
+      "S1001": {
+        "briefInfo": {
+          "id": "S1001",
+          "metadataId": "S1001",
+          "groupId": "G1001",
+          "groupKey": "left_hand_of_darkness\ufffdguin_ursula_k_le\ufffdtext_eng",
+          "title": "The Left Hand of Darkness",
+          "subtitle": null,
+          "authors": ["Guin, Ursula K. Le"],
+          "publicationDate": "2010",
+          "isbns": ["9780441478125"],
+          "callNumber": "FIC LEG",
+          "format": "BK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [{ "name": "Hainish Cycle", "volume": null }],
+          "subjectHeadings": ["Science fiction", "Gender identity -- Fiction", "Fiction"],
+          "genreForm": ["Science Fiction"],
+          "description": "<p>A publisher blurb the reader must never keep.</p>",
+          "jacket": "https://example.invalid/jacket/left-hand.jpg",
+          "rating": 4.5
+        }
+      },
+      "S1002": {
+        "briefInfo": {
+          "id": "S1002",
+          "metadataId": "S1002",
+          "groupKey": "left_hand_of_darkness\ufffdguin_ursula_k_le\ufffdtext_eng",
+          "title": "The Left Hand of Darkness",
+          "subtitle": null,
+          "authors": ["Guin, Ursula K. Le"],
+          "publicationDate": "2014",
+          "isbns": ["9780441478126"],
+          "callNumber": null,
+          "format": "EBOOK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [{ "name": "Hainish Cycle", "volume": null }],
+          "subjectHeadings": ["Science fiction", "Fiction"],
+          "genreForm": [],
+          "description": "<p>Another blurb, on the e-book record.</p>",
+          "jacket": "https://example.invalid/jacket/left-hand-ebook.jpg",
+          "rating": 4
+        }
+      },
+      "S1003": {
+        "briefInfo": {
+          "id": "S1003",
+          "metadataId": "S1003",
+          "groupKey": "braiding_sweetgrass\ufffdkimmerer_robin_wall\ufffdtext_eng",
+          "title": "Braiding Sweetgrass",
+          "subtitle": "Indigenous Wisdom, Scientific Knowledge, and the Teachings of Plants",
+          "authors": ["Kimmerer, Robin Wall"],
+          "publicationDate": "2013",
+          "isbns": ["9781571313560"],
+          "callNumber": "305.897 KIM",
+          "format": "BK",
+          "contentType": "NONFICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [],
+          "subjectHeadings": [
+            "Potawatomi Indians -- Biography",
+            "Botany -- Philosophy",
+            "Human-plant relationships",
+            "Indigenous peoples -- North America"
+          ],
+          "genreForm": [],
+          "description": "<p>A blurb on the non-fiction record.</p>",
+          "jacket": "https://example.invalid/jacket/braiding.jpg",
+          "rating": 5
+        }
+      },
+      "S1004": {
+        "briefInfo": {
+          "id": "S1004",
+          "metadataId": "S1004",
+          "groupKey": "piranesi\ufffdclarke_susanna\ufffdtext_eng",
+          "title": "Piranesi",
+          "subtitle": null,
+          "authors": ["Clarke, Susanna"],
+          "publicationDate": "2020",
+          "isbns": ["9781635575637"],
+          "callNumber": null,
+          "format": "BK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [],
+          "subjectHeadings": ["Fantasy fiction", "Labyrinths -- Fiction", "Fiction"],
+          "genreForm": ["Fantasy"],
+          "description": "<p>A blurb on the Piranesi record.</p>",
+          "jacket": "https://example.invalid/jacket/piranesi.jpg",
+          "rating": 4
+        }
+      }
+    },
+    "users": {
+      "N0TPERS0N": {
+        "name": "Nora Notaperson",
+        "email": "n0ra.notaperson@example.invalid",
+        "barcode": "99999000000000",
+        "homeLibrary": "NOT A REAL BRANCH"
+      }
+    },
+    "accounts": {
+      "acct-N0TR3AL": { "displayName": "Nora Notaperson", "plan": "NOT REAL" }
+    },
+    "auth": {
+      "sessionId": "session-N0TR3ALSESSION",
+      "token": "token-N0TR3ALTOKEN",
+      "expires": "2026-11-04T00:00:00Z"
+    },
+    "borrowing": {
+      "checkouts": [{ "barcode": "99999000000000", "title": "NOT PART OF THE SHELF" }],
+      "holds": []
+    }
+  },
+  "meta": { "page": "shelf", "shelf": "completed" }
+}
+</script>
+</body>
+</html>
