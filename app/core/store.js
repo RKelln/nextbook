@@ -27,6 +27,11 @@
 //   store.add(entry)        -> {added, changed, kept}
 //   store.setState(key, state, at?), store.setRating(key, rating, at?), store.remove(key)
 //   store.others()          -> [{name, entries}]
+//   store.replace(entries)  -> true when storage took the whole shelf, false when it is only
+//                              in memory. It is the file reader's rule: an array of entries,
+//                              each with a string key; anything else throws a plain Error and
+//                              nothing is written. The current shelf's key only (practice has
+//                              its own), so a bulk change is one write and exportShelf agrees
 //   store.addOther(text, name) -> {added, skipped, error}; a second file with that name
 //                                 replaces the first
 //   store.removeOther(name)
@@ -284,7 +289,7 @@
       if (!isObj(out)) out = { schema: SHELF_SCHEMA };
       if (typeof out.schema !== 'string') out.schema = SHELF_SCHEMA;
       out.entries = entries;
-      writeRaw(key, out);
+      return writeRaw(key, out);
     }
 
     function practiceSeed() {
@@ -343,6 +348,25 @@
       var merged = mergeEntries(current, [entry]);
       saveShelf(chosen === 'own' ? OWN : PRACTICE, merged.entries);
       return { added: merged.report.added, changed: merged.report.changed, kept: merged.report.kept };
+    }
+
+    // The whole shelf in one write. An import replaces the list rather than merging into it:
+    // core/merge.js has already decided what every book should be, so re-running the store's
+    // newer-wins rule here would quietly undo part of that decision. The rule for the argument
+    // is the file reader's (validEntry): an array of entries, each with a string key. Anything
+    // else is refused before a byte is written, with a plain Error the caller turns into a
+    // sentence. True when storage took it; false when it is only in memory, which is the same
+    // answer a full disk gives everywhere else in this file.
+    function replace(entries) {
+      if (!Array.isArray(entries)) throw new Error('replace(): the shelf must be a list of books');
+      var clean = [];
+      for (var i = 0; i < entries.length; i++) {
+        if (!validEntry(entries[i])) throw new Error('replace(): every book needs a string key');
+        var copy = clone(entries[i]);
+        if (!isObj(copy)) throw new Error('replace(): a book could not be read');
+        clean.push(copy);
+      }
+      return saveShelf(chosen === 'own' ? OWN : PRACTICE, clean) === true;
     }
 
     function findEntry(entries, key) {
@@ -519,6 +543,7 @@
       practice: practice,
       practiceReset: practiceReset,
       add: add,
+      replace: replace,
       setState: setState,
       setRating: setRating,
       remove: remove,

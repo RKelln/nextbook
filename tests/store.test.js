@@ -496,3 +496,86 @@ test('a storage that answers the probe then throws on a write keeps the entry in
   assert.strictEqual(store.setSeed('blind-date', 3), 3);
   assert.strictEqual(store.seed('blind-date'), 3, 'a mode record survives in memory too');
 });
+
+// ---- T8.9b: replace, the one write an import makes --------------------------------------------
+
+test('T8.9b: replace writes the whole shelf at once, and every reader sees it', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const storage = memoryStorage();
+  const store = nb.store.open(storage);
+  store.use('own');
+  store.add(entry('old', '2026-11-10T14:00:00Z'));
+
+  const list = [entry('a', '2026-11-10T15:00:00Z'), entry('b', '2026-11-10T15:00:00Z', { state: 'want' })];
+  assert.strictEqual(store.replace(list), true, 'a storage that works took the whole shelf');
+
+  assert.deepStrictEqual(plain(store.own()), plain(list), 'the old book is gone, the two new ones are here');
+  assert.deepStrictEqual(plain(nb.store.open(storage).own()), plain(list), 'a second store reads it back');
+  assert.deepStrictEqual(plain(JSON.parse(storage.raw('nextbook-own-v1')).entries), plain(list),
+    'the written record holds exactly the list');
+
+  // exportShelf reads the same shelf, so the file a person keeps is the shelf they see.
+  const out = JSON.parse(store.exportShelf('2026-11-11T09:00:00Z'));
+  assert.deepStrictEqual(plain(out.entries), plain(list), 'exportShelf stays honest');
+  assert.strictEqual(out.exported, '2026-11-11T09:00:00Z');
+  assert.strictEqual(out.schema, 'nextbook/shelf-1');
+});
+
+test('T8.9b: replace on the practice shelf touches only the practice key', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const storage = memoryStorage();
+  const store = nb.store.open(storage);
+  store.use('own');
+  store.replace([entry('mine', '2026-11-10T15:00:00Z')]);
+  const ownBefore = storage.raw('nextbook-own-v1');
+
+  store.use('practice');
+  const swapped = [entry('practice-a', '2026-11-10T15:00:00Z'), entry('practice-b', '2026-11-10T15:00:00Z')];
+  assert.strictEqual(store.replace(swapped), true);
+
+  assert.deepStrictEqual(plain(JSON.parse(storage.raw('nextbook-practice-v1')).entries), plain(swapped),
+    'the practice key holds the new list');
+  assert.strictEqual(storage.raw('nextbook-own-v1'), ownBefore, 'the own shelf is not touched');
+  assert.deepStrictEqual(plain(store.own()).map((e) => e.key), ['w:pack:mine']);
+
+  // And back: the own shelf still reads as it was.
+  store.use('own');
+  assert.deepStrictEqual(plain(store.shelf()).map((e) => e.key), ['w:pack:mine']);
+});
+
+test('T8.9b: replace refuses a bad argument with a plain Error, and changes nothing', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const storage = memoryStorage();
+  const store = nb.store.open(storage);
+  store.use('own');
+  store.replace([entry('kept', '2026-11-10T15:00:00Z')]);
+  const before = storage.raw('nextbook-own-v1');
+
+  const plainError = (err) => err && err.name === 'Error' && typeof err.message === 'string';
+  assert.throws(() => store.replace('a shelf, maybe'), plainError, 'a string is not a list');
+  assert.throws(() => store.replace({ entries: [] }), plainError, 'an object with entries is not a list');
+  assert.throws(() => store.replace(null), plainError, 'and neither is nothing');
+  assert.throws(() => store.replace([{ title: 'no key' }]), plainError, 'a book with no key');
+  assert.throws(() => store.replace([null]), plainError, 'a hole in the list');
+  assert.throws(() => store.replace([entry('ok', '2026-11-10T15:00:00Z'), { key: 7 }]), plainError,
+    'one bad book refuses the whole list');
+
+  assert.strictEqual(storage.raw('nextbook-own-v1'), before, 'not one byte was written');
+  assert.deepStrictEqual(plain(store.shelf()).map((e) => e.key), ['w:pack:kept']);
+
+  // An empty list is a real answer: a shelf with no books.
+  assert.strictEqual(store.replace([]), true);
+  assert.deepStrictEqual(plain(store.shelf()), []);
+});
+
+test('T8.9b: replace says false when the browser will not save, and the shelf reads back anyway', () => {
+  const nb = nbWith({ practice: PRACTICE });
+  const store = nb.store.open(throwingStorage());
+  assert.strictEqual(store.persistent, false, 'this browser is not saving');
+  store.use('own');
+
+  const list = [entry('a', '2026-11-10T15:00:00Z')];
+  assert.strictEqual(store.replace(list), false, 'the write did not persist');
+  assert.deepStrictEqual(plain(store.shelf()), plain(list), 'and the books are here for this visit');
+  assert.strictEqual(JSON.parse(store.exportShelf()).entries.length, 1, 'export still hands over a file');
+});

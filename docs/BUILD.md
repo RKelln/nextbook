@@ -496,10 +496,10 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
     `="0439023483"`; StoryGraph's `did-not-finish` is our `stopped`; a star rating maps to our bucket and 0 is unrated.
     Every row that cannot be read is named, never dropped silently. Tests: one fixture per site, six rows each,
     including an unrated row, a did-not-finish row and a review with a newline in it.
-  - **T8.9b The screen** (C, M, S): one button on the shelf screen, the report in words with one Undo, "Not at the
+  - [x] **T8.9b The screen** (C, M, S): one button on the shelf screen, the report in words with one Undo, "Not at the
     library yet" for the rows with no match, and the practice-shelf refusal it inherits from the merge. Off in a
     workshop copy, with a sentence saying why.
-  - **T8.9c Matching the imported books at the library** (A, M, S). **Not T8.11.** T8.11 builds breadth for the modes;
+  - [x] **T8.9c Matching the imported books at the library** (A, M, S). **Not T8.11.** T8.11 builds breadth for the modes;
     this matches *a person's own list*, which is a different request with a different pace. Reuse `tools/find.py`:
     `--from-shelf` takes the imported rows with no record id, turns each into one keyword search (title and author, an
     ISBN when the file has one), and stops after a cap per run (40 books: about three and a half minutes at the

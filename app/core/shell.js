@@ -24,6 +24,10 @@
     route: '',
     exportText: '',
     foundCleared: false,
+    // the shelf screen's reading-list import: the last report, and the shelf as it was before
+    // it. Both live in memory for this visit only, never in storage and never in an export.
+    listReport: null,
+    listUndo: null,
     // the find screen
     modeId: '',
     modeReady: false,
@@ -106,6 +110,8 @@
   }
 
   function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
+
+  function has(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); }
 
   // ---- The hash router -----------------------------------------------------------------------
   // `events` is in the list even in a copy with no snapshot: a link to #events then reaches a
@@ -224,6 +230,10 @@
         actions.appendChild(button('shelf-use-own', t('useOwn'), function () {
           try { store.use('own'); } catch (e) { /* stays on practice */ }
           state.message = '';
+          // A report and its Undo belong to the shelf they were made on: the Undo would write
+          // the other shelf's books into this one.
+          state.listReport = null;
+          state.listUndo = null;
           render();
         }));
       }
@@ -234,6 +244,8 @@
         button('shelf-use-practice', t('usePractice'), function () {
           try { store.use('practice'); } catch (e) { /* stays on own */ }
           state.message = '';
+          state.listReport = null;
+          state.listUndo = null;
           render();
         })
       ));
@@ -252,6 +264,8 @@
     try {
       state.store.practiceReset();
       state.message = t('resetDone');
+      state.listReport = null;
+      state.listUndo = null;
     } catch (e) {
       state.message = t('shelfBroken');
     }
@@ -701,6 +715,330 @@
     });
     wrap.appendChild(h('label', { class: 'nb-field' },
       h('span', { class: 'nb-label' }, t('importChoose')), input));
+    return wrap;
+  }
+
+  // ---- Bringing in a reading list (T8.9b) ------------------------------------------------------
+  // A CSV exported from Goodreads or StoryGraph, read in this browser and merged against the
+  // shelf in use. The shell may read the clock; nothing in core/ does.
+  var LIST_FROM = { goodreads: 1, storygraph: 1 };
+  var STATE_WORD = { want: 'stateWant', reading: 'stateReading', read: 'stateRead', stopped: 'stateStopped' };
+  var RATING_WORD = { loved: 'ratingLoved', liked: 'ratingLiked', ok: 'ratingOk', 'not-for-me': 'ratingNot' };
+  var LIBRARY_WORD = { for_later: 'shelfForLater', in_progress: 'shelfInProgress', completed: 'shelfCompleted' };
+
+  // The site from the header row alone: Goodreads writes "Exclusive Shelf", StoryGraph
+  // "Read Status". Any other file is named back to the person, column by column, and nothing in
+  // it is read. An empty file has no header to name.
+  function listSite(text) {
+    var table = [];
+    try { table = Nextbook.csv && Nextbook.csv.rows ? Nextbook.csv.rows(text) : []; } catch (e) { table = []; }
+    if (!Array.isArray(table) || !table.length) return { site: '', found: '' };
+    var header = Array.isArray(table[0]) ? table[0] : [];
+    var names = [];
+    for (var i = 0; i < header.length; i++) {
+      var name = String(header[i] === null || header[i] === undefined ? '' : header[i]).trim();
+      if (name) names.push(name);
+    }
+    var lower = names.map(function (n) { return n.toLowerCase(); });
+    if (lower.indexOf('exclusive shelf') !== -1) return { site: 'goodreads', found: '' };
+    if (lower.indexOf('read status') !== -1) return { site: 'storygraph', found: '' };
+    return { site: '', found: names.slice(0, 6).join(', ') };
+  }
+
+  // "read, loved" — the same words the shelf rows use, in a sentence rather than on a control.
+  function hereWords(row) {
+    var here = isObj(row) && isObj(row.here) ? row.here : {};
+    var bits = [];
+    if (typeof here.state === 'string' && has(STATE_WORD, here.state)) bits.push(t(STATE_WORD[here.state]).toLowerCase());
+    var rating = typeof here.rating === 'string' && has(RATING_WORD, here.rating) ? t(RATING_WORD[here.rating]).toLowerCase() : '';
+    bits.push(rating || t('ratingNone').toLowerCase());
+    return bits.join(', ');
+  }
+
+  function libraryWord(row) {
+    var shelf = isObj(row) && isObj(row.library) ? row.library.shelf : '';
+    return typeof shelf === 'string' && has(LIBRARY_WORD, shelf) ? t(LIBRARY_WORD[shelf]) : '';
+  }
+
+  // One book from plan.tidy or plan.choose: its title, what is here, what the library says.
+  function listRow(row, index, test) {
+    var li = h('li', { class: 'nb-book', 'data-test': test + '-' + index });
+    var head = h('div', { class: 'nb-book-head' });
+    head.appendChild(h('strong', { class: 'nb-book-title' }, row.title || t('untitledBook')));
+    if (row.author) head.appendChild(p(t('byLine', { author: row.author }), 'nb-by'));
+    head.appendChild(p(t('listHere', {
+      here: hereWords(row),
+      library: libraryWord(row) || t('listNoShelf')
+    }), 'nb-note'));
+    if (row.why === 'gone') head.appendChild(p(t('listGoneRow'), 'nb-note'));
+    li.appendChild(head);
+    return li;
+  }
+
+  // Imported books the app has no library record for: a CSV carries no record id, and none is
+  // invented (core/import.js). The link is the catalogue search the rest of the screen uses.
+  function listWithoutRecord() {
+    var entries = [];
+    try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
+    var out = [];
+    for (var i = 0; i < (entries || []).length; i++) {
+      var entry = entries[i];
+      if (!isObj(entry) || entry.id) continue;
+      if (typeof entry.from !== 'string' || !has(LIST_FROM, entry.from)) continue;
+      out.push(entry);
+    }
+    return out;
+  }
+
+  // The counts in words. A count of zero says nothing at all; every count of zero together says
+  // the two lists already match.
+  function listSentence(counts) {
+    var c = isObj(counts) ? counts : {};
+    var parts = [];
+    if (c.added) parts.push(countLine(c.added, 'listAddedOne', 'listAdded', { n: c.added }));
+    if (c.updated) parts.push(countLine(c.updated, 'listUpdatedOne', 'listUpdated', { n: c.updated }));
+    if (c.kept) parts.push(countLine(c.kept, 'listKeptOne', 'listKept', { n: c.kept }));
+    if (c.gone) parts.push(countLine(c.gone, 'listGoneOne', 'listGone', { n: c.gone }));
+    if (c.ignored) parts.push(countLine(c.ignored, 'listIgnoredOne', 'listIgnored', { n: c.ignored }));
+    return parts.join(' ');
+  }
+
+  function focusListBlock() {
+    // The input the person used is a new element after a rebuild, so the cursor goes back to the
+    // block it was in, by its own data-test — the trick the shelf rows use (refocus/selectTest).
+    selectTest('shelf-list-import');
+  }
+
+  function undoListImport() {
+    var held = state.listUndo;
+    if (!isObj(held) || !Array.isArray(held.entries)) return;
+    var saved = false;
+    try { saved = state.store.replace(held.entries) === true; } catch (e) { saved = false; }
+    state.listUndo = null;
+    state.listReport = null;
+    state.message = saved ? t('listUndone') : t('listUndone') + ' ' + t('listNotSaved');
+    render();
+    focusListBlock();
+  }
+
+  function listReportBox() {
+    var report = state.listReport;
+    var box = h('div', { class: 'nb-list-report', 'data-test': 'list-report' });
+    if (!isObj(report)) return box;
+
+    if (report.error) {
+      box.appendChild(p(report.error, 'nb-message nb-message-warn', { role: 'status', 'data-test': 'list-said' }));
+      return box;
+    }
+
+    var refused = (report.refusals || []).length > 0;
+    var said = listSentence(report.counts);
+    // A refusal (the practice shelf, a partial file) is the whole story when no count moved, so
+    // "Nothing changed" would only repeat it.
+    if (!said && !refused) said = t('listNothing');
+    if (said) box.appendChild(p(said, 'nb-text', { role: 'status', 'data-test': 'list-said' }));
+
+    if (state.listUndo && state.listUndo.which === report.which) {
+      box.appendChild(button('shelf-list-undo', t('listUndo'), undoListImport, 'nb-button nb-button-quiet'));
+    }
+    if (report.counts && report.saved === false) {
+      box.appendChild(p(t('listNotSaved'), 'nb-message nb-message-warn', { 'data-test': 'list-not-saved' }));
+    }
+
+    (report.refusals || []).forEach(function (sentence, i) {
+      var attrs = { 'data-test': 'list-refused-' + (i + 1) };
+      // With no counts to read out, the refusal is the report: it is the line that is spoken.
+      if (!said && i === 0) attrs.role = 'status';
+      box.appendChild(p(sentence, 'nb-note', attrs));
+    });
+
+    if ((report.tidy || []).length) {
+      box.appendChild(h('h4', t('listTidy', { n: report.tidy.length })));
+      var tidy = h('ul', { class: 'nb-books', 'data-test': 'list-tidy' });
+      report.tidy.forEach(function (row, i) { tidy.appendChild(listRow(row, i + 1, 'list-tidy-row')); });
+      box.appendChild(tidy);
+    }
+
+    if ((report.choose || []).length) {
+      box.appendChild(h('h4', t('listWhich', { n: report.choose.length })));
+      var choose = h('ul', { class: 'nb-books', 'data-test': 'list-choose' });
+      report.choose.forEach(function (row, i) { choose.appendChild(listRow(row, i + 1, 'list-choose-row')); });
+      box.appendChild(choose);
+    }
+
+    var missing = listWithoutRecord();
+    if (missing.length) {
+      box.appendChild(h('h4', t('listNotYet', { n: missing.length })));
+      box.appendChild(p(t('listNotYetHelp'), 'nb-hint'));
+      var list = h('ul', { class: 'nb-books nb-books-compact', 'data-test': 'list-not-yet' });
+      missing.forEach(function (entry, i) {
+        var li = h('li', { class: 'nb-book', 'data-test': 'list-not-yet-row-' + (i + 1) });
+        var link = linkFor(entry);
+        li.appendChild(link
+          ? h('a', { class: 'nb-book-title', href: link }, entry.title || t('untitledBook'))
+          : h('strong', { class: 'nb-book-title' }, entry.title || t('untitledBook')));
+        var line = byLine(null, entry);
+        if (line) li.appendChild(p(line, 'nb-by'));
+        list.appendChild(li);
+      });
+      box.appendChild(list);
+    }
+
+    if ((report.problems || []).length) {
+      box.appendChild(h('h4', t('listProblems')));
+      report.problems.forEach(function (sentence, i) {
+        box.appendChild(p(sentence, 'nb-note', { 'data-test': 'list-problem-' + (i + 1) }));
+      });
+    }
+
+    return box;
+  }
+
+  // The whole job for one file: which site, read, merge, write once, and a report in words.
+  // Called by the file input after its text is read, and by the tests with a string.
+  function importReadingList(text) {
+    var site = listSite(text);
+
+    if (!site.site) {
+      state.listReport = {
+        error: site.found ? t('listBadHeader', { found: site.found }) : t('listNoHeader'),
+        which: ''
+      };
+      render();
+      focusListBlock();
+      return state.listReport;
+    }
+
+    var brought = null;
+    try {
+      brought = site.site === 'goodreads' ? Nextbook.csv.goodreads(text) : Nextbook.csv.storygraph(text);
+    } catch (e) {
+      brought = null;
+    }
+    if (!isObj(brought) || !Array.isArray(brought.entries)) {
+      state.listReport = { error: t('listUnread'), which: '' };
+      render();
+      focusListBlock();
+      return state.listReport;
+    }
+
+    var which = 'practice';
+    try { which = state.store ? state.store.which() : 'practice'; } catch (e) { which = 'practice'; }
+    var practice = which === 'practice';
+
+    // A row for a book the app already carries becomes that work, so it keeps its facets, its
+    // reason and its place in a mode instead of arriving as a bare title beside it. Matched on
+    // the title and the author, the same spelling `pool.match` uses everywhere else.
+    var i;
+    for (i = 0; i < brought.entries.length; i++) {
+      var row = brought.entries[i];
+      if (!isObj(row) || row.id || row.groupKey) continue;
+      var work = workFor(row);
+      if (!work) continue;
+      row.id = work.id || null;
+      row.groupKey = work.groupKey || null;
+      row.key = keyForWork(work);
+    }
+
+    var plan = null;
+    try {
+      plan = Nextbook.merge.plan(brought, state.store.shelf(), { now: nowText(), practice: practice });
+    } catch (e) {
+      plan = null;
+    }
+    if (!isObj(plan) || !Array.isArray(plan.entries)) {
+      state.listReport = { error: t('listUnread'), which: '' };
+      render();
+      focusListBlock();
+      return state.listReport;
+    }
+
+    var report = {
+      error: '',
+      site: site.site,
+      which: which,
+      counts: isObj(plan.report) ? plan.report : { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 },
+      refusals: Array.isArray(plan.refusals) ? plan.refusals : [],
+      problems: Array.isArray(brought.problems) ? brought.problems : [],
+      tidy: Array.isArray(plan.tidy) ? plan.tidy : [],
+      choose: Array.isArray(plan.choose) ? plan.choose : [],
+      saved: true
+    };
+
+    // The practice shelf refuses at the merge (plan.refusals) and hands back the shelf it was
+    // given, so nothing is written. Any other shelf takes the plan in one write.
+    if (!practice) {
+      var previous = state.store.shelf();
+      var changed = JSON.stringify(previous) !== JSON.stringify(plan.entries);
+      try {
+        report.saved = state.store.replace(plan.entries) === true;
+      } catch (e) {
+        report.error = t('listRefused');
+        report.saved = false;
+      }
+      if (!report.error && changed) state.listUndo = { which: which, entries: previous };
+    }
+
+    state.listReport = report;
+    render();
+    focusListBlock();
+    return report;
+  }
+
+  function listPanel() {
+    var wrap = h('section', {
+      class: 'nb-panel',
+      id: 'nb-list-import',
+      'data-test': 'shelf-list-import',
+      tabindex: '-1'
+    });
+    wrap.appendChild(h('h3', t('listHeading')));
+
+    var practice = false;
+    try { practice = state.store.which() === 'practice'; } catch (e) { practice = false; }
+    var workshop = isWorkshop();
+
+    // A real reading list is somebody's reading history. A shared computer is not the place for
+    // it, and the practice shelf refuses it at the merge as well; one sentence says so in both
+    // copies, before the input.
+    if (workshop || practice) wrap.appendChild(p(t('listOff'), 'nb-note', { 'data-test': 'list-off' }));
+
+    // Off is off: a workshop copy, and the practice shelf, draw no input at all, so there is no
+    // picker that can only refuse. The person switches to their own shelf to bring a list in.
+    // A report is still drawn if one was made (a helper can hand the page a list another way).
+    if (workshop || practice) {
+      if (state.listReport) wrap.appendChild(listReportBox());
+      return wrap;
+    }
+
+    wrap.appendChild(p(t('listHelp'), 'nb-hint'));
+
+    var input = h('input', {
+      class: 'nb-file',
+      type: 'file',
+      accept: '.csv,text/csv',
+      id: 'nb-list-file',
+      'data-test': 'shelf-list-file',
+      'aria-label': t('listChoose'),
+      on: {
+        change: function (ev) {
+          var chosen = ev.target;
+          readChosen(chosen, function (text) {
+            if (text === null) {
+              state.listReport = { error: t('importNoFile'), which: '' };
+              render();
+              focusListBlock();
+              return;
+            }
+            importReadingList(text);
+          });
+        }
+      }
+    });
+    wrap.appendChild(h('label', { class: 'nb-field' },
+      h('span', { class: 'nb-label' }, t('listChoose')), input));
+
+    if (state.listReport) wrap.appendChild(listReportBox());
     return wrap;
   }
 
@@ -2336,6 +2674,7 @@
     try { entries = state.store.shelf(); } catch (e) { entries = []; }
     sec.appendChild(p(countLine(entries.length, 'shelfCountOne', 'shelfCount', { n: entries.length }), 'nb-count'));
     sec.appendChild(shelfList());
+    sec.appendChild(listPanel());
     sec.appendChild(addPanel());
     sec.appendChild(exportPanel());
     sec.appendChild(importPanel());
@@ -2420,7 +2759,16 @@
     loadModes(function () { render(); });
   }
 
-  Nextbook.shell = { boot: boot, loadModes: loadModes, render: render, go: go, route: routeName };
+  Nextbook.shell = {
+    boot: boot,
+    loadModes: loadModes,
+    render: render,
+    go: go,
+    route: routeName,
+    // The reading-list import's job, in one call: the file input's handler after its text is
+    // read, and the way a test drives it with a string instead of a file.
+    importReadingList: importReadingList
+  };
 
   addStrings({
     // nav
@@ -2492,6 +2840,40 @@
     importReport: 'Import done: {added} added, {changed} changed, {kept} left as they were.',
     importSkipped: '{skipped} books in the file could not be read. They were left out.',
     importNoFile: 'This browser could not read that file.',
+    // bringing in a reading list (T8.9b)
+    listHeading: 'Bring in my reading list',
+    listHelp: 'Choose the CSV file you saved from Goodreads or StoryGraph. It is read in this browser only. Nothing is sent anywhere.',
+    listChoose: 'Choose a reading list file',
+    listOff: 'A real reading list does not go on this shelf. A shared computer is not the place for anyone\'s reading list, so do this on your own shelf at home.',
+    listBadHeader: 'That file says {found} at the top. It is not a Goodreads or StoryGraph list, so nothing was changed.',
+    listNoHeader: 'That file has no first line to read, so nothing was changed.',
+    listUnread: 'That file could not be read as a reading list, so nothing was changed.',
+    listRefused: 'The shelf would not take these books, so nothing was changed.',
+    listAdded: 'Added {n} books.',
+    listAddedOne: 'Added 1 book.',
+    listUpdated: 'Updated {n} that changed at the library.',
+    listUpdatedOne: 'Updated 1 that changed at the library.',
+    listKept: '{n} are different here.',
+    listKeptOne: '1 is different here.',
+    listGone: '{n} are no longer on your library shelf.',
+    listGoneOne: '1 is no longer on your library shelf.',
+    listIgnored: '{n} were left as they are.',
+    listIgnoredOne: '1 was left as it is.',
+    listNothing: 'Nothing changed. The books here and at the library already match.',
+    listNotSaved: 'This browser is not saving, so these books are here for now only. Download a copy before you close it.',
+    listUndo: 'Undo this import',
+    listUndone: 'The shelf is back as it was before the import.',
+    listHere: 'Here: {here}. At the library: {library}.',
+    listNoShelf: 'no shelf',
+    listGoneRow: 'This is no longer on your library shelf.',
+    listTidy: 'Tidy up at the library ({n})',
+    listWhich: 'Which is right? ({n})',
+    listNotYet: 'Not at the library yet ({n})',
+    listNotYetHelp: 'These books are not matched to the library yet. The link searches the library by title and author.',
+    listProblems: 'What could not be read',
+    shelfForLater: 'For Later',
+    shelfInProgress: 'In Progress',
+    shelfCompleted: 'Completed',
     // friends' shelves
     friendsHeading: "Add a friend's shelf",
     friendsHelp: "A friend's shelf is kept apart. It never changes your own shelf.",
