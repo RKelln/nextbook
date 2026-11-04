@@ -1,4 +1,4 @@
-# News diet  (id: news-diet, shape: list, size: M)
+# News diet  (id: news-diet, shape: list, size: S)
 
 **In plain words:** paste some headlines; get books that go deeper than the news.
 
@@ -17,7 +17,7 @@ The same machinery as event hook, with headlines as the words:
 ## Done when
 
 - [ ] `node tools/check-mode.js news-diet` passes, including the standard shelves.
-- [ ] The warning is always shown when the subjects came from the model box.
+- [ ] The note always carries the warning, whichever way the subjects were chosen.
 - [ ] Reasons name the subject from the headlines: "Goes deeper on housing and cities."
 - [ ] Works with the model box never touched.
 

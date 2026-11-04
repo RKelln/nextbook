@@ -191,7 +191,7 @@ Python, standard library only. Every network call goes through `adapters/biblioc
   with facets; running it twice adds nothing; `grep -c description data/found.json` prints 0; `git check-ignore
   data/found.json` succeeds.
 
-- [ ] **T1.9 Events snapshot** (A, M, S). Last in priority. Read first: `RESEARCH.md` "TPL events feed", D30. Port:
+- [x] **T1.9 Events snapshot** (A, M, S). Last in priority. Read first: `RESEARCH.md` "TPL events feed", D30. Port:
   `kit/seed_src/tools/fetch_events.py`; read `~/Documents/Projects/tpl-finder-3/feed.py` for the feed's traps.
   `adapters/bibliocommons/events.py --branch CL --days 21` writes `data/events.json`:
   `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual, categories, summary, url}]}`.
@@ -419,7 +419,7 @@ mechanism, give the facilitator a demo, and time the briefs.
 *Done when (each):* `node tools/check-mode.js --dir reference/modes <id>` passes, a person reads the six reasons on
 the practice shelf and finds each one true, and the commit says how long the build took.
 
-- [ ] **T6.4 Re-time the menu** (E, S, S). From T6.1 to T6.3's times and T7.1's build, set each brief's size in
+- [x] **T6.4 Re-time the menu** (E, S, S). From T6.1 to T6.3's times and T7.1's build, set each brief's size in
   `docs/modes/README.md` to what a beginner with an agent really needs, against the session's 26-minute build block.
   A brief that does not fit is cut down (fewer done-when lines) or its card says so.
 

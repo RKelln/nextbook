@@ -1,4 +1,4 @@
-# Event hook  (id: event-hook, shape: list, size: M)
+# Event hook  (id: event-hook, shape: list, size: S)
 
 **In plain words:** an event at the library becomes the seed: books to read before the talk, or after it.
 
@@ -7,9 +7,10 @@
 ## The rule
 
 1. Input: `about` (`facets`). The person picks the event's subjects by hand, or uses "From some words" on the event's
-   text (the app's model box turns words into subjects **from the list** and drops anything else). If the app has
-   the events snapshot, `ctx.events` holds this branch's events, and the event's `title`, `categories` and `summary`
-   are the words to start from; without it, the person pastes the text from the library's event page.
+   text (the app's model box turns words into subjects **from the list** and names the ones it drops, so the mode
+   only ever receives facet keys). If the app has the events snapshot, `ctx.events` holds this branch's events; the
+   event's `title`, `categories` and `summary` are the words to start from. Without it, the person pastes the text
+   from the library's event page.
 2. Build a profile from the chosen facets (weight 3 each), plus the shelf's own profile at half weight, so the shelf
    breaks ties but does not take over.
 3. Score every work, take the top six.
@@ -20,7 +21,6 @@
 
 - [ ] `node tools/check-mode.js event-hook` passes, including the standard shelves.
 - [ ] It works with the model box never touched (subjects picked by hand).
-- [ ] Subjects the model offered that are not in the list are named as dropped, and the mode never sees them.
 - [ ] A subject the list cannot match says so: "Nothing in the list is about origami yet."
 
 ## Logic to write and check

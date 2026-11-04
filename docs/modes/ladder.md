@@ -1,4 +1,4 @@
-# Ladder  (id: ladder, shape: path, size: M)
+# Ladder  (id: ladder, shape: path, size: S)
 
 **In plain words:** from beginner to deep on one subject, in order.
 
