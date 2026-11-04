@@ -954,7 +954,6 @@
   var LIST_FROM = { goodreads: 1, storygraph: 1 };
   var STATE_WORD = { want: 'stateWant', hold: 'stateHold', reading: 'stateReading', read: 'stateRead', stopped: 'stateStopped' };
   var RATING_WORD = { loved: 'ratingLoved', liked: 'ratingLiked', ok: 'ratingOk', 'not-for-me': 'ratingNot' };
-  var LIBRARY_WORD = { for_later: 'shelfForLater', in_progress: 'shelfInProgress', completed: 'shelfCompleted' };
 
   // The site from the header row alone: Goodreads writes "Exclusive Shelf", StoryGraph
   // "Read Status". Any other file is named back to the person, column by column, and nothing in
@@ -987,7 +986,7 @@
 
   function libraryWord(row) {
     var shelf = isObj(row) && isObj(row.library) ? row.library.shelf : '';
-    return typeof shelf === 'string' && has(LIBRARY_WORD, shelf) ? t(LIBRARY_WORD[shelf]) : '';
+    return typeof shelf === 'string' && Nextbook.library.isShelf(shelf) ? t(Nextbook.library.shelf(shelf).word) : '';
   }
 
   // One book from plan.tidy or plan.choose: its title, what is here, what the library says.
@@ -1281,7 +1280,6 @@
   // Off on the practice shelf and in a workshop copy, exactly as the reading list is: a real
   // reading history does not belong on a shared computer, so there is no picker that can only
   // refuse. A failure at the merge refuses too, and still writes nothing.
-  var SHELF_STATE_OF = { for_later: 'want', in_progress: 'reading', completed: 'read' };
 
   function shelfEntries() {
     try { return state.store ? state.store.shelf() : []; } catch (e) { return []; }
@@ -1525,7 +1523,7 @@
     try {
       did = changeLibraryEntry(row.key, function (entry) {
         var lib = isObj(row.library) ? row.library : {};
-        if (typeof lib.shelf === 'string' && has(SHELF_STATE_OF, lib.shelf)) entry.state = SHELF_STATE_OF[lib.shelf];
+        if (Nextbook.library.isShelf(lib.shelf)) entry.state = Nextbook.library.stateOf(lib.shelf);
         entry.rating = typeof lib.rating === 'string' && has(RATING_WORD, lib.rating) ? lib.rating : null;
         entry.updated = nowText();
       });
@@ -1723,7 +1721,7 @@
     // The round trip, as steps, with the doors in them: each shelf opens on the library's own
     // page (signed in there, as T8.12's links do), so "save the page" is the only new thing.
     var steps = h('ol', { class: 'nb-steps', 'data-test': 'lib-steps' });
-    var shelfLinks = [['forLater', 'accountForLater'], ['inProgress', 'accountInProgress'], ['completed', 'accountCompleted']]
+    var shelfLinks = Nextbook.library.shelves.map(function (s) { return [s.account, s.word]; })
       .map(function (page) {
         var href = '';
         try { href = Nextbook.links.accountLink(library(), page[0]) || ''; } catch (e) { href = ''; }
@@ -3918,8 +3916,6 @@
     libChoose: 'Choose the saved shelf pages, or drop them here',
     libBackHere: 'Back from the library? If you changed a shelf there, save that page and bring it in below.',
     libBackThere: 'Back from the library? If you changed a shelf there, save that page and bring it in on the Shelf screen.',
-    accountInProgress: 'In Progress',
-    accountCompleted: 'Completed',
     libOff: "Do this at home, on your own shelf: a shared library computer is not the place for anyone's reading history.",
     libFileBad: '{name}: {error}',
     libLastSeen: 'Last brought in from the library: {date}',

@@ -57,10 +57,10 @@
     return 'not-for-me';
   }
 
-  // The library-style shelf word that goes with each state. "stopped" has no shelf at the
-  // library, so it carries none; the state is what the app reads.
+  // The library-style shelf word that goes with each state, from the one table in core/base.js.
+  // "stopped" has no shelf at the library, so it carries none; the state is what the app reads.
   // "hold" is on For Later as far as the library's shelves go: a hold is not a shelf.
-  var SHELF_OF_STATE = { want: 'for_later', hold: 'for_later', reading: 'in_progress', read: 'completed', stopped: '' };
+  function shelfOfState(state) { return Nextbook.library.shelfOf(state) || ''; }
 
   // ---- The CSV reader ------------------------------------------------------------------------
   // Comma separated, quoted fields, "" inside a quoted field, newlines inside a quoted field,
@@ -222,7 +222,7 @@
   function noteIncomplete(complete, shelves, shelfWord) {
     var state = has(shelves, shelfWord) ? shelves[shelfWord] : null;
     if (state === 'stopped') return; // the library has no such shelf, so none is in doubt
-    var shelf = state ? SHELF_OF_STATE[state] : '';
+    var shelf = state ? shelfOfState(state) : '';
     if (shelf) {
       complete[shelf] = false;
       return;
@@ -284,7 +284,7 @@
         groupKey: null,
         title: title,
         author: author,
-        shelf: SHELF_OF_STATE[state] || '',
+        shelf: shelfOfState(state),
         state: state,
         rating: rating.rating,
         rating10: rating.rating10,

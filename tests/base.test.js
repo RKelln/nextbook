@@ -334,3 +334,48 @@ test('workshop() reads the packed workshop block', () => {
   const nb = loadBase({ 'nb-workshop': '{"workshop": true}' });
   assert.strictEqual(nb.workshop(), true);
 });
+
+// ---- The library's pages, one table (core/base.js) ------------------------------------------
+test('library: the three shelves, in order, each with its state, address key and words', () => {
+  const lib = nbLib();
+  assert.deepStrictEqual(plain(lib.shelfKeys()), ['for_later', 'in_progress', 'completed']);
+  assert.deepStrictEqual(plain(lib.shelves.map((s) => [s.key, s.state, s.account])), [
+    ['for_later', 'want', 'forLater'], ['in_progress', 'reading', 'inProgress'], ['completed', 'read', 'completed']
+  ]);
+  lib.shelves.forEach((s) => {
+    assert.ok(s.name, s.key + ' has a name');
+    assert.ok(/^shelf[A-Z]/.test(s.word), s.key + ' has a strings key');
+  });
+});
+
+test('library: stateOf and isShelf take only the library\'s own words', () => {
+  const lib = nbLib();
+  assert.strictEqual(lib.stateOf('in_progress'), 'reading');
+  assert.strictEqual(lib.stateOf('holds'), null);
+  assert.strictEqual(lib.stateOf('toString'), null);
+  assert.strictEqual(lib.stateOf(undefined), null);
+  assert.strictEqual(lib.isShelf('completed'), true);
+  assert.strictEqual(lib.isShelf('__proto__'), false);
+  assert.strictEqual(lib.shelf('nope'), null);
+});
+
+test('library: a hold is For Later there; stopped has no shelf', () => {
+  const lib = nbLib();
+  assert.strictEqual(lib.seenAs('hold'), 'want');
+  assert.strictEqual(lib.seenAs('read'), 'read');
+  assert.strictEqual(lib.seenAs('stopped'), null);
+  assert.strictEqual(lib.shelfOf('want'), 'for_later');
+  assert.strictEqual(lib.shelfOf('hold'), 'for_later');
+  assert.strictEqual(lib.shelfOf('reading'), 'in_progress');
+  assert.strictEqual(lib.shelfOf('stopped'), null);
+  assert.strictEqual(lib.shelfOf(null), null);
+});
+
+test('library: shelfKeys is a copy, so a caller cannot reorder the table', () => {
+  const lib = nbLib();
+  const keys = lib.shelfKeys();
+  keys.reverse();
+  assert.strictEqual(lib.shelfKeys()[0], 'for_later');
+});
+
+function nbLib() { return load(['app/core/base.js']).library; }

@@ -206,6 +206,24 @@ too, so when the merge compares with the library a `hold` counts as `want`: For 
 and a book the library moved to In Progress or Completed takes the library's answer. Only the person sets `hold`, by
 hand or with "Yes, it's on hold" after "Sign in and hold"; no import brings it in.
 
+In code this is one table, `Nextbook.library` in `app/core/base.js`: each shelf's code, its state, the key of its
+address in the library's `account` block, and its words; plus `seenAs`, which says how a state with no shelf of its
+own (`hold`) looks there. The readers, the merge, the export and the shell all ask it, so a page added to the library's
+side is one row there, not five edits. The table is BiblioCommons', not TPL's: every BiblioCommons library has the same
+pages, and only their addresses (the slice's `library.account`) differ.
+
+The pages it does not cover yet, with what each could mean here. My Collections is the three shelves above. My
+Borrowing is three more lists, and Lists are the person's own:
+
+| Library page | Could mean | Which way |
+|---|---|---|
+| My Borrowing: On Hold | `hold`, set and cleared by an import | in only: the app never places a hold |
+| My Borrowing: Checked Out | a question, "set these to Reading?" (borrowed is not reading) | in only |
+| My Borrowing: Borrowing History | a question, "did you read these?"; only kept if the person turned history on | in only |
+| Lists (made and shared by the person) | no state; perhaps a second shelf for swap or club-season | link only for now |
+
+None of these is read yet: each needs a saved page measured first (`DATA.md`), read for its shape only.
+
 Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
 lands on the same works with no fuzzy matching — which is what `app/core/library-shelf.js` relies on. The shapes were
 fixed before it was built, so it needed no migration.

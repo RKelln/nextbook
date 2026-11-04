@@ -75,9 +75,9 @@
   // ---- the library's shelf words -------------------------------------------------------------
   // docs/DATA.md: `shelf` is for_later, in_progress or completed; `rating` is out of 10
   // (stars times two) and 0 means not rated. The state is ours, from the table in
-  // docs/ARCHITECTURE.md, "Lining up with the library's own shelves".
-  var SHELF_STATE = { for_later: 'want', in_progress: 'reading', completed: 'read' };
-  var SHELF_ORDER = ['for_later', 'in_progress', 'completed'];
+  // docs/ARCHITECTURE.md, "Lining up with the library's own shelves", kept as one table in core/base.js.
+  var LIBRARY = Nextbook.library;
+  var SHELF_ORDER = LIBRARY.shelfKeys();
   // How far along a state is. Used only to pick between two editions of one work: completed
   // beats reading, reading beats want. "stopped" cannot come from the library.
   var STATE_RANK = { want: 1, reading: 2, read: 3 };
@@ -522,7 +522,7 @@
       if (named === null) named = shelf;
       else if (shelf !== named) return null;
     }
-    return named !== null && has(SHELF_STATE, named) ? named : null;
+    return named !== null && LIBRARY.isShelf(named) ? named : null;
   }
 
   // ---- the shelves on the page ----------------------------------------------------------------
@@ -815,7 +815,7 @@
       var brief = briefOf(bibs, recordId);
       var title = collapse(brief ? brief.title : '') || collapse(item.title);
 
-      if (!has(SHELF_STATE, shelf)) {
+      if (!LIBRARY.isShelf(shelf)) {
         // The row's shelf is exactly what could not be read, so no shelf can be called
         // whole: the merge must not read an absent book as gone (import.js does the same).
         doubtful = true;
@@ -851,7 +851,7 @@
           author: author,
           isbn: isbnOf(brief.isbns),
           shelf: shelf,
-          state: SHELF_STATE[shelf],
+          state: LIBRARY.stateOf(shelf),
           rating: bucketOf10(rating10),
           rating10: rating10,
           dateAdded: dateOf(item.dateAdded),

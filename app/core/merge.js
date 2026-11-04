@@ -26,10 +26,9 @@
 
   var STATES = { want: 1, hold: 1, reading: 1, read: 1, stopped: 1 };
   var RATINGS = { loved: 1, liked: 1, ok: 1, 'not-for-me': 1 };
-  var SHELF_STATE = { for_later: 'want', in_progress: 'reading', completed: 'read' };
-  var STATE_SHELF = { want: 'for_later', reading: 'in_progress', read: 'completed' };
-  var SHELF_WORD = { for_later: 'For Later', in_progress: 'In Progress', completed: 'Completed' };
-  var SHELF_ORDER = ['for_later', 'in_progress', 'completed'];
+  // The library's shelves and what they mean here: the one table in core/base.js.
+  var LIBRARY = Nextbook.library;
+  var SHELF_ORDER = LIBRARY.shelfKeys();
 
   // The merge's own words join the one table, like the store's do, so a later screen can
   // move them without touching this file.
@@ -72,11 +71,11 @@
   }
 
   function stateOfShelf(shelf) {
-    return typeof shelf === 'string' && has(SHELF_STATE, shelf) ? SHELF_STATE[shelf] : null;
+    return LIBRARY.stateOf(shelf);
   }
 
   function shelfOfState(state) {
-    return typeof state === 'string' && has(STATE_SHELF, state) ? STATE_SHELF[state] : null;
+    return LIBRARY.shelfOf(state);
   }
 
   // 10 = five stars, 8 = four, 6 = three, 4 and 1 = one or two. 0 is "not rated".
@@ -110,7 +109,8 @@
   // is on For Later there, so "hold" compares as "want". A For Later shelf that has not moved
   // never undoes a hold, and a book the library moved on (picked up, read) takes its answer.
   function asLibrarySees(side) {
-    return side.state === 'hold' ? { state: 'want', rating: side.rating } : side;
+    var seen = LIBRARY.seenAs(side.state);
+    return seen && seen !== side.state ? { state: seen, rating: side.rating } : side;
   }
 
   // A from an app entry: state and rating are ours already.
@@ -440,7 +440,7 @@
     for (i = 0; i < SHELF_ORDER.length; i++) {
       var name = SHELF_ORDER[i];
       if (has(complete, name) && complete[name] !== true && unknown[name] !== true) {
-        refusals.push(t('importPartialShelf', { shelf: SHELF_WORD[name] }));
+        refusals.push(t('importPartialShelf', { shelf: LIBRARY.shelf(name).name }));
       }
     }
 
@@ -467,7 +467,7 @@
       if (!isObj(entry) || !hasMemory(entry.library)) continue; // row 7: never at the library
       if (workPresent(seen, entry)) continue; // a second edition of a work the library does have
       var shelf = entry.library.shelf;
-      if (!has(SHELF_STATE, shelf) || complete[shelf] !== true) continue; // partial: no gone
+      if (!LIBRARY.isShelf(shelf) || complete[shelf] !== true) continue; // partial: no gone
 
       var leftAlone = ignored(entry, entry.library);
       var goneMemory = clone(entry.library) || {};

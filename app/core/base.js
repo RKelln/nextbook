@@ -232,6 +232,58 @@
     return false;
   };
 
+  // ---- The library's own pages, lined up with our states ------------------------------------
+  // The one table of which page at the library goes with which state here. These are the
+  // platform's pages (every BiblioCommons library has them); where each one lives at one library
+  // is that library's `account` block in the slice (core/links.js). docs/ARCHITECTURE.md, "Lining
+  // up with the library's own shelves", is the same table in words.
+  //   key      the library's own word for the shelf, as its pages and saved files spell it
+  //   account  the key of its address in the library's `account` block
+  //   word     the strings-table key for its name on screen; name is the same, for code that
+  //            loads without the shell's strings (core/merge.js)
+  //   state    ours
+  // Listed in order of how far along: the readers pick an edition, and report, in this order.
+  var SHELVES = [
+    { key: 'for_later', account: 'forLater', word: 'shelfForLater', name: 'For Later', state: 'want' },
+    { key: 'in_progress', account: 'inProgress', word: 'shelfInProgress', name: 'In Progress', state: 'reading' },
+    { key: 'completed', account: 'completed', word: 'shelfCompleted', name: 'Completed', state: 'read' }
+  ];
+  // Our states the library's shelves cannot say, and what they look like there. A hold is not a
+  // shelf: the book sits on For Later. "stopped" has no shelf at all, so it is not here and has
+  // no shelf (D42).
+  var LIBRARY_SEES = { hold: 'want' };
+
+  function shelfRow(key) {
+    for (var i = 0; i < SHELVES.length; i++) if (SHELVES[i].key === key) return SHELVES[i];
+    return null;
+  }
+
+  Nextbook.library = {
+    shelves: SHELVES,
+    // ['for_later', 'in_progress', 'completed']: a fresh copy, so a caller cannot reorder ours.
+    shelfKeys: function () { return SHELVES.map(function (s) { return s.key; }); },
+    isShelf: function (key) { return typeof key === 'string' && shelfRow(key) !== null; },
+    shelf: function (key) { return typeof key === 'string' ? shelfRow(key) : null; },
+    // 'for_later' -> 'want'; anything else -> null.
+    stateOf: function (key) {
+      var row = typeof key === 'string' ? shelfRow(key) : null;
+      return row ? row.state : null;
+    },
+    // Our state as the library's shelves can say it: 'hold' -> 'want'; 'stopped' -> null.
+    seenAs: function (state) {
+      if (typeof state !== 'string') return null;
+      var seen = Object.prototype.hasOwnProperty.call(LIBRARY_SEES, state) ? LIBRARY_SEES[state] : state;
+      for (var i = 0; i < SHELVES.length; i++) if (SHELVES[i].state === seen) return seen;
+      return null;
+    },
+    // The shelf a state goes on there: 'want' and 'hold' -> 'for_later'; 'stopped' -> null.
+    shelfOf: function (state) {
+      var seen = Nextbook.library.seenAs(state);
+      for (var i = 0; i < SHELVES.length; i++) if (SHELVES[i].state === seen) return SHELVES[i].key;
+      return null;
+    }
+  };
+
   // ---- Modes --------------------------------------------------------------------------------
   // `Nextbook.modes` is the manifest: app/modes/list.js sets it to the ids the app shows, and it
   // is the only place the app learns about modes (CONTRACT.md 2). A mode file registers its
