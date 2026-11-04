@@ -394,13 +394,22 @@
 
       state.loaded = true;
       state.ok = true;
-      return {
+      var loaded = {
         ok: true,
         works: state.works,
         byId: state.byId,
         byGroupKey: state.byGroupKey,
         facets: state.facets
       };
+      // The snapshot carries the helpers a context needs (ctx.tagsOf, ctx.sections, ...), so a
+      // caller that passes the loaded pool to makeCtx gets the same answers as Nextbook.pool does.
+      // These read the pool as loaded: make a context soon after loading, not after another load.
+      loaded.match = match;
+      loaded.search = search;
+      loaded.sections = sections;
+      loaded.labelOf = labelOf;
+      loaded.tagsOf = tagsOf;
+      return loaded;
     } catch (e) {
       return fail();
     }

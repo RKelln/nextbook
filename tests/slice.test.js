@@ -313,3 +313,27 @@ test('a found work carrying a blurb field loses it at load, and is still usable'
   assert.deepStrictEqual(plain(nb.pool.search('word for world')).map((w) => w.id), [target.id],
     'and it is still found by search');
 });
+
+// Found by reference/modes/challenge: ctx.tagsOf was always null, because load() returned a
+// snapshot without the helpers makeCtx asks for. CONTRACT.md section 4 promises ctx.tagsOf.
+test('a context built from the loaded pool answers with the helpers the pool exposes', () => {
+  const nb = load(['app/core/base.js', 'app/core/slice.js', 'app/core/score.js',
+    'app/core/reason.js', 'app/core/contract.js']);
+  nb.data.put('slice', SLICE);
+  nb.data.put('tags', TAGS);
+
+  const loaded = nb.pool.load();
+  ['match', 'search', 'sections', 'labelOf', 'tagsOf'].forEach((name) => {
+    assert.strictEqual(typeof loaded[name], 'function', 'the snapshot carries ' + name);
+  });
+  assert.strictEqual(loaded.tagsOf, nb.pool.tagsOf, 'the same function the pool exposes');
+
+  const ctx = nb.makeCtx({ pool: loaded, shelf: [], seed: 1 });
+  const work = loaded.byId['dispossessed'];
+  assert.deepStrictEqual(plain(ctx.tagsOf(work).mood), ['quiet', 'strange']);
+  assert.strictEqual(ctx.tagsOf(work).pace, 'slow');
+  assert.strictEqual(ctx.labelOf('mood:quiet'), 'quiet books');
+  assert.ok(ctx.sections().length >= 5, 'the parts of the library come through too');
+  assert.strictEqual(ctx.work('left-hand').title, 'The Left Hand of Darkness');
+  assert.deepStrictEqual(plain(ctx.works.map((w) => w.id)).length, SLICE.works.length);
+});
