@@ -296,18 +296,37 @@ clear enough to lead; each had an independent review pass, and each is named in 
 - **`data/events.json` is committed as a dated snapshot.** The library's own event text, capped at 300 characters,
   with the feed's host recorded as answering `robots.txt` with 404 (2026-11-03). It goes stale: rebuild before a room.
 
-## D34. The finalists prompt: placeholders, not titles (2026-11-03, proposed; Ryan's call)
+## D34. The finalists prompt: titles, but never a work on the person's shelf (2026-11-03, Ryan's call)
 
-Proposed by Ryan: give the model placeholders and keep the mapping locally, so no title is ever in a prompt. Shape:
-each candidate becomes `p1 | 1969 | facet labels | facts`; the map `p1 → {id, title, author}` lives in the page for
-the visit, never in `localStorage` and never in an export; the answer comes back `p1: a sentence` and is checked
-against the six as now.
+Ryan asked whether placeholders would cost the chat the titles it needs to curate, and accepted that reading lists stay
+private. Both halves are right, and rule 1 draws the line in the same place: **"never a title from the person's shelf"**,
+not "never a title".
 
-Why: rule 1 stops depending on every future mode's honesty — no title can be in a prompt, whatever a mode does — and
-the model box reopens for journey and swap, where D33 closes it. Cost: the chat can argue about the evidence but not
-about books it has not read, so the box's promise weakens from "a second opinion on the books" to "a second opinion
-on the evidence", and its words must change with it. That is what makes this Ryan's call rather than a build call.
+- A candidate that is *not* on the shelf has a public catalogue title, and the prompt already says it was a candidate.
+  It keeps its id, title, author, year and facet labels, because that is what lets a chat curate rather than merely
+  restate the facet words.
+- A candidate that *is* on the shelf is the person's reading list. It is dropped from the prompt before the prompt is
+  built — by work id, `groupKey`, `recordId` and normalised title, so a typed book that never matched the slice (and
+  whose title is therefore in the person's own list) is caught too.
+- The box says so in words: "The chat sees five of the six. One is already on your shelf, so it stays out of this box."
+  Nothing is said when nothing was dropped.
+- The `allowShelf` box stays closed (D33): a mixed prompt would tell the chat which candidate is the shelf book.
 
-Rejected alternative: titles for off-shelf candidates and placeholders only for shelf ones. A mixed prompt tells the
-chat which candidate is the shelf book, and doubles the parsing rules for a small gain.
+The "from some words" prompt is unchanged: it carries no titles at all, and maps text to the slice's own subject list.
+Placeholders remain the fallback if a later feature has to put a shelf work in front of a model; nothing in this design
+does.
 
+## D35. An `event` input kind (2026-11-03, Ryan)
+
+Ryan: "event input kind seems good." Until now the contract had no kind that could carry a library event, so the
+events screen's "Books for this event" button could only put the event's title into a mode's `text` box (T3.6, open
+question 2).
+
+`CONTRACT.md` section 4 gains `event`: the control is a picker of the snapshot's events (day and title), and `choose`
+receives the event object — `{id, title, start, end, branch, virtual, categories, summary, url}` — never a title typed
+into a box and never a model's words. The standard shelves give a mode with an `event` input a sensible default (the
+first event in the snapshot, or a two-event fixture when there is none). The events screen hands the event itself to
+the mode when it has that input, and keeps the title-in-the-text-box path for a mode that does not.
+
+Forecloses nothing: a mode that never lists the input is unaffected, and the event snapshot is still the only source,
+so nothing here reaches the network.

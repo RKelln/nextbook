@@ -507,11 +507,10 @@ Found by the build's reviews, judged not worth a change now, and written down so
 Write here; do not guess. Each one is Ryan's to answer.
 
 1. Product name (D11, D22). The domain is settled; `nextbook` is still a working name.
-2. No input kind carries an event, so "Books for this event" can only put the event's title into a mode's `text` box
-   (T3.6). Should `CONTRACT.md` section 4 gain an `event` kind, so event hook receives the event itself, or is a
-   title enough for that brief? Ryan's call, and it changes the brief rather than the app.
-3. The model box's placeholders (D34): send placeholders and keep the mapping in the page, or keep titles for
-   candidates that are not on the shelf? Proposed: placeholders, everywhere. Waiting on Ryan.
+2. Answered 2026-11-03: `CONTRACT.md` section 4 gains an `event` input kind, and the events screen hands over the
+   event itself (D35).
+3. Answered 2026-11-03: titles stay in the finalists prompt because a chat needs them to curate, and any candidate
+   that is on the person's shelf is dropped from the prompt by id, `groupKey`, `recordId` or normalised title (D34).
 
 ## Found while working
 
