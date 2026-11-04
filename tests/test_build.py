@@ -195,7 +195,7 @@ class TolerantTagTest(unittest.TestCase):
 
 
 class DistCleanTest(unittest.TestCase):
-    """dist/ is generated: what a build did not write is not allowed to survive beside it."""
+    """dist/ is generated: a build replaces what it writes and leaves its siblings alone."""
 
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
@@ -205,24 +205,49 @@ class DistCleanTest(unittest.TestCase):
         build.DIST = self.dist
         self.addCleanup(lambda: setattr(build, "DIST", self.old))
 
-    def test_a_rebuild_clears_a_hand_placed_file(self):
+    def test_a_rebuild_replaces_its_own_file(self):
         self.dist.mkdir()
-        (self.dist / "leftover.txt").write_text("stale\n", encoding="utf-8")
         (self.dist / "nextbook.html").write_text("old\n", encoding="utf-8")
         info = build.write_page("nextbook.html")
         self.assertTrue((self.dist / "nextbook.html").is_file())
-        self.assertFalse((self.dist / "leftover.txt").exists(), "a stale file must not ship")
+        self.assertNotEqual((self.dist / "nextbook.html").read_text(encoding="utf-8"), "old\n")
         self.assertEqual(info["out"], self.dist / "nextbook.html")
 
-    def test_the_starter_clears_the_root_of_dist_too(self):
+    def test_the_three_builds_live_side_by_side(self):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            build.write_page("nextbook.html")
+            build.write_page("demo.html", build.DEMO_MODES)
+            build.build_starter()
+        self.assertTrue((self.dist / "nextbook.html").is_file(), "the starter must not delete the one file")
+        self.assertTrue((self.dist / "demo.html").is_file())
+        self.assertTrue((self.dist / "starter" / "tools" / "build.py").is_file())
+
+    def test_a_stray_file_is_named_not_silently_shipped(self):
         import contextlib
         import io
         self.dist.mkdir()
         (self.dist / "leftover.txt").write_text("stale\n", encoding="utf-8")
-        with contextlib.redirect_stdout(io.StringIO()):
-            build.build_starter()
-        self.assertFalse((self.dist / "leftover.txt").exists())
-        self.assertTrue((self.dist / "starter" / "tools" / "build.py").is_file())
+        out = io.StringIO()
+        with contextlib.redirect_stdout(out):
+            build.write_page("nextbook.html")
+        self.assertTrue((self.dist / "leftover.txt").is_file(), "a sibling's file is not deleted")
+        self.assertIn("did not write it", out.getvalue())
+
+    def test_clean_empties_dist(self):
+        self.dist.mkdir()
+        (self.dist / "nextbook.html").write_text("old\n", encoding="utf-8")
+        build.reset_dist()
+        self.assertEqual(list(self.dist.iterdir()), [])
+
+    def test_clear_output_will_not_touch_a_path_outside_dist(self):
+        self.dist.mkdir()
+        outside = Path(self.tmp.name) / "keep.txt"
+        outside.write_text("keep\n", encoding="utf-8")
+        with self.assertRaises(build.BuildError):
+            build.clear_output(outside)
+        self.assertTrue(outside.is_file())
 
     def test_it_will_only_clear_a_folder_named_dist(self):
         build.DIST = Path(self.tmp.name) / "elsewhere"

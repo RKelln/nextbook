@@ -353,7 +353,7 @@ def read(path):
 
 
 def reset_dist():
-    """Empty dist/, which is generated and gitignored.
+    """Empty dist/, for `--clean` only.
 
     A file left there by hand would otherwise sit beside the build for ever and could be shipped as
     part of it. Only a folder named `dist` is ever cleared, and nothing outside it is touched."""
@@ -366,6 +366,48 @@ def reset_dist():
     DIST.mkdir(parents=True)
 
 
+def clear_output(path):
+    """Remove one generated artifact, and nothing else.
+
+    Each build replaces what it writes: making the starter must not delete the one file made a
+    minute earlier, because the kit needs both. Only a real path inside dist/ is ever removed."""
+    if DIST.name != "dist" or DIST == ROOT:
+        raise BuildError("refusing to clear " + str(DIST))
+    target = Path(path)
+    if target != DIST and DIST not in target.parents:
+        raise BuildError("refusing to clear " + str(target))
+    if target == DIST:
+        reset_dist()
+        return
+    if target.is_dir():
+        shutil.rmtree(target)
+    elif target.exists():
+        target.unlink()
+    DIST.mkdir(parents=True, exist_ok=True)
+
+
+def strays(produced):
+    """Files in dist/ that this build did not write and that are not its siblings' outputs.
+
+    The three builds (one file, demo, starter) are meant to sit beside each other: the kit needs
+    the folder and Ryan's laptop needs the demo. Anything else is a leftover worth naming."""
+    if not DIST.is_dir():
+        return []
+    keep = {Path(p) for p in produced} | {DIST / "nextbook.html", DIST / "demo.html", DIST / "starter"}
+    out = []
+    for item in sorted(DIST.iterdir()):
+        if item in keep:
+            continue
+        out.append(item)
+    return out
+
+
+def warn_strays(produced):
+    for item in strays(produced):
+        print("note: %s is in dist/ and this build did not write it; "
+              "run --clean if it should not ship" % item)
+
+
 def build_page(demo_modes=None):
     """(html, info) for the one file, made in memory. No dist/ is written."""
     template = read(APP / "index.html")
@@ -374,12 +416,13 @@ def build_page(demo_modes=None):
 
 def write_page(name, demo_modes=None):
     html, info = build_page(demo_modes)          # a failed build leaves dist/ as it was
-    reset_dist()
     out = DIST / name
+    clear_output(out)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(html, encoding="utf-8", newline="\n")
     info["out"] = out
     info["bytes"] = len(html.encode("utf-8"))
+    warn_strays([out])
     return info
 
 
@@ -494,7 +537,7 @@ def build_starter():
     out = DIST / "starter"
     if out.name != "starter" or out.parent != DIST:
         raise BuildError("refusing to clear " + str(out))
-    reset_dist()                   # the folder is generated: nothing hand-placed survives
+    clear_output(out)              # the folder is generated: nothing hand-placed inside it survives
     out.mkdir()
 
     for rel in STARTER_FILES:
@@ -552,8 +595,13 @@ def main(argv=None):
     group = ap.add_mutually_exclusive_group()
     group.add_argument("--starter", action="store_true", help="write dist/starter/, the workshop folder")
     group.add_argument("--demo", action="store_true", help="write dist/demo.html, with the demo modes")
+    group.add_argument("--clean", action="store_true", help="empty dist/, which is generated and gitignored")
     args = ap.parse_args(argv)
     try:
+        if args.clean:
+            reset_dist()
+            print("cleaned " + str(DIST))
+            return
         if args.starter:
             build_starter()
             return
