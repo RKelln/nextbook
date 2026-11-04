@@ -370,6 +370,7 @@ class TheSmallPieces(unittest.TestCase):
         self.assertEqual(find._linked_clause(3),
                          "3 were already in your list and now have their page at the library.")
 
+    @unittest.skipUnless((REPO / ".git").exists(), "not a git checkout (a downloaded ZIP), so there is no ignore rule to read")
     def test_the_found_file_is_gitignored(self):
         result = subprocess.run(["git", "-C", str(REPO), "check-ignore", "data/found.json"],
                                 capture_output=True, text=True)
