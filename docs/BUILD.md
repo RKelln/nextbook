@@ -477,11 +477,11 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
   titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off
   by default; says what it will send before it sends it; caches in the browser.
 - [ ] **T8.4 Browser tests.** Playwright, development only, using the `data-test` names.
-- [ ] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take.
+- [x] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take.
 - [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03; the answer is in `DATA.md`, "A person's own shelf page".
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
   unmatched rows become typed books with search links. Same merge as T8.8b.
-  - **T8.9a The readers** (B, M, S): `app/core/import.js`, pure: a CSV in, `{entries, works, complete, problems}` out,
+  - [x] **T8.9a The readers** (B, M, S): `app/core/import.js`, pure: a CSV in, `{entries, works, complete, problems}` out,
     in the shape `Nextbook.merge.plan` takes. Quoted fields with commas, quotes and newlines; Goodreads wraps ISBNs as
     `="0439023483"`; StoryGraph's `did-not-finish` is our `stopped`; a star rating maps to our bucket and 0 is unrated.
     Every row that cannot be read is named, never dropped silently. Tests: one fixture per site, six rows each,
