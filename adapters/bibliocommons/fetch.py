@@ -14,7 +14,8 @@ opener, the sleep function and the clock. Nothing outside this module calls the
 network.
 
 House rules (AGENTS.md, docs/DATA.md): never a record page, never
-`/item/read_alike_list/`, never a loop. One command reads at most three pages.
+`/item/read_alike_list/`, never a loop. One search reads at most three pages;
+matching a shelf starts a new search for each book, at the on-demand pace.
 """
 from __future__ import annotations
 
@@ -273,6 +274,18 @@ class Fetcher:
             return (EVENTS_PATH.format(library=self.library["subdomain"]),)
         return ALLOWED_PATHS
 
+    def is_cached(self, url: str) -> bool:
+        """Whether `get` would answer this address from the cache, with no request."""
+        return self._cache_path(url).is_file()
+
+    def begin_search(self) -> None:
+        """Start another search in this run.
+
+        The three-page budget is per search, not per command: a person matching
+        a shelf asks forty one-page questions, and each is one search.
+        """
+        self._pages = {"on-demand": 0, "batch": 0}
+
     def get(self, url: str, kind: str = "on-demand") -> str:
         """Return the body at `url`, from the cache when it is already there."""
         if kind not in KINDS:
@@ -385,12 +398,27 @@ class Fetcher:
 _default_fetcher = None
 
 
-def get(url: str, kind: str = "on-demand") -> str:
-    """Read `url` in this command's single run."""
+def _fetcher() -> "Fetcher":
+    """This command's one fetcher, made on first use (no request just to make it)."""
     global _default_fetcher
     if _default_fetcher is None:
         _default_fetcher = Fetcher()
-    return _default_fetcher.get(url, kind)
+    return _default_fetcher
+
+
+def get(url: str, kind: str = "on-demand") -> str:
+    """Read `url` in this command's single run."""
+    return _fetcher().get(url, kind)
+
+
+def is_cached(url: str) -> bool:
+    """Whether `get(url)` would answer from the cache, with no request and no wait."""
+    return _fetcher().is_cached(url)
+
+
+def begin_search() -> None:
+    """Start another search in this command's run (the page budget is per search)."""
+    _fetcher().begin_search()
 
 
 def reset() -> None:

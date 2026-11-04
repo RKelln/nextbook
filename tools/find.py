@@ -3,11 +3,20 @@
 
     python3 tools/find.py "birds toronto"
     python3 tools/find.py --title "The Left Hand of Darkness" --author "Le Guin"
+    python3 tools/find.py --from-shelf my-shelf.json
     python3 tools/find.py --clear
 
 This is the one command in the repo that reaches the network without a build,
 and it only ever does what a person asked for: one catalogue search, paced as
 on demand (`docs/DATA.md`), at most three pages, never a record page.
+
+It can also take a shelf file the app exported (`--from-shelf`). Then it asks
+one search per book the person imported and has no library record for, prints
+each query before it sends it, and stops after `--limit` books (40 by default).
+A page already in the cache costs no request and no wait, and a title already
+in `data/found.json` is skipped, so a second run carries on where the last one
+stopped. Each book's page and merge are the same ones a single search uses:
+`collect()` is that one loop.
 
 It says what it is about to send, and the address, *before* it sends anything.
 Then it reads the pages through `adapters/bibliocommons/` (parse and normalise,
@@ -54,6 +63,8 @@ OUT_DIR = REPO_ROOT / "app" / "data"
 GEN_DATA = REPO_ROOT / "tools" / "gen_data.py"
 
 FOUND_SCHEMA = "nextbook/found-1"
+SHELF_SCHEMA = "nextbook/shelf-1"
+DEFAULT_LIMIT = 40
 FORBIDDEN_FIELDS = ("description", "jacket", "rating")
 SUBJECT_KINDS = ("topic", "genre", "bisac")
 
@@ -341,6 +352,85 @@ def regenerate(data_dir, out_dir) -> bool:
 
 # --- the command ------------------------------------------------------------
 
+def collect(doc: dict, known: set, query: str, pages: int, getter,
+            slice_keys=None) -> dict:
+    """Read up to `pages` pages of one search and merge them into `doc`.
+
+    This is the one loop both ways of asking share: the single search and each
+    book of a shelf run. `doc`, `known` and `slice_keys` are as in `merge()`.
+    Nothing is printed here; the sentences are returned as `notes`, in order,
+    so the caller can say them at its own pace.
+    """
+    seen: set = set()
+    every_work = []
+    labels_seen: dict = {}
+    added = []
+    already = 0
+    linked = 0
+    pages_read = 0
+    notes = []
+    fatal = False
+
+    for page in range(1, pages + 1):
+        address = fetch.search_url(query, page)
+        try:
+            html = getter(address, kind="on-demand")
+        except fetch.FetchError as err:
+            notes.append(f"The library would not give that page: {err}")
+            fatal = isinstance(err, (fetch.RobotsRefused, fetch.DisallowedPath))
+            break
+        except (urllib.error.URLError, OSError) as err:
+            notes.append(f"Could not reach the library: {err}")
+            break
+        try:
+            briefs = parse.briefs(html)
+        except parse.ParseError as err:
+            notes.append(f"That page was not a catalogue search page: {err}")
+            break
+        pages_read += 1
+        page_works = works_with_labels(briefs)
+        if not page_works:
+            notes.append(f"Page {page} had no books. Stopping there.")
+            break
+
+        # A book counted once: the catalogue can repeat one on a later page.
+        fresh = []
+        for work, labels in page_works:
+            keys = identities(work)
+            if keys and keys & seen:
+                continue
+            fresh.append((work, labels))
+        if not fresh:
+            notes.append(f"Page {page} was all books we already have. Stopping there.")
+            break
+
+        page_added, page_already, page_linked = merge(doc, known, fresh, query, seen,
+                                                     slice_keys)
+        added.extend(page_added)
+        already += page_already
+        linked += page_linked
+        # Only the works that reached the file. merge() drops a brief with no
+        # id, group key or title, and counting it here would inflate the
+        # subject totals with a book the person never got.
+        written: set = set()
+        for entry in page_added:
+            written.update(identities(entry))
+        for work, labels in fresh:
+            if not (identities(work) & written):
+                continue
+            every_work.append(work)
+            for key, label in labels.items():
+                labels_seen.setdefault(key, label)
+
+        if not page_added and page_already:
+            notes.append(f"Page {page} was all books we already have. Stopping there.")
+            break
+
+    return {"added": added, "already": already, "linked": linked,
+            "pages_read": pages_read, "works": every_work, "labels": labels_seen,
+            "notes": notes, "fatal": fatal}
+
+
 def run(*, words=None, title=None, author=None, pages: int = 1,
         data_dir=DATA_DIR, out_dir=OUT_DIR, getter=None, now=None) -> dict:
     """One search a person asked for. Returns what happened, for the caller."""
@@ -368,67 +458,15 @@ def run(*, words=None, title=None, author=None, pages: int = 1,
     for work in doc.get("works") or []:
         known.update(identities(work))
 
-    seen: set = set()
-    every_work = []
-    labels_seen: dict = {}
-    added = []
-    already = 0
-    linked = 0
-    pages_read = 0
-
-    for page in range(1, pages + 1):
-        address = fetch.search_url(query, page)
-        try:
-            html = getter(address, kind="on-demand")
-        except fetch.FetchError as err:
-            say(f"The library would not give that page: {err}")
-            break
-        except (urllib.error.URLError, OSError) as err:
-            say(f"Could not reach the library: {err}")
-            break
-        try:
-            briefs = parse.briefs(html)
-        except parse.ParseError as err:
-            say(f"That page was not a catalogue search page: {err}")
-            break
-        pages_read += 1
-        page_works = works_with_labels(briefs)
-        if not page_works:
-            say(f"Page {page} had no books. Stopping there.")
-            break
-
-        # A book counted once: the catalogue can repeat one on a later page.
-        fresh = []
-        for work, labels in page_works:
-            keys = identities(work)
-            if keys and keys & seen:
-                continue
-            fresh.append((work, labels))
-        if not fresh:
-            say(f"Page {page} was all books we already have. Stopping there.")
-            break
-
-        page_added, page_already, page_linked = merge(doc, known, fresh, query, seen,
-                                                     slice_keys)
-        added.extend(page_added)
-        already += page_already
-        linked += page_linked
-        # Only the works that reached the file. merge() drops a brief with no
-        # id, group key or title, and counting it here would inflate the
-        # subject totals with a book the person never got.
-        written: set = set()
-        for entry in page_added:
-            written.update(identities(entry))
-        for work, labels in fresh:
-            if not (identities(work) & written):
-                continue
-            every_work.append(work)
-            for key, label in labels.items():
-                labels_seen.setdefault(key, label)
-
-        if not page_added and page_already:
-            say(f"Page {page} was all books we already have. Stopping there.")
-            break
+    outcome = collect(doc, known, query, pages, getter, slice_keys)
+    for note in outcome["notes"]:
+        say(note)
+    added = outcome["added"]
+    already = outcome["already"]
+    linked = outcome["linked"]
+    pages_read = outcome["pages_read"]
+    every_work = outcome["works"]
+    labels_seen = outcome["labels"]
 
     if added:
         timestamp = now or _now()
@@ -493,6 +531,156 @@ def _drop_page_copy(out_dir) -> bool:
     return not target.exists()
 
 
+# --- a shelf file -----------------------------------------------------------
+
+def read_shelf(path) -> list:
+    """The entries of an exported shelf file, read the way the app reads one.
+
+    A file that cannot be read is one plain sentence (FindError), never a
+    traceback: this runs for a person, and a stack trace is not an answer.
+    """
+    path = Path(path)
+    try:
+        text = path.read_text(encoding="utf-8")
+    except OSError as err:
+        raise FindError(f"{path} could not be read: {err.strerror or err}")
+    try:
+        doc = json.loads(text)
+    except ValueError:
+        raise FindError(f"{path} is not a shelf file: it is not JSON")
+    if not isinstance(doc, dict) or not isinstance(doc.get("entries"), list):
+        raise FindError(f"{path} is not a shelf file: it has no list of books")
+    return [entry for entry in doc["entries"] if isinstance(entry, dict)]
+
+
+def _wants_a_search(entry: dict) -> bool:
+    """A book with no library record yet, and a title to ask about."""
+    return not entry.get("id") and not entry.get("groupKey") and bool(_shelf_title(entry))
+
+
+def _shelf_title(entry: dict) -> str:
+    return str(entry.get("title") or "").strip()
+
+
+def _record_search(doc: dict, outcome: dict, query: str, now, found_path: Path) -> None:
+    """Add one line to the file's searches, then write the file."""
+    doc["searches"].append({"query": query, "fetched": now or _now(),
+                            "works": len(outcome["added"])})
+    _refuse_forbidden(doc)
+    _write_json(found_path, doc)
+
+
+def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
+               out_dir=OUT_DIR, getter=None, cached=None, begin_search=None,
+               now=None) -> dict:
+    """Match the books a person imported, one search each, at their own pace.
+
+    Only books with no record id and no group key are asked about: a book the
+    library already gave us is never searched again. Each book becomes one
+    keyword search of its title and author, read through `collect()` -- the
+    same loop a single search uses -- so hits land in `data/found.json` and
+    `app/data/found.js` exactly as a single search's do.
+
+    The cap counts requests, not cache reads: a page already in the cache is
+    said as `cached`, costs no request and no wait, and does not use up a book
+    of the limit. A title already in `found.json` is skipped, so a second run
+    carries on where the first stopped instead of asking again.
+    """
+    if limit is None:
+        limit = DEFAULT_LIMIT
+    if int(limit) < 1:
+        raise FindError("--limit must be 1 or more")
+    limit = int(limit)
+
+    entries = read_shelf(path)
+    getter = getter or fetch.get
+    # An injected getter has no cache and no page budget to speak of; only the
+    # command's own fetcher is asked whether a page is already on disk.
+    own_fetcher = getter is fetch.get
+    if cached is None:
+        cached = fetch.is_cached if own_fetcher else (lambda url: False)
+    if begin_search is None:
+        begin_search = fetch.begin_search if own_fetcher else (lambda: None)
+
+    data_dir = Path(data_dir)
+    out_dir = Path(out_dir)
+    found_path = data_dir / "found.json"
+
+    doc = load_found(found_path)
+    slice_keys = slice_identities(read_json(data_dir / "slice.json", default={}))
+    known: set = set()
+    present: set = set()
+    for work in doc.get("works") or []:
+        known.update(identities(work))
+        title = norm_title(work.get("title"))
+        if title:
+            present.add(title)
+
+    candidates = []
+    for entry in entries:
+        if not _wants_a_search(entry):
+            if not entry.get("id") and not entry.get("groupKey") and not _shelf_title(entry):
+                key = str(entry.get("key") or "").strip()
+                who = f'"{key}"' if key else "an entry with no key"
+                say(f"Skipping {who}: it has no title to search for.")
+            continue
+        candidates.append(entry)
+
+    waiting = [entry for entry in candidates if norm_title(_shelf_title(entry)) not in present]
+    waiting_total = len(waiting)
+    if not waiting_total:
+        say("Nothing to search: every book on this shelf already has a record or a match.")
+        return {"ok": False, "searched": 0, "found": 0, "nothing": 0, "left": 0}
+
+    run_total = min(limit, waiting_total)
+    searched = found = nothing = done = served = 0
+    wrote = False
+    for entry in waiting:
+        if searched >= limit:
+            break
+        title = _shelf_title(entry)
+        normal = norm_title(title)
+        if normal in present:
+            done += 1  # another book's search already brought this one back
+            continue
+        query = query_words(title=title, author=entry.get("author"))
+        address = fetch.search_url(query, 1)
+        hit = cached(address)
+        if hit:
+            say(f'Cached: "{query}"')
+        else:
+            searched += 1
+            say(f'Searching {searched} of {run_total}: "{query}"')
+        done += 1
+        begin_search()
+        outcome = collect(doc, known, query, 1, getter, slice_keys)
+        served += outcome["pages_read"]
+        for note in outcome["notes"]:
+            say(note)
+        if outcome["added"]:
+            if not hit:
+                found += 1
+            wrote = True
+            _record_search(doc, outcome, query, now, found_path)
+            for work in outcome["added"]:
+                found_title = norm_title(work.get("title"))
+                if found_title:
+                    present.add(found_title)
+        elif not hit:
+            nothing += 1
+        if outcome["fatal"]:
+            break
+
+    if wrote:
+        regenerate(data_dir, out_dir)
+
+    left = max(0, waiting_total - done)
+    say(f"Searched {searched}, found {found}, {nothing} had nothing, {left} to go. "
+        f"Run it again for the next {limit}.")
+    return {"ok": served > 0, "searched": searched, "found": found,
+            "nothing": nothing, "left": left}
+
+
 def _parse(argv):
     parser = argparse.ArgumentParser(
         prog="python3 tools/find.py",
@@ -500,8 +688,12 @@ def _parse(argv):
     parser.add_argument("words", nargs="*", help='the words to search for, in quotes: "birds toronto"')
     parser.add_argument("--title", help="a title; with --author, find this book")
     parser.add_argument("--author", help="an author; with --title, find this book")
-    parser.add_argument("--pages", type=int, default=1,
+    parser.add_argument("--pages", type=int, default=None,
                         help=f"one to {fetch.MAX_ON_DEMAND_PAGES} pages (default 1)")
+    parser.add_argument("--from-shelf", metavar="FILE",
+                        help="match the books in an exported shelf file, one search each")
+    parser.add_argument("--limit", type=int, default=None,
+                        help=f"with --from-shelf, how many books to search (default {DEFAULT_LIMIT})")
     parser.add_argument("--clear", action="store_true", help="empty data/found.json and stop")
     parser.add_argument("--data-dir", default=str(DATA_DIR),
                         help="where found.json lives (default: data/)")
@@ -513,22 +705,41 @@ def _parse(argv):
 def main(argv=None) -> int:
     parser, args = _parse(argv)
     if args.clear:
-        if args.words or args.title or args.author:
-            parser.error("--clear takes no words")
+        if args.words or args.title or args.author or args.from_shelf:
+            parser.error("--clear takes no words, no --title, no --author and no --from-shelf")
         try:
             return clear(args.data_dir, args.out_dir)
         except (OSError, ValueError, FindError) as err:
             print(f"find: {err}", file=sys.stderr)
             return 2
+    if args.from_shelf:
+        for flag, given in (("--words", bool(args.words)),
+                            ("--title", args.title is not None),
+                            ("--author", args.author is not None),
+                            ("--pages", args.pages is not None)):
+            if given:
+                parser.error(f"--from-shelf searches each book's title and author, so it "
+                             f"cannot be used with {flag}")
+        try:
+            result = from_shelf(args.from_shelf,
+                                limit=DEFAULT_LIMIT if args.limit is None else args.limit,
+                                data_dir=args.data_dir, out_dir=args.out_dir)
+        except (OSError, ValueError, FindError) as err:
+            print(f"find: {err}", file=sys.stderr)
+            return 2
+        return 0 if result["ok"] else 1
+    if args.limit is not None:
+        parser.error("--limit only works with --from-shelf")
     if args.words and (args.title or args.author):
         parser.error('give words, or --title and --author, not both')
     if not args.words and not (args.title or args.author):
         parser.error('give some words, or --title and --author')
-    if args.pages < 1:
+    pages = 1 if args.pages is None else args.pages
+    if pages < 1:
         parser.error("--pages must be 1 or more")
     try:
         result = run(words=" ".join(args.words) if args.words else None,
-                     title=args.title, author=args.author, pages=args.pages,
+                     title=args.title, author=args.author, pages=pages,
                      data_dir=args.data_dir, out_dir=args.out_dir)
     except (OSError, ValueError, FindError) as err:
         print(f"find: {err}", file=sys.stderr)
