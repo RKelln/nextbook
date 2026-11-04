@@ -14,6 +14,7 @@ const plain = (value) => JSON.parse(JSON.stringify(value));
 const nb = load(['app/core/base.js', 'app/core/score.js', 'app/core/reason.js', 'app/core/seam.js']);
 
 const END = 'Answer with two lines. Do not change any files.';
+const END_ONE = 'Answer with one line. Do not change any files.';
 
 function makePool(slice) {
   const byId = Object.create(null);
@@ -220,8 +221,30 @@ test('finalistsPrompt tolerates a null, an empty and a real pick', () => {
   const prompt = nb.seam.finalistsPrompt(messy, profile, pool);
   assert.ok(prompt.indexOf('The Tombs of Atuan') !== -1, 'the real pick is there');
   assert.ok(prompt.indexOf('A reason the prompt must not read.') === -1, 'and its reason is not');
-  assert.strictEqual(prompt.split('\n').pop(), END);
-  assert.strictEqual(nb.seam.finalistsPrompt(null, null, null).split('\n').pop(), END);
+  // One candidate is asked for one line, not two.
+  assert.strictEqual(prompt.split('\n').pop(), END_ONE);
+  assert.ok(prompt.indexOf(END) === -1, 'the two-line sentence is not there');
+  assert.strictEqual(nb.seam.finalistsPrompt(null, null, null).split('\n').pop(), END_ONE,
+    'no candidates is not two candidates either');
+});
+
+test('the wording counts the candidates the prompt actually carries', () => {
+  const one = nb.seam.finalistsPrompt({ picks: [{ id: 'w2', why: 'x' }] }, profile, pool);
+  assert.match(one, /^One of these books could be this person's next read\. Argue for the one you would pick\./);
+  assert.match(one, /Write exactly one line, for the book you pick, in this shape:/);
+  assert.ok(one.indexOf('two lines') === -1 && one.indexOf('the two you would pick') === -1,
+    'nothing in it asks for two');
+  assert.strictEqual(one.split('\n').pop(), 'Answer with one line. Do not change any files.');
+  assert.strictEqual(nb.seam.endOne, 'Answer with one line. Do not change any files.');
+
+  const two = nb.seam.finalistsPrompt(result, profile, pool);
+  assert.match(two, /^Two of these books could be this person's next read\. Argue for the two you would pick\./);
+  assert.match(two, /Write exactly two lines, one for each book you pick, in this shape:/);
+  assert.strictEqual(two.split('\n').pop(), END, 'two or more keeps the exact two-line sentence');
+
+  const none = nb.seam.finalistsPrompt({ picks: [] }, profile, pool);
+  assert.match(none, /No books were offered, so there is nothing to argue about\./);
+  assert.ok(none.indexOf('Argue for the two') === -1);
 });
 
 test('an id with capitals keeps the real id spelling', () => {

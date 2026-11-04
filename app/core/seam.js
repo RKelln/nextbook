@@ -5,7 +5,8 @@
 // prompts are built from the list's own words and never from a reason sentence, because a
 // reason may name a book on the person's shelf (AGENTS.md rule 1).
 //
-//   Nextbook.seam.finalistsPrompt(result, profile, pool) -> a prompt asking for two lines
+//   Nextbook.seam.finalistsPrompt(result, profile, pool) -> a prompt asking for one line
+//     when it offers one candidate, two lines when it offers two or more
 //   Nextbook.seam.parseFinalists(answer, result, idPattern) -> { kept, dropped, reason }
 //   Nextbook.seam.labelsPrompt(text, facets) -> a prompt asking for up to four labels
 //   Nextbook.seam.parseLabels(answer, facets) -> { kept, dropped, reason }
@@ -18,6 +19,8 @@
   var Nextbook = window.Nextbook = window.Nextbook || {};
 
   var END = 'Answer with two lines. Do not change any files.';
+  // One candidate is one line: asking for "two lines" for a single book would be a lie.
+  var END_ONE = 'Answer with one line. Do not change any files.';
   var MAX_SENTENCE = 300;
   var MAX_KEPT_LABELS = 4;
   var MAX_KEPT_FINALISTS = 2;
@@ -437,26 +440,38 @@
   }
 
   // finalistsPrompt(result, profile, pool): the candidates as the list's own words.
-  // Never reads pick.why: a reason may name a book on the shelf.
+  // Never reads pick.why: a reason may name a book on the shelf. The wording counts the
+  // candidates it actually wrote: one book is asked for one line, two or more for two.
   function finalistsPrompt(result, profile, pool) {
     var picks = result && Array.isArray(result.picks) ? result.picks : [];
     var top = topLabels(profile, pool, 5);
+    var candidates = [];
+    picks.forEach(function (p) {
+      if (!p || typeof p !== 'object') return;   // a null or a string pick is not a book
+      var line = candidateLine(p, profile, pool);
+      if (line) candidates.push(line);
+    });
+    var count = candidates.length;
     var lines = [];
-    lines.push('Two of these books could be this person\'s next read. Argue for the two you would pick.');
+    lines.push(count === 1
+      ? 'One of these books could be this person\'s next read. Argue for the one you would pick.'
+      : count === 0
+        ? 'No books were offered, so there is nothing to argue about.'
+        : 'Two of these books could be this person\'s next read. Argue for the two you would pick.');
     lines.push('');
     lines.push('What their shelf adds up to: ' + (top.length ? top.join(', ') : 'nothing rated yet'));
     lines.push('');
     lines.push(COLUMNS);
-    picks.forEach(function (p) {
-      if (!p || typeof p !== 'object') return;   // a null or a string pick is not a book
-      var line = candidateLine(p, profile, pool);
-      if (line) lines.push(line);
-    });
+    lines = lines.concat(candidates);
     lines.push('');
-    lines.push('Write exactly two lines, one for each book you pick, in this shape:');
+    lines.push(count === 1
+      ? 'Write exactly one line, for the book you pick, in this shape:'
+      : count === 0
+        ? 'Write one line for the book you pick, in this shape:'
+        : 'Write exactly two lines, one for each book you pick, in this shape:');
     lines.push('<id>: <one sentence>');
     lines.push('');
-    lines.push(END);
+    lines.push(count >= 2 ? END : END_ONE);
     return lines.join('\n');
   }
 
@@ -502,6 +517,7 @@
   Nextbook.seam = {
     available: false,          // no keys, no calls: the person carries the prompt
     end: END,
+    endOne: END_ONE,
     finalistsPrompt: finalistsPrompt,
     parseFinalists: parseFinalists,
     labelsPrompt: labelsPrompt,

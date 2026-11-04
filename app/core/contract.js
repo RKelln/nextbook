@@ -36,7 +36,7 @@
   // living in a second place; an app string of the same name wins.
   Nextbook.strings = Nextbook.strings || {};
   if (!has(Nextbook.strings, 'foundNothing')) {
-    Nextbook.strings.foundNothing = 'This mode found nothing and did not say why.';
+    Nextbook.strings.foundNothing = 'This way of choosing books found nothing and did not say why.';
   }
   if (!has(Nextbook.strings, 'noList')) {
     Nextbook.strings.noList = 'The book list did not load, so the checks did not run.';

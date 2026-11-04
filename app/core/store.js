@@ -35,6 +35,7 @@
 //   store.inputs(modeId), store.setInputs(modeId, obj)
 //   store.seed(modeId)      -> number or null
 //   store.setSeed(modeId, n)
+//   store.lastMode()        -> the mode id chosen last, or '' ; store.setLastMode(id)
 //
 // A storage object that is missing or throws on every call still works, in memory, with
 // persistent false, so the page can say "This browser is not saving. Export before you
@@ -48,6 +49,7 @@
   var OTHERS = 'nextbook-others-v1';
   var WHICH = 'nextbook-which-v1';
   var MODE_PREFIX = 'nextbook-mode-v1:';
+  var MODE_LAST = 'nextbook-mode-last-v1';
 
   var SHELF_SCHEMA = 'nextbook/shelf-1';
   var OTHERS_SCHEMA = 'nextbook/others-1';
@@ -495,6 +497,20 @@
       return value;
     }
 
+    // The mode the person chose last, so #find opens on it again. A mode id is a small
+    // string of its own, kept beside the per-mode records rather than inside one.
+    function lastMode() {
+      var value = readRaw(MODE_LAST);
+      return typeof value === 'string' && value ? value : '';
+    }
+
+    function setLastMode(modeId) {
+      var value = String(modeId === null || modeId === undefined ? '' : modeId);
+      if (!value) return '';
+      writeRaw(MODE_LAST, value);
+      return value;
+    }
+
     var api = {
       which: which,
       use: use,
@@ -514,7 +530,9 @@
       inputs: inputs,
       setInputs: setInputs,
       seed: seed,
-      setSeed: setSeed
+      setSeed: setSeed,
+      lastMode: lastMode,
+      setLastMode: setLastMode
     };
 
     // `persistent` is a property, not a call: the page reads it after any operation, and a

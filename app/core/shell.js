@@ -1,5 +1,6 @@
 'use strict';
-// The shell: the hash router, the shelf screen (T3.1) and the self-test screen (T3.4).
+// The shell: the hash router, the find screen (T3.2, T3.3a), the shelf screen (T3.1) and the
+// self-test screen (T3.4).
 //
 //   #find      the default screen: the ways of choosing books in this copy
 //   #shelf     the shelf in use, adding books, export, import, friends' shelves
@@ -22,7 +23,14 @@
     message: '',
     route: '',
     exportText: '',
-    foundCleared: false
+    foundCleared: false,
+    // the find screen
+    modeId: '',
+    modeReady: false,
+    inputs: {},
+    bookQuery: {},
+    seed: 1,
+    model: blankModel()   // the pasted answer, if there is one
   };
 
   // ---- Words ---------------------------------------------------------------------------------
@@ -793,7 +801,742 @@
     return wrap;
   }
 
-  // ---- The find screen (the cards themselves are T3.2) ----------------------------------------
+  // ---- The find screen (T3.2) -----------------------------------------------------------------
+  // The modes as cards, the chosen mode's inputs (every kind in CONTRACT.md section 4, remembered
+  // in this browser), its result as cards or as an ordered path, and the model box under it
+  // (T3.3a). Everything comes from Nextbook.modes and Nextbook.modeDefs: a listed mode that did
+  // not load gets a card of its own, and a mode that throws gets one plain sentence, never a
+  // blank page.
+
+  var FORMAT_WORDS = { BK: 'formatBook', EBOOK: 'formatEbook', EAUDIOBOOK: 'formatAudio', LPRINT: 'formatLarge' };
+
+  var INPUT_LABELS = {
+    'shelf-book': 'inputLabelShelfBook',
+    book: 'inputLabelBook',
+    facet: 'inputLabelFacet',
+    facets: 'inputLabelFacets',
+    text: 'inputLabelText',
+    number: 'inputLabelNumber',
+    choice: 'inputLabelChoice'
+  };
+
+  // validate()'s drop code -> the words for it. The id is always named beside these.
+  var DROP_WORDS = {
+    unknown: 'dropUnknown',
+    repeat: 'dropRepeat',
+    shelf: 'dropShelf',
+    noWhy: 'dropNoWhy',
+    whyLong: 'dropWhyLong',
+    whyStock: 'dropWhyStock',
+    seventh: 'dropSeventh',
+    bad: 'dropBad'
+  };
+
+  function blankModel() {
+    return { answer: '', checked: false, kept: [], dropped: [], reason: '', sig: '' };
+  }
+
+  function loadMode(id) {
+    state.modeId = id;
+    state.modeReady = true;
+    state.inputs = {};
+    state.bookQuery = {};
+    state.seed = 1;
+    state.model = blankModel();
+    if (!state.store) return;
+    try {
+      var saved = state.store.inputs(id);
+      if (isObj(saved)) state.inputs = saved;
+    } catch (e) { /* remembered values are a nicety, not the point */ }
+    try {
+      var savedSeed = state.store.seed(id);
+      if (typeof savedSeed === 'number' && isFinite(savedSeed)) state.seed = savedSeed;
+    } catch (e) { /* the first seed is as good as any */ }
+  }
+
+  function chooseMode(id) {
+    loadMode(id);
+    // The choice is remembered the way the inputs and the seed are, so #find opens on it.
+    if (state.store) {
+      try { state.store.setLastMode(id); } catch (e) { /* the page still works */ }
+    }
+    state.message = '';
+    render();
+  }
+
+  function saveInputs(modeId) {
+    if (!state.store) return;
+    try { state.store.setInputs(modeId, state.inputs); } catch (e) { /* kept in memory */ }
+  }
+
+  function storedInput(id) {
+    return Object.prototype.hasOwnProperty.call(state.inputs, id) ? state.inputs[id] : undefined;
+  }
+
+  function setInputValue(modeId, id, value) {
+    if (value === undefined || value === null || value === '') delete state.inputs[id];
+    else state.inputs[id] = value;
+    saveInputs(modeId);
+  }
+
+  // The remembered value, made into the shape `choose` expects. A number and a choice carry
+  // their own default, so those have a value before anyone touches the page; everything else
+  // asks first. A number is clamped to min/max here as well as on change: a value written by
+  // an older page, or a default outside the range, must not reach `choose` unclamped.
+  function modeInputValue(spec) {
+    var raw = storedInput(spec.id);
+    var kind = String(spec.kind || '');
+    if (kind === 'number') {
+      var n = typeof raw === 'number' ? raw : Number(raw);
+      if (raw === undefined || raw === null || raw === '' || !isFinite(n)) {
+        var d = spec['default'] !== undefined ? Number(spec['default']) : NaN;
+        if (!isFinite(d)) d = spec.min !== undefined ? Number(spec.min) : 1;
+        n = isFinite(d) ? d : 1;
+      }
+      if (spec.min !== undefined && isFinite(Number(spec.min))) n = Math.max(Number(spec.min), n);
+      if (spec.max !== undefined && isFinite(Number(spec.max))) n = Math.min(Number(spec.max), n);
+      return n;
+    }
+    if (kind === 'choice') {
+      if (typeof raw === 'string' && raw) return raw;
+      if (spec['default'] !== undefined) return String(spec['default']);
+      return Array.isArray(spec.options) && spec.options[0] ? String(spec.options[0].value) : '';
+    }
+    if (kind === 'shelf-book') {
+      if (isObj(raw) && typeof raw.key === 'string') return raw.key;
+      return typeof raw === 'string' ? raw : '';
+    }
+    if (kind === 'book') {
+      if (isObj(raw) && typeof raw.id === 'string') return raw.id;
+      return typeof raw === 'string' ? raw : '';
+    }
+    if (kind === 'facets') {
+      if (!Array.isArray(raw)) return [];
+      return raw.filter(function (k) { return typeof k === 'string' && k; }).slice(0, 4);
+    }
+    if (kind === 'text') return typeof raw === 'string' ? raw : '';
+    return raw;
+  }
+
+  function facetKeys() {
+    var pool = poolResult();
+    var facets = pool && isObj(pool.facets) ? pool.facets : {};
+    return Object.keys(facets).sort(function (a, b) {
+      var la = String((facets[a] && facets[a].label) || a).toLowerCase();
+      var lb = String((facets[b] && facets[b].label) || b).toLowerCase();
+      return la < lb ? -1 : la > lb ? 1 : (a < b ? -1 : a > b ? 1 : 0);
+    });
+  }
+
+  function facetWords(key) {
+    try {
+      var said = Nextbook.pool.labelOf(key);
+      if (said) return said;
+    } catch (e) { /* the key is the last resort */ }
+    var cut = String(key).indexOf(':');
+    return cut === -1 ? String(key) : String(key).slice(cut + 1).replace(/-/g, ' ');
+  }
+
+  // A work search inside a `book` input: type, then press the book you meant. The result box is
+  // redrawn on its own, so typing never rebuilds the page or moves the caret.
+  function bookResults(box, spec, modeId, query) {
+    clear(box);
+    var words = String(query || '').trim();
+    if (!words) { box.appendChild(p(t('inputSearchHint'), 'nb-hint')); return; }
+    var found = [];
+    try { found = Nextbook.pool.search(words) || []; } catch (e) { found = []; }
+    if (!found.length) { box.appendChild(p(t('addNoResults'), 'nb-hint')); return; }
+    var list = h('ul', { class: 'nb-books nb-books-compact' });
+    found.slice(0, 8).forEach(function (work, i) {
+      var li = h('li', { class: 'nb-book' });
+      var head = h('div', { class: 'nb-book-head' },
+        h('strong', { class: 'nb-book-title' }, work.title || t('untitledBook')));
+      var line = byLine(work, null);
+      if (line) head.appendChild(p(line, 'nb-by'));
+      li.appendChild(head);
+      li.appendChild(h('div', { class: 'nb-controls' },
+        button('input-' + spec.id + '-pick-' + (i + 1), t('inputUseBook'), function (w) {
+          return function () {
+            setInputValue(modeId, spec.id, w.id);
+            state.bookQuery[spec.id] = '';
+            render();
+          };
+        }(work), 'nb-button nb-button-small')));
+      list.appendChild(li);
+    });
+    box.appendChild(list);
+  }
+
+  function inputBlock(spec, modeId) {
+    var kind = String(spec.kind || '');
+    var label = typeof spec.label === 'string' && spec.label ? spec.label : t(INPUT_LABELS[kind] || 'inputLabelChoice');
+    var base = 'input-' + String(spec.id);
+    var wrap = h('div', { class: 'nb-input-block', 'data-test': base + '-block' });
+
+    if (kind === 'shelf-book') {
+      var entries = [];
+      try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
+      if (!entries.length) {
+        wrap.appendChild(h('span', { class: 'nb-label' }, label));
+        wrap.appendChild(p(t('inputNoShelf'), 'nb-note'));
+        return wrap;
+      }
+      var options = [{ value: '', label: t('pickOne') }];
+      entries.forEach(function (e) {
+        var title = (e && e.title) || t('untitledBook');
+        options.push({ value: String((e && e.key) || ''), label: e && e.author ? title + ' ' + t('byLine', { author: e.author }) : title });
+      });
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label),
+        selectField(base, options, modeInputValue(spec), label, function (chosen) {
+          setInputValue(modeId, spec.id, chosen);
+          render();
+        })));
+      return wrap;
+    }
+
+    if (kind === 'book') {
+      var chosenId = modeInputValue(spec);
+      var chosenWork = chosenId ? (poolResult().byId || {})[chosenId] : null;
+      var resultsBox = h('div', { class: 'nb-picksearch', 'data-test': base + '-results' });
+      var search = h('input', {
+        class: 'nb-input',
+        type: 'search',
+        placeholder: t('inputSearchHint'),
+        'data-test': base,
+        'aria-label': label,
+        autocomplete: 'off',
+        value: state.bookQuery[spec.id] || '',
+        on: {
+          input: function (ev) {
+            state.bookQuery[spec.id] = String(ev.target.value || '');
+            bookResults(resultsBox, spec, modeId, state.bookQuery[spec.id]);
+          }
+        }
+      });
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label), search));
+      wrap.appendChild(resultsBox);
+      bookResults(resultsBox, spec, modeId, state.bookQuery[spec.id] || '');
+      if (chosenWork) {
+        wrap.appendChild(p(t('inputChosen', { title: chosenWork.title || '', author: chosenWork.author || '' }),
+          'nb-chosen', { 'data-test': base + '-chosen' }));
+      }
+      return wrap;
+    }
+
+    if (kind === 'facet') {
+      var facetOptions = [{ value: '', label: t('pickOne') }].concat(facetKeys().map(function (key) {
+        return { value: key, label: facetWords(key) };
+      }));
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label),
+        selectField(base, facetOptions, modeInputValue(spec), label, function (chosen) {
+          setInputValue(modeId, spec.id, chosen);
+          render();
+        })));
+      return wrap;
+    }
+
+    if (kind === 'facets') {
+      var picked = modeInputValue(spec);
+      var keys = facetKeys();
+      var field = h('fieldset', { class: 'nb-facets-field' },
+        h('legend', { class: 'nb-label' }, label),
+        p(t('inputFacetsHint'), 'nb-hint'));
+      var grid = h('div', { class: 'nb-facets' });
+      if (!keys.length) grid.appendChild(p(t('inputNoFacets'), 'nb-empty'));
+      keys.forEach(function (key, i) {
+        var checkbox = h('input', {
+          type: 'checkbox',
+          value: key,
+          'data-test': base + '-facet-' + (i + 1),
+          on: {
+            change: function (ev) {
+              var now = modeInputValue(spec).slice();
+              var at = now.indexOf(key);
+              if (ev.target.checked && at === -1) {
+                if (now.length >= 4) {
+                  ev.target.checked = false;
+                  state.message = t('inputFacetsMax');
+                  render();
+                  return;
+                }
+                now.push(key);
+              } else if (!ev.target.checked && at !== -1) {
+                now.splice(at, 1);
+              }
+              setInputValue(modeId, spec.id, now.length ? now : undefined);
+              render();
+            }
+          }
+        });
+        if (picked.indexOf(key) !== -1) checkbox.checked = true;
+        grid.appendChild(h('label', { class: 'nb-facet-choice' }, checkbox, h('span', null, facetWords(key))));
+      });
+      field.appendChild(grid);
+      wrap.appendChild(field);
+      return wrap;
+    }
+
+    if (kind === 'text') {
+      var textBox = h('input', {
+        class: 'nb-input',
+        type: 'text',
+        'data-test': base,
+        'aria-label': label,
+        autocomplete: 'off',
+        value: modeInputValue(spec),
+        on: {
+          change: function (ev) {
+            setInputValue(modeId, spec.id, String(ev.target.value || '').trim());
+            render();
+          }
+        }
+      });
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label), textBox));
+      return wrap;
+    }
+
+    if (kind === 'number') {
+      var numberAttrs = {
+        class: 'nb-input nb-input-number',
+        type: 'number',
+        step: '1',
+        'data-test': base,
+        'aria-label': label,
+        value: String(modeInputValue(spec)),
+        on: {
+          change: function (ev) {
+            var n = Number(ev.target.value);
+            if (!isFinite(n)) { setInputValue(modeId, spec.id, undefined); render(); return; }
+            if (spec.min !== undefined && isFinite(Number(spec.min))) n = Math.max(Number(spec.min), n);
+            if (spec.max !== undefined && isFinite(Number(spec.max))) n = Math.min(Number(spec.max), n);
+            setInputValue(modeId, spec.id, n);
+            render();
+          }
+        }
+      };
+      if (spec.min !== undefined && isFinite(Number(spec.min))) numberAttrs.min = String(spec.min);
+      if (spec.max !== undefined && isFinite(Number(spec.max))) numberAttrs.max = String(spec.max);
+      wrap.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, label), h('input', numberAttrs)));
+      return wrap;
+    }
+
+    if (kind === 'choice') {
+      var chosen = modeInputValue(spec);
+      var group = h('div', { class: 'nb-choices', role: 'group', 'aria-label': label });
+      (Array.isArray(spec.options) ? spec.options : []).forEach(function (option, i) {
+        var value = String(option && option.value !== undefined ? option.value : '');
+        var on = value === String(chosen);
+        group.appendChild(h('button', {
+          type: 'button',
+          class: on ? 'nb-choice nb-choice-on' : 'nb-choice',
+          'data-test': base + '-option-' + (i + 1),
+          'aria-pressed': on ? 'true' : 'false',
+          on: { click: function () { setInputValue(modeId, spec.id, value); render(); } }
+        }, String(option && option.label !== undefined ? option.label : value)));
+      });
+      wrap.appendChild(h('span', { class: 'nb-label' }, label));
+      wrap.appendChild(group);
+      return wrap;
+    }
+
+    wrap.appendChild(p(t('inputUnknownKind', { kind: kind }), 'nb-note'));
+    return wrap;
+  }
+
+  // The ctx the mode talks to: the pool, the shelf in use, friends' shelves and the events
+  // snapshot, plus this mode's seed. Everything is copied inside makeCtx, so a mode cannot
+  // change the page's own list.
+  function buildCtx(def) {
+    var entries = [];
+    try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
+    var others = [];
+    try { others = state.store ? state.store.others() : []; } catch (e) { others = []; }
+    var events = Nextbook.data.get('events');
+    return Nextbook.makeCtx({
+      pool: poolResult(),
+      shelf: entries,
+      others: others,
+      events: events,
+      seed: state.seed,
+      def: def
+    });
+  }
+
+  // Each input, resolved to what `choose` expects: an entry for a shelf book, a work for a book,
+  // facet keys for a facet, the text, the number, the chosen value. `missing` is the first input
+  // with no value: choose() is not called until every one has one.
+  function inputsFor(def, ctx) {
+    var input = {}, missing = null;
+    (Array.isArray(def.inputs) ? def.inputs : []).forEach(function (spec) {
+      if (!spec || typeof spec !== 'object' || !spec.id) return;
+      var kind = String(spec.kind || '');
+      var value = modeInputValue(spec);
+      var clean = value;
+      if (kind === 'shelf-book') {
+        var key = typeof value === 'string' ? value : '';
+        clean = null;
+        for (var i = 0; i < ctx.shelf.length; i++) {
+          if (ctx.shelf[i] && ctx.shelf[i].key === key) { clean = ctx.shelf[i]; break; }
+        }
+      } else if (kind === 'book') {
+        clean = value ? ctx.work(value) : null;
+      } else if (kind === 'facet') {
+        clean = value || null;
+      } else if (kind === 'facets') {
+        clean = Array.isArray(value) && value.length ? value : null;
+      } else if (kind === 'text') {
+        clean = value && String(value).trim() ? value : null;
+      }
+      if (clean === null || clean === undefined || clean === '') {
+        if (!missing) missing = spec;
+        return;
+      }
+      input[spec.id] = clean;
+    });
+    return { input: input, missing: missing };
+  }
+
+  function formatWords(formats) {
+    if (!Array.isArray(formats) || !formats.length) return '';
+    var words = [], seen = {};
+    formats.forEach(function (code) {
+      var key = String(code || '');
+      var word = FORMAT_WORDS[key] ? t(FORMAT_WORDS[key]) : key.toLowerCase();
+      if (!word || seen[word]) return;
+      seen[word] = true;
+      words.push(word);
+    });
+    return words.length ? t('formatsLine', { list: words.join(', ') }) : '';
+  }
+
+  // "Want to read" and "Read it" on a card: the book joins the shelf in use, then the mode runs
+  // again, so the six move.
+  function addPickToShelf(work, value) {
+    if (!state.store || !work) return;
+    if (onShelfWork(work)) {
+      state.message = t('alreadyThere');
+      render();
+      return;
+    }
+    try {
+      var entry = bookFromWork(work);
+      entry.state = value;
+      state.store.add(entry);
+      state.message = value === 'read'
+        ? t('pickReadAdded', { title: work.title || '' })
+        : t('pickWantAdded', { title: work.title || '' });
+    } catch (e) {
+      state.message = t('shelfBroken');
+    }
+    render();
+  }
+
+  function pickCard(pick, index, ctx) {
+    var work = ctx.work(pick.id) || {};
+    var card = h('article', { class: 'nb-card', 'data-test': 'pick-' + index, 'data-pick': pick.id });
+    var head = h('div', { class: 'nb-card-head' });
+    var link = linkFor(work);
+    head.appendChild(link
+      ? h('a', { class: 'nb-book-title', href: link, 'data-test': 'pick-link-' + index }, work.title || t('untitledBook'))
+      : h('strong', { class: 'nb-book-title' }, work.title || t('untitledBook')));
+    var line = byLine(work, null);
+    if (line) head.appendChild(p(line, 'nb-by'));
+    var formats = formatWords(work.formats);
+    if (formats) head.appendChild(p(formats, 'nb-formats'));
+    card.appendChild(head);
+    if (pick.why) card.appendChild(p(pick.why, 'nb-reason'));
+    var tags = null;
+    try { tags = Nextbook.pool.tagsOf(work); } catch (e) { tags = null; }
+    if (tags && tags.note) card.appendChild(p(t('ourNote', { note: tags.note }), 'nb-ournote'));
+    if (work.found && work.found.query) card.appendChild(p(t('foundFor', { words: work.found.query }), 'nb-note'));
+    card.appendChild(h('div', { class: 'nb-card-actions' },
+      button('pick-want-' + index, t('pickWant'), function () { addPickToShelf(work, 'want'); }, 'nb-button nb-button-small'),
+      button('pick-read-' + index, t('pickRead'), function () { addPickToShelf(work, 'read'); }, 'nb-button nb-button-small')));
+    return card;
+  }
+
+  // shape 'list': a grid of cards, under a heading when the mode used `group`.
+  // shape 'path': an ordered list, each card under its step words, with an arrow between steps.
+  function pickList(picks, ctx, shape) {
+    var wrap = h('div', { class: 'nb-picks-wrap', 'data-test': 'pick-list' });
+    var index = 0;
+    if (shape === 'path') {
+      var ol = h('ol', { class: 'nb-path' });
+      picks.forEach(function (pick) {
+        index += 1;
+        var li = h('li', { class: 'nb-path-item' });
+        var step = h('div', { class: 'nb-step' },
+          h('span', { class: 'nb-step-word' }, pick.step || t('stepWord', { n: index })));
+        if (pick.group) step.appendChild(h('span', { class: 'nb-group-word' }, pick.group));
+        li.appendChild(step);
+        li.appendChild(pickCard(pick, index, ctx));
+        ol.appendChild(li);
+      });
+      wrap.appendChild(ol);
+      return wrap;
+    }
+    var names = [], byGroup = {};
+    picks.forEach(function (pick) {
+      var name = pick.group || '';
+      if (!byGroup[name]) { byGroup[name] = []; names.push(name); }
+      byGroup[name].push(pick);
+    });
+    names.forEach(function (name) {
+      if (name) wrap.appendChild(h('h4', { class: 'nb-group' }, name));
+      var ul = h('ul', { class: 'nb-picks' });
+      byGroup[name].forEach(function (pick) {
+        index += 1;
+        ul.appendChild(h('li', null, pickCard(pick, index, ctx)));
+      });
+      wrap.appendChild(ul);
+    });
+    return wrap;
+  }
+
+  function droppedLine(dropped) {
+    var bits = dropped.map(function (d) {
+      var id = d && d.id ? '"' + d.id + '"' : t('aPick');
+      return id + ' ' + t(DROP_WORDS[d && d.code] || 'dropUnknown');
+    });
+    return countLine(dropped.length, 'findDroppedOne', 'findDroppedMany',
+      { n: dropped.length, list: bits.join('; ') });
+  }
+
+  function runMode(def, ctx, input) {
+    var wrap = h('section', { class: 'nb-find-result', 'data-test': 'find-result' });
+    var answer = null;
+    try {
+      answer = def.choose.call(def, ctx, input);
+    } catch (e) {
+      wrap.appendChild(p(t('modeCrashed'), 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
+      return { node: wrap, picks: [], result: { picks: [] }, sig: '' };
+    }
+    var v = { picks: [], dropped: [], error: null };
+    try {
+      v = Nextbook.validate(answer, ctx, def);
+    } catch (e) {
+      wrap.appendChild(p(t('modeCrashed'), 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
+      return { node: wrap, picks: [], result: { picks: [] }, sig: '' };
+    }
+    var note = answer && typeof answer.note === 'string' ? answer.note.trim() : '';
+    if (note) wrap.appendChild(p(note, 'nb-note', { 'data-test': 'find-note' }));
+    if (v.error) wrap.appendChild(p(v.error, 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
+    if (v.dropped.length) wrap.appendChild(p(droppedLine(v.dropped), 'nb-dropped', { 'data-test': 'find-dropped' }));
+    if (v.picks.length) wrap.appendChild(pickList(v.picks, ctx, def.shape === 'path' ? 'path' : 'list'));
+    // The one line the app promises under every result (base.js has the same words).
+    wrap.appendChild(p(t('libraryLine'), 'nb-hint', { 'data-test': 'find-library-line' }));
+    return {
+      node: wrap,
+      picks: v.picks,
+      result: { picks: v.picks },
+      sig: v.picks.map(function (p) { return p.id; }).join(',')
+    };
+  }
+
+  // ---- The model box (T3.3a): a second opinion, by hand ---------------------------------------
+  // Nothing is sent anywhere: the app writes the words, the person carries them to a chat, and
+  // pastes the answer back. Only a sentence for one of the six is kept, and it is marked as the
+  // chat's; every title, author, year and link is still the list's own.
+
+  // After a rebuild, the box is a new element, so the words are selected after render(), not
+  // before it (a selection made on the old element dies with it).
+  function selectTest(test) {
+    try {
+      var all = doc.querySelectorAll ? doc.querySelectorAll('[data-test]') : [];
+      for (var i = 0; i < all.length; i++) {
+        if (all[i].getAttribute('data-test') === test && typeof all[i].focus === 'function') {
+          all[i].focus();
+          if (typeof all[i].select === 'function') all[i].select();
+          return;
+        }
+      }
+    } catch (e) { /* the words are still on the page */ }
+  }
+
+  function copyPrompt(text) {
+    function said(ok) {
+      state.message = ok ? t('modelCopied') : t('modelCopyFailed');
+      render();
+      if (!ok) selectTest('model-prompt');
+    }
+    try {
+      var nav = window.navigator;
+      if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
+        nav.clipboard.writeText(text).then(function () { said(true); }, function () { said(false); });
+        return;
+      }
+    } catch (e) { /* no clipboard: say so and select the words */ }
+    said(false);
+  }
+
+  function readAnswer(answer, result, ctx) {
+    var text = String(answer || '').trim();
+    // A read starts clean: the note from the last answer, and its cards, go first. An empty
+    // answer leaves the note that asks for one and nothing else.
+    state.model = blankModel();
+    state.message = '';
+    if (!text) {
+      state.message = t('modelNeedAnswer');
+      render();
+      return;
+    }
+    var parsed = null;
+    try {
+      parsed = Nextbook.seam.parseFinalists(text, result, library().idPattern);
+    } catch (e) {
+      parsed = null;
+    }
+    var model = blankModel();
+    model.answer = text;
+    model.sig = (result.picks || []).map(function (p) { return p.id; }).join(',');
+    if (parsed) {
+      model.checked = true;
+      model.kept = Array.isArray(parsed.kept) ? parsed.kept : [];
+      model.dropped = Array.isArray(parsed.dropped) ? parsed.dropped : [];
+      model.reason = parsed.reason || '';
+    }
+    state.model = model;
+    render();
+  }
+
+  function modelResultBox(ctx) {
+    var box = h('div', { class: 'nb-model-result', 'data-test': 'model-result' });
+    var model = state.model;
+    if (!model || !model.checked) return box;
+    if (!model.kept.length) {
+      box.appendChild(p(t('modelNoPick'), 'nb-note', { 'data-test': 'model-said' }));
+    } else {
+      model.kept.forEach(function (kept, i) {
+        var work = ctx.work(kept.id) || {};
+        var card = h('article', { class: 'nb-model-card', 'data-test': 'model-card-' + (i + 1) });
+        card.appendChild(p(t('modelFromChat'), 'nb-model-tag'));
+        card.appendChild(h('strong', { class: 'nb-book-title' }, work.title || t('untitledBook')));
+        var line = byLine(work, null);
+        if (line) card.appendChild(p(line, 'nb-by'));
+        var link = linkFor(work);
+        if (link) {
+          card.appendChild(h('a', { class: 'nb-link-line', href: link, 'data-test': 'model-link-' + (i + 1) },
+            t('modelLibraryLink')));
+        }
+        // The chat's own one sentence, and nothing else, is shown as the chat's words.
+        card.appendChild(p(t('modelSaidLine', { sentence: kept.why }), 'nb-model-words'));
+        box.appendChild(card);
+      });
+    }
+    if (model.dropped.length) {
+      box.appendChild(p(t('modelDropped', { said: model.reason }), 'nb-dropped', { 'data-test': 'model-dropped' }));
+    }
+    return box;
+  }
+
+  function modelBox(result, ctx, def) {
+    var sec = h('section', { class: 'nb-model', 'data-test': 'model-box' });
+    var picks = result && Array.isArray(result.picks) ? result.picks : [];
+    // Two ways the box stays closed, and in both the prompt is never built, so no title can
+    // reach one. A mode with allowShelf may pick a book that is on the person's shelf, and
+    // the prompt is written from the picks (AGENTS.md rule 1): a shelf title must never go
+    // into a chat. With no picks there is nothing to argue about.
+    if (!picks.length) {
+      sec.appendChild(p(t('modelNothing'), 'nb-hint', { 'data-test': 'model-closed' }));
+      return sec;
+    }
+    if (def && def.allowShelf === true) {
+      sec.appendChild(p(t('modelShelfClosed'), 'nb-hint', { 'data-test': 'model-closed' }));
+      return sec;
+    }
+    var prompt = '';
+    try { prompt = Nextbook.seam.finalistsPrompt(result, ctx.profile(), poolResult()); } catch (e) { prompt = ''; }
+    sec.appendChild(h('h3', null, t('modelAsk')));
+    sec.appendChild(p(t('modelNoSend'), 'nb-hint'));
+
+    sec.appendChild(p(t('modelPromptLabel'), 'nb-label'));
+    var promptBox = h('textarea', {
+      class: 'nb-model-prompt',
+      rows: 10,
+      readonly: true,
+      'data-test': 'model-prompt',
+      'aria-label': t('modelPromptLabel')
+    }, prompt);
+    sec.appendChild(promptBox);
+    sec.appendChild(h('div', { class: 'nb-model-actions' },
+      button('model-copy', t('modelCopy'), function () { copyPrompt(prompt); }, 'nb-button nb-button-small')));
+
+    sec.appendChild(p(t('modelAnswerLabel'), 'nb-label'));
+    var answerBox = h('textarea', {
+      class: 'nb-model-answer',
+      rows: 5,
+      placeholder: t('modelAnswerPlaceholder'),
+      'data-test': 'model-answer',
+      'aria-label': t('modelAnswerLabel'),
+      on: { input: function (ev) { state.model.answer = String(ev.target.value || ''); } }
+    }, state.model.answer || '');
+    sec.appendChild(answerBox);
+    sec.appendChild(h('div', { class: 'nb-model-actions' },
+      button('model-check', t('modelCheck'), function () {
+        // The box on the page is the answer, empty or not: a cleared box must read as an
+        // empty answer, not as the last one still held in state.
+        readAnswer(answerBox.value === undefined || answerBox.value === null ? '' : String(answerBox.value),
+          result, ctx);
+      })));
+    sec.appendChild(modelResultBox(ctx));
+    return sec;
+  }
+
+  // ---- Running the chosen mode ----------------------------------------------------------------
+  function shuffle() {
+    var next = (typeof state.seed === 'number' && isFinite(state.seed) ? state.seed : 0) + 1;
+    state.seed = next;
+    if (state.store) {
+      try { state.store.setSeed(state.modeId, next); } catch (e) { /* the page still mixes */ }
+    }
+    render();
+  }
+
+  function modePanel(def, modeId) {
+    var wrap = h('section', { class: 'nb-mode-panel', 'data-test': 'mode-panel' });
+    var specs = Array.isArray(def.inputs) ? def.inputs : [];
+    if (specs.length) {
+      wrap.appendChild(h('h3', t('inputHeading')));
+      var box = h('div', { class: 'nb-inputs' });
+      specs.forEach(function (spec) {
+        if (spec && typeof spec === 'object' && spec.id) box.appendChild(inputBlock(spec, modeId));
+      });
+      wrap.appendChild(box);
+    }
+    wrap.appendChild(h('div', { class: 'nb-find-tools' },
+      button('find-shuffle', t('shuffleButton'), shuffle, 'nb-button nb-button-quiet'),
+      p(t('shuffleHint'), 'nb-hint')));
+
+    var ctx = null, built = null;
+    try {
+      ctx = buildCtx(def);
+      built = inputsFor(def, ctx);
+    } catch (e) {
+      wrap.appendChild(p(t('modeCrashed'), 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
+      return wrap;
+    }
+    if (built.missing) {
+      var label = typeof built.missing.label === 'string' && built.missing.label
+        ? built.missing.label
+        : t(INPUT_LABELS[built.missing.kind] || 'inputLabelChoice');
+      wrap.appendChild(p(t('inputNeeded', { label: label }), 'nb-hint', { 'data-test': 'find-needs-input' }));
+      return wrap;
+    }
+    var out = runMode(def, ctx, built.input);
+    wrap.appendChild(out.node);
+    // A pasted answer belongs to the six it was written for. If they moved, it is put away.
+    if (state.model.sig && state.model.sig !== out.sig) state.model = blankModel();
+    // T3.3a: the box is under any result. With no picks it says there is nothing to argue
+    // about; with an allowShelf mode it stays closed (a shelf title could be a candidate).
+    wrap.appendChild(modelBox(out.result, ctx, def));
+    return wrap;
+  }
+
   function findView() {
     var sec = h('section', { class: 'nb-screen', id: 'nb-find', 'data-screen': 'find' });
     sec.appendChild(h('h2', t('findHeading')));
@@ -802,21 +1545,55 @@
     var ids = Array.isArray(Nextbook.modes) ? Nextbook.modes.slice() : [];
     if (!ids.length) {
       sec.appendChild(p(t('noModes'), 'nb-empty'));
-    } else {
-      var list = h('ul', { class: 'nb-modes', 'data-test': 'mode-list' });
-      ids.forEach(function (id) {
-        var def = Nextbook.modeDefs ? Nextbook.modeDefs[id] : null;
-        var li = h('li', { class: 'nb-mode' });
-        if (!def) {
-          li.appendChild(p(t('modeUnknown', { id: id }), 'nb-note'));
-        } else {
-          li.appendChild(h('h3', def.name || id));
-          if (def.purpose) li.appendChild(p(def.purpose, 'nb-text'));
-        }
-        list.appendChild(li);
-      });
-      sec.appendChild(list);
+      sec.appendChild(button('find-to-shelf', t('findShelfHint'), function () { go('shelf'); }, 'nb-button nb-button-quiet'));
+      return sec;
     }
+
+    var defs = Nextbook.modeDefs || {};
+    function defOf(id) {
+      return Object.prototype.hasOwnProperty.call(defs, id) ? defs[id] : null;
+    }
+    var firstLoaded = '';
+    ids.forEach(function (id) { if (!firstLoaded && defOf(id)) firstLoaded = id; });
+    // The first visit opens on the mode chosen last, when that mode is still in the list.
+    var remembered = '';
+    try { remembered = state.store ? String(state.store.lastMode() || '') : ''; } catch (e) { remembered = ''; }
+    if (!state.modeReady || ids.indexOf(state.modeId) === -1) {
+      loadMode(ids.indexOf(remembered) !== -1 ? remembered : (firstLoaded || ids[0]));
+    }
+    // The page draws before the mode files arrive. If the one it chose first did not load and
+    // another did, the loaded one is shown; the choice is never a dead card.
+    else if (firstLoaded && !defOf(state.modeId)) loadMode(firstLoaded);
+
+    var list = h('ul', { class: 'nb-modes', 'data-test': 'mode-list' });
+    ids.forEach(function (id) {
+      var def = defOf(id);
+      var chosen = state.modeId === id;
+      var li = h('li', {
+        class: chosen ? 'nb-mode nb-mode-on' : 'nb-mode',
+        'data-test': def ? 'mode-card-' + id : 'mode-missing-' + id
+      });
+      if (!def) {
+        // A listed mode whose file is missing: its own card, and the rest of the page carries on.
+        li.appendChild(p(t('modeUnknown', { id: id }), 'nb-note'));
+        li.appendChild(p(t('modeUnknownHelp'), 'nb-hint'));
+      } else {
+        li.appendChild(h('h3', null, def.name || id));
+        if (def.purpose) li.appendChild(p(def.purpose, 'nb-text'));
+        if (chosen) {
+          li.appendChild(p(t('modeShowing'), 'nb-tag', { 'data-test': 'mode-current-' + id }));
+        } else {
+          li.appendChild(button('mode-pick-' + id, t('modeShow'),
+            function (want) { return function () { chooseMode(want); }; }(id),
+            'nb-button nb-button-small nb-button-quiet'));
+        }
+      }
+      list.appendChild(li);
+    });
+    sec.appendChild(list);
+
+    var def = state.modeId ? defOf(state.modeId) : null;
+    if (def) sec.appendChild(modePanel(def, state.modeId));
     sec.appendChild(button('find-to-shelf', t('findShelfHint'), function () { go('shelf'); }, 'nb-button nb-button-quiet'));
     return sec;
   }
@@ -1245,6 +2022,70 @@
     findIntro: 'A way of choosing books picks up to six books and says why. The ones in this copy are listed here.',
     findShelfHint: 'Go to the shelf',
     modeUnknown: '"{id}" did not load.',
+    modeUnknownHelp: 'This one did not load. Ask your helper to run the check.',
+    modeShow: 'Show the books',
+    modeShowing: 'Showing now',
+    inputHeading: 'It needs a few things first:',
+    inputNeeded: 'Pick something for "{label}" first.',
+    pickOne: 'Choose one',
+    inputLabelShelfBook: 'Pick a book from your shelf',
+    inputLabelBook: 'Find a book in the list',
+    inputLabelFacet: 'Pick a subject',
+    inputLabelFacets: 'Pick up to four subjects',
+    inputLabelText: 'Type some words',
+    inputLabelNumber: 'Pick a number',
+    inputLabelChoice: 'Pick one',
+    inputUnknownKind: 'This page does not know how to ask for "{kind}".',
+    inputNoShelf: 'The shelf is empty. Add a book on the shelf screen first.',
+    inputNoFacets: 'The book list has no subjects yet.',
+    inputSearchHint: 'Type a title or an author to search the list.',
+    inputUseBook: 'Use this book',
+    inputChosen: 'Chosen: {title}, by {author}.',
+    inputFacetsHint: 'Pick up to four.',
+    inputFacetsMax: 'That is four subjects. One was not added.',
+    shuffleButton: 'Shuffle',
+    shuffleHint: 'The same press gives the same books. Press Shuffle for a new mix.',
+    stepWord: 'Step {n}',
+    formatsLine: 'Formats: {list}.',
+    formatBook: 'book',
+    formatEbook: 'e-book',
+    formatAudio: 'audiobook',
+    formatLarge: 'large print',
+    ourNote: 'Our note: {note}',
+    pickWant: 'Want to read',
+    pickRead: 'Read it',
+    pickWantAdded: 'Added {title} to "Want to read".',
+    pickReadAdded: 'Added {title} as read. Rate it on the shelf.',
+    modeCrashed: 'This way of choosing books stopped with an error. The rest of the page still works.',
+    findDroppedOne: 'This way of choosing books named one book it could not show: {list}.',
+    findDroppedMany: 'This way of choosing books named {n} books it could not show: {list}.',
+    aPick: 'a pick',
+    dropUnknown: 'is not in the book list',
+    dropRepeat: 'is named twice',
+    dropShelf: 'is already on your shelf',
+    dropNoWhy: 'has no reason',
+    dropWhyLong: 'has a reason that is too long',
+    dropWhyStock: 'has a reason that does not say anything',
+    dropSeventh: 'is a seventh book, and six is the most',
+    dropBad: 'is not a book with an id',
+    // the model box, a second opinion
+    modelAsk: 'Want a second opinion? Copy this into any AI chat.',
+    modelNoSend: 'Nothing is sent from this page. You copy the words, paste them into a chat, and paste the answer back.',
+    modelPromptLabel: 'The words to copy',
+    modelCopy: 'Copy',
+    modelCopied: 'The words were copied.',
+    modelCopyFailed: 'This browser did not copy the words. Select the words in the box and copy them.',
+    modelAnswerLabel: "Paste the chat's answer here",
+    modelAnswerPlaceholder: 'Paste the answer here.',
+    modelCheck: 'Read the answer',
+    modelNeedAnswer: 'Paste the answer first.',
+    modelNothing: 'There are no books here to argue about, so this box stays closed.',
+    modelShelfClosed: 'This way of choosing books can pick books already on your shelf, so this box stays closed. Your shelf never goes into a chat.',
+    modelNoPick: 'This page could not find a pick in that answer.',
+    modelDropped: 'Dropped: {said}',
+    modelFromChat: 'From the chat',
+    modelSaidLine: 'The chat said: "{sentence}"',
+    modelLibraryLink: "Open the library's page",
     // the self-test
     selftestHeading: 'Self-test',
     selftestIntro: 'This page checks the app in your browser. Nothing to install.',

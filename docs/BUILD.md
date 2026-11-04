@@ -307,7 +307,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   break `app/data/slice.js` on purpose (a sentence, not a blank page); the same page with `workshop` data set (no own
   shelf, the sentence instead).
 
-- [ ] **T3.2 The find screen** (C, M, S). Needs T2.6. Mode cards from `Nextbook.modes` only; a card for a mode that
+- [x] **T3.2 The find screen** (C, M, S). Needs T2.6. Mode cards from `Nextbook.modes` only; a card for a mode that
   did not load; the chosen mode's inputs (every kind in `CONTRACT.md` section 4), remembered; the result as cards
   (`list`) or an ordered path (`path`, with `step` words), grouped by `group` when present; on each card the title,
   author, year, formats in words, the reason, our note if any, "found for '<words>'" if it was found, the library
@@ -316,7 +316,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Click:* with the example mode, the practice shelf gives picks with reasons; "Want to read" moves the six; an empty
   shelf shows the mode's note; a typed book's link opens the library's search.
 
-- [ ] **T3.3a The model box: second opinion** (C, S, S). Needs T2.7. Under any result: "Want a second opinion? Copy
+- [x] **T3.3a The model box: second opinion** (C, S, S). Needs T2.7. Under any result: "Want a second opinion? Copy
   this into any AI chat." Copy, paste box, and the checked answer as two highlighted cards, the model's sentence
   marked as the model's.
   *Click:* paste an answer with an invented id (named as dropped); paste nonsense (says so); never touch it (the app is

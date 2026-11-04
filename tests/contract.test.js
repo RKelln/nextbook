@@ -134,7 +134,7 @@ test('a shelf book is dropped unless the mode allows the shelf', () => {
 test('an empty result with no note is an error, and a note makes it an answer', () => {
   const ctx = nb.makeCtx({ pool, shelf: [], seed: 1 });
   const empty = plain(nb.validate({ picks: [] }, ctx, {}));
-  assert.strictEqual(empty.error, 'This mode found nothing and did not say why.');
+  assert.strictEqual(empty.error, 'This way of choosing books found nothing and did not say why.');
 
   const noted = plain(nb.validate({ picks: [], note: 'Nothing here fits yet.' }, ctx, {}));
   assert.strictEqual(noted.error, null);
@@ -142,7 +142,7 @@ test('an empty result with no note is an error, and a note makes it an answer', 
   // Every pick dropped is an empty result too.
   const allDropped = plain(nb.validate({ picks: [{ id: 'no-such-book', why: WHY }] }, ctx, {}));
   assert.deepStrictEqual(allDropped.picks, []);
-  assert.strictEqual(allDropped.error, 'This mode found nothing and did not say why.');
+  assert.strictEqual(allDropped.error, 'This way of choosing books found nothing and did not say why.');
 });
 
 test('a path with no steps gets "Step 1", "Step 2", ...', () => {

@@ -138,6 +138,31 @@ p { margin: 0.35rem 0; }
 .nb-empty { color: var(--nb-muted); font-style: italic; }
 .nb-count { color: var(--nb-muted); }
 
+/* A pasted address, or a long run of letters with no space in it, must wrap where it is
+   shown. Without this the page grows sideways instead of down: one 300-letter token pushed
+   it to about 3000 px wide at 360 px. Every class that shows a person's words, the list's
+   words or a model's sentence is listed, so a new one is added here and not somewhere else. */
+.nb-text,
+.nb-note,
+.nb-hint,
+.nb-empty,
+.nb-message,
+.nb-count,
+.nb-by,
+.nb-chosen,
+.nb-dropped,
+.nb-reason,
+.nb-ournote,
+.nb-formats,
+.nb-link-line,
+.nb-model-words,
+.nb-model-card,
+.nb-book-head,
+.nb-friend,
+.nb-export-text,
+.nb-model-prompt,
+.nb-model-answer { overflow-wrap: anywhere; }
+
 /* ---- The shelf list ------------------------------------------------------------------------ */
 
 .nb-books {
@@ -322,6 +347,197 @@ strong.nb-book-title { text-decoration: none; }
 .nb-fail { color: var(--nb-fail); font-weight: 600; }
 
 .nb-run-total { margin-top: 14px; font-weight: 700; }
+
+/* ---- The find screen ----------------------------------------------------------------------- */
+
+.nb-mode-on { border-color: var(--nb-accent); }
+
+.nb-mode .nb-button { margin-top: 6px; }
+
+.nb-mode-panel { margin: 14px 0 0; }
+
+.nb-inputs {
+  display: grid;
+  gap: 12px;
+  margin: 8px 0 4px;
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-input-block { min-width: 0; }
+
+.nb-facets-field {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.nb-facets {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 4px 14px;
+  max-height: 15rem;
+  overflow-y: auto;
+  margin-top: 4px;
+  padding: 6px 8px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+}
+
+.nb-facet-choice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 30px;
+  font-size: 0.95rem;
+}
+
+.nb-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+
+.nb-choice {
+  min-height: 40px;
+  padding: 7px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 999px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: inherit;
+  cursor: pointer;
+}
+
+.nb-choice:hover { border-color: var(--nb-accent); }
+
+.nb-choice-on {
+  background: var(--nb-accent);
+  border-color: var(--nb-accent);
+  color: var(--nb-accent-ink);
+  font-weight: 600;
+}
+
+.nb-picksearch { margin-top: 6px; }
+
+.nb-chosen { color: var(--nb-accent); font-weight: 600; }
+
+.nb-find-tools {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 14px;
+  margin: 12px 0 4px;
+}
+
+.nb-find-tools .nb-hint { margin: 0; }
+
+.nb-group { margin: 14px 0 2px; }
+
+.nb-picks {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.nb-card {
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-card-head { margin-bottom: 4px; }
+
+.nb-reason { margin: 6px 0 2px; }
+
+.nb-formats,
+.nb-ournote,
+.nb-link-line { font-size: 0.92rem; color: var(--nb-muted); }
+
+.nb-link-line { display: inline-block; margin-top: 4px; }
+
+.nb-card-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+
+.nb-dropped {
+  margin: 10px 0;
+  padding: 8px 12px;
+  border-left: 4px solid var(--nb-warn);
+  border-radius: 6px;
+  background: var(--nb-warn-bg);
+  color: var(--nb-warn);
+}
+
+.nb-path {
+  list-style: none;
+  margin: 10px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 18px;
+}
+
+.nb-path-item { position: relative; }
+
+.nb-path-item + .nb-path-item::before {
+  content: "\2193";
+  display: block;
+  margin: 0 0 12px 12px;
+  color: var(--nb-muted);
+  font-size: 1.2rem;
+}
+
+.nb-step { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 4px; }
+
+.nb-step-word { font-weight: 700; color: var(--nb-accent); }
+
+.nb-group-word { font-size: 0.85rem; color: var(--nb-muted); text-transform: uppercase; letter-spacing: 0.04em; }
+
+/* ---- The model box ------------------------------------------------------------------------- */
+
+.nb-model {
+  margin: 18px 0 0;
+  padding: 14px 16px 16px;
+  border: 1px solid var(--nb-accent);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-model-prompt,
+.nb-model-answer {
+  width: 100%;
+  margin: 4px 0 8px;
+  padding: 10px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: 0.9rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  resize: vertical;
+}
+
+.nb-model-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 6px; }
+
+.nb-model-result { display: grid; gap: 10px; margin-top: 10px; }
+
+.nb-model-card {
+  padding: 12px 14px;
+  border: 2px solid var(--nb-accent);
+  border-radius: 10px;
+  background: var(--nb-paper);
+}
+
+.nb-model-tag {
+  margin: 0 0 4px;
+  font-size: 0.8rem;
+  color: var(--nb-accent);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  font-weight: 700;
+}
+
+.nb-model-words { margin-top: 6px; font-style: italic; }
 
 /* ---- Focus and small screens --------------------------------------------------------------- */
 

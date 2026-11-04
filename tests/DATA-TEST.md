@@ -90,8 +90,50 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 
 | Name | What it is | What pressing it does |
 |---|---|---|
-| `mode-list` | The loaded modes, by name (not pressed) | — |
+| `mode-list` | The mode cards (not pressed) | — |
+| `mode-card-<id>` | One loaded mode's card, `<id>` as in `app/modes/list.js` (not pressed) | — |
+| `mode-current-<id>` | The tag "Showing now" on the chosen mode's card (not pressed) | — |
+| `mode-pick-<id>` | Button "Show the books" on a mode's card | Makes that mode the one shown, draws its inputs and its result. |
+| `mode-missing-<id>` | The card for a listed mode that did not load (not pressed) | — |
+| `mode-panel` | The chosen mode's box: inputs, results, model box (not pressed) | — |
+| `find-needs-input` | The line "Pick something for … first" (not pressed) | Drawn instead of a result while an input has no value. |
+| `find-shuffle` | Button "Shuffle" | Moves the mode's seed on by one and runs it again. The seed is kept, so a reload gives the same mix and only a press changes it. |
+| `input-<input>` | The input's main control, named by the mode's input id: a select for `shelf-book`, `facet`; a search box for `book`; a text box for `text`; a number box for `number` | Saves the value in this browser and runs the mode again. |
+| `input-<input>-pick-N` | Button "Use this book" on a `book` search result | Makes that work the input's value. |
+| `input-<input>-chosen` | The line "Chosen: title, by author." (not pressed) | — |
+| `input-<input>-facet-N` | A subject checkbox in a `facets` input | Adds or removes that subject; the fourth is the last one taken. |
+| `input-<input>-option-N` | A button in a `choice` input | Makes that option the value (marked `aria-pressed`). |
+| `find-result` | The result box (not pressed) | — |
+| `find-note` | The mode's own note (not pressed) | — |
+| `find-error` | The plain sentence when a mode stopped or returned nothing with no note (not pressed) | — |
+| `find-dropped` | The dropped-picks notice: each id and why, in words (not pressed) | — |
+| `find-library-line` | "Holds, copies, your library shelves and the library's own suggestions are on the library's page." (not pressed) | — |
+| `pick-list` | The cards, or the ordered path (not pressed) | — |
+| `pick-N` | One result card (`data-pick="<work id>"`), N counted from 1 down the page | — |
+| `pick-link-N` | The card's title, a link | Opens the library's page for the book. |
+| `pick-want-N` | Button "Want to read" | Adds the book to the shelf in use as "Want to read" and runs the mode again. |
+| `pick-read-N` | Button "Read it" | Adds it as "Read" (ready to rate) and runs the mode again. |
 | `find-to-shelf` | Button "Go to the shelf" | Goes to `#shelf`. |
+
+## The model box
+
+Drawn under a result with at least one card. Nothing is sent anywhere.
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `model-box` | The box (not pressed) | — |
+| `model-prompt` | The words to copy, a read-only text box | — |
+| `model-copy` | Button "Copy" | Copies the prompt, or selects it and says this browser did not copy, so it can be copied by hand. |
+| `model-answer` | The paste box | — |
+| `model-check` | Button "Read the answer" | Checks the pasted answer against the six cards, keeps what matches and names what it drops. An answer with no pick says so. |
+| `model-result` | The answer's box (not pressed) | — |
+| `model-card-N` | One kept pick, highlighted, marked "From the chat" (not pressed) | — |
+| `model-link-N` | "Open the library's page" on a kept pick | Opens the library's page. |
+| `model-said` | "This page could not find a pick in that answer." (not pressed) | — |
+| `model-dropped` | The dropped ids, named in words (not pressed) | — |
+
+The numbering rule holds here too: `N` is the control's place on the page, counted from 1. `<id>`
+and `<input>` are names a mode chose, so they stay the same when cards move.
 
 ## Also marked
 
