@@ -34,7 +34,8 @@ ALLOWED_PATHS = ("/v2/search", "/v2/browse/titles/new")
 # The events feed lives on the platform's gateway, not the library's own host,
 # and that host carries nothing else we read. Its robots.txt answers 404
 # (checked 2026-11-03), so the whole host is governed by the allow-list here:
-# one path, one page, paced and cached like every other request.
+# one path, read a page at a time (`page=1`, `page=2`, ...), each page paced and
+# cached like every other request, exactly as the catalogue pages are.
 GATEWAY_HOST = "https://gateway.bibliocommons.com"
 EVENTS_PATH = "/v2/libraries/{library}/rss/events"
 
@@ -218,9 +219,12 @@ def normalise_path(path: str) -> str:
     return "/" + "/".join(segments)
 
 
-def _path_under(path: str, allowed_paths=ALLOWED_PATHS) -> bool:
-    return any(path == allowed or path.startswith(allowed + "/")
-               for allowed in allowed_paths)
+def _path_under(path: str, allowed_paths=ALLOWED_PATHS, exact: bool = False) -> bool:
+    """Whether `path` is one of `allowed_paths`, or under one when not `exact`."""
+    for allowed in allowed_paths:
+        if path == allowed or (not exact and path.startswith(allowed + "/")):
+            return True
+    return False
 
 
 def _request_url(parts, path: str) -> str:
@@ -260,8 +264,9 @@ class Fetcher:
     def _allowed_paths(self, hostname=None):
         """The paths this adapter reads on `hostname`, and none besides.
 
-        The gateway carries the events feed and nothing else; the library's own
-        host keeps its two catalogue paths.
+        The gateway carries the events feed and nothing else: one endpoint, no
+        path under it (`exact` at the call site). The library's own host keeps
+        its two catalogue paths.
         """
         gateway_host = urllib.parse.urlsplit(GATEWAY_HOST).hostname
         if hostname == gateway_host:
@@ -277,9 +282,12 @@ class Fetcher:
         gateway_host = urllib.parse.urlsplit(GATEWAY_HOST).hostname
         if parts.scheme != "https" or parts.hostname not in (library_host, gateway_host):
             raise DisallowedPath(f"{url} is not on {self.host} or the events gateway")
-        # The guard and robots.txt see the path the server would resolve.
+        # The guard and robots.txt see the path the server would resolve. The
+        # gateway's feed is one endpoint with a query, so a path *under* it is
+        # not a page of the feed and is refused too.
         path = normalise_path(parts.path or "/")
-        if not _path_under(path, self._allowed_paths(parts.hostname)):
+        on_gateway = parts.hostname == gateway_host
+        if not _path_under(path, self._allowed_paths(parts.hostname), exact=on_gateway):
             raise DisallowedPath(f"{path} is not a path this adapter reads")
         cached = self._cache_path(url)
         if cached.is_file():
@@ -287,7 +295,7 @@ class Fetcher:
             return cached.read_text(encoding="utf-8", errors="replace")
         # The gateway answers 404 for robots.txt, so its one path is governed by
         # the allow-list above; the library's own host is checked as before.
-        robots = Robots() if parts.hostname == gateway_host else self.robots()
+        robots = Robots() if on_gateway else self.robots()
         target = path + ("?" + parts.query if parts.query else "")
         if not robots.allowed(target):
             raise DisallowedPath(f"robots.txt disallows {path}")

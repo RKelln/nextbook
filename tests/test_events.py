@@ -5,16 +5,23 @@ tpl/rss/events?locations=CL&...`, read once through `fetch.Fetcher` on
 2026-11-03 and saved as it came. `events-edge.xml` is three items of that same
 page, rearranged: one cancelled, one virtual with no location, one given a long
 tag-laden summary. The shapes are the feed's own; no event was invented.
+
+The zone tests run the same feed under two different `TZ` values: a snapshot
+must not depend on where the machine running it thinks it is.
 """
 import datetime as dt
 import io
 import json
+import os
+import re
 import tempfile
+import time
 import unittest
+import urllib.error
 from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 
-from adapters.bibliocommons import events
+from adapters.bibliocommons import events, fetch
 
 FIXTURES = Path(__file__).resolve().parent / "fixtures" / "tpl"
 PAGE = (FIXTURES / "events-page.xml").read_text(encoding="utf-8")
@@ -38,6 +45,16 @@ class StubFetcher:
         return self.pages[index] if index < len(self.pages) else ""
 
 
+def with_offset(page, value="2026-11-03T23:00:00Z"):
+    """The saved page with its first `start_date_local` made offset-bearing.
+
+    The real feed sends `*_date_local` as the branch's wall clock; some of its
+    values carry an offset too, and those are the ones the zone rule is about.
+    """
+    pattern = re.compile(r"<bc:start_date_local>[^<]*</bc:start_date_local>")
+    return pattern.sub(f"<bc:start_date_local>{value}</bc:start_date_local>", page, count=1)
+
+
 def keys_anywhere(value):
     """Every dictionary key in a JSON-shaped value, at any depth."""
     found = set()
@@ -49,6 +66,26 @@ def keys_anywhere(value):
         for child in value:
             found |= keys_anywhere(child)
     return found
+
+
+class ZoneTest(unittest.TestCase):
+    """A test that can make the runner believe it is in a chosen zone."""
+
+    def setUp(self):
+        self._saved_zone = os.environ.get("TZ")
+        self.addCleanup(self._restore_zone)
+
+    def _restore_zone(self):
+        if self._saved_zone is None:
+            os.environ.pop("TZ", None)
+        else:
+            os.environ["TZ"] = self._saved_zone
+        time.tzset()
+
+    def under(self, zone):
+        """Make the runner believe it is in `zone` (as the reviewer did)."""
+        os.environ["TZ"] = zone
+        time.tzset()
 
 
 class ParseTest(unittest.TestCase):
@@ -69,11 +106,13 @@ class ParseTest(unittest.TestCase):
                          "a naive local value must not be shifted")
         self.assertEqual(first["end"], "2026-11-03T20:00:00")
 
-    def test_an_offset_is_moved_to_this_machines_local_zone(self):
+    def test_an_offset_is_moved_to_the_librarys_zone_not_this_machines(self):
         aware = events.parse_local("2026-11-03T23:00:00Z")
         self.assertEqual(aware.astimezone(dt.timezone.utc),
                          dt.datetime(2026, 11, 3, 23, tzinfo=dt.timezone.utc))
         written = events.local_iso(aware)
+        self.assertEqual(written, "2026-11-03T18:00:00-05:00",
+                         "a Toronto event must be written on Toronto's clock")
         self.assertEqual(dt.datetime.fromisoformat(written).astimezone(dt.timezone.utc),
                          dt.datetime(2026, 11, 3, 23, tzinfo=dt.timezone.utc),
                          "the instant is kept, only the zone changes")
@@ -136,6 +175,72 @@ class SummaryTest(unittest.TestCase):
     def test_a_short_summary_is_left_alone(self):
         self.assertEqual(events.clean_summary("  Story   time\n"), "Story time")
 
+    def test_a_summary_cut_once_keeps_the_space_before_its_ellipsis(self):
+        long = "<p>" + " ".join(["word"] * 200) + "</p>"
+        once = events.clean_summary(long)
+        self.assertTrue(once.endswith(" ..."))
+        self.assertEqual(events.clean_summary(once), once,
+                         "a summary already cut must come back unchanged")
+        cut = [event["summary"] for event in events.build_events(
+            events.parse_page(EDGE), "CL") if event["summary"].endswith("...")]
+        for summary in cut:
+            with self.subTest(summary=summary[-20:]):
+                self.assertTrue(summary.endswith(" ..."),
+                                "the space before the ellipsis was eaten again")
+
+
+class LibraryZoneTest(ZoneTest):
+    """The snapshot is the library's clock, not the machine's that made it."""
+
+    def test_the_same_feed_writes_the_same_snapshot_in_any_runner_zone(self):
+        page = with_offset(PAGE)
+        written = []
+        for zone in ("UTC", "America/Vancouver"):
+            self.under(zone)
+            records = events.parse_page(page)
+            self.assertIn("2026-11-03T18:00:00-05:00",
+                          [record["start"] for record in records],
+                          f"23:00Z is 18:00 in Toronto, not in the runner's zone ({zone})")
+            self.assertFalse([record["start"] for record in records
+                              if "+00:00" in record["start"]],
+                             "no feed time may be written in UTC by accident")
+            snap = events.snapshot(events.build_events(records, "CL"), "CL",
+                                   dt.date(2026, 11, 3), dt.date(2026, 11, 24),
+                                   now=dt.datetime(2026, 11, 3, 19, 49, 50,
+                                                   tzinfo=dt.timezone.utc))
+            self.assertEqual(snap["fetched"], "2026-11-03T14:49:50-05:00",
+                             f"`fetched` must be the library's clock under TZ={zone}")
+            written.append(json.dumps(snap, sort_keys=True))
+        self.assertEqual(written[0], written[1],
+                         "the same feed must not make two different snapshots")
+
+    def test_the_librarys_zone_follows_the_librarys_daylight_saving(self):
+        self.under("UTC")
+        self.assertEqual(events.local_iso(events.parse_local("2026-07-04T23:00:00Z")),
+                         "2026-07-04T19:00:00-04:00",
+                         "July in Toronto is -04:00, so this is not a fixed offset")
+        self.assertEqual(events.local_iso(events.parse_local("2026-11-03T23:00:00Z")),
+                         "2026-11-03T18:00:00-05:00")
+
+    def test_without_zoneinfo_the_offset_is_fixed_and_said_out_loud(self):
+        saved_zoneinfo, saved_warned = events.ZoneInfo, events._zone_warned
+        self.addCleanup(self._restore_zoneinfo, saved_zoneinfo, saved_warned)
+        events.ZoneInfo = None
+        events._zone_warned = False
+        events.library_timezone.cache_clear()
+        message = io.StringIO()
+        with redirect_stderr(message):
+            written = events.local_iso(events.parse_local("2026-11-03T23:00:00Z"))
+        self.assertEqual(written, "2026-11-03T18:00:00-05:00",
+                         "the fallback keeps standard time, and loses an hour in summer")
+        self.assertIn("-05:00", message.getvalue(),
+                      "the fallback must say which offset it used, in a sentence")
+
+    def _restore_zoneinfo(self, saved_zoneinfo, saved_warned):
+        events.ZoneInfo = saved_zoneinfo
+        events._zone_warned = saved_warned
+        events.library_timezone.cache_clear()
+
 
 class SnapshotTest(unittest.TestCase):
     def setUp(self):
@@ -177,11 +282,11 @@ class CommandTest(unittest.TestCase):
         self.addCleanup(self.tmp.cleanup)
         self.out = Path(self.tmp.name) / "events.json"
 
-    def run_main(self, pages, *args):
-        stub = StubFetcher(pages)
+    def run_main(self, pages, *args, branch="CL", fetcher=None):
+        stub = fetcher or StubFetcher(pages)
         stdout, stderr = io.StringIO(), io.StringIO()
         with redirect_stdout(stdout), redirect_stderr(stderr):
-            code = events.main(["--branch", "CL", "--days", "21",
+            code = events.main(["--branch", branch, "--days", "21",
                                 "--out", str(self.out), *args], fetcher=stub)
         return code, stdout.getvalue(), stderr.getvalue(), stub
 
@@ -202,6 +307,8 @@ class CommandTest(unittest.TestCase):
         self.assertEqual(len(snap["events"]), 25)
         self.assertEqual(set(snap), SNAPSHOT_KEYS)
         self.assertNotIn("description", keys_anywhere(snap))
+        self.assertEqual(events.check_snapshot(snap), [],
+                         "what is written must pass data/events.schema.json")
 
     def test_pages_are_asked_for_as_batch_reads_and_stop_on_an_empty_page(self):
         _, _, _, stub = self.run_main([PAGE, PAGE, ""])
@@ -212,12 +319,65 @@ class CommandTest(unittest.TestCase):
         self.assertIn("startDate=", stub.calls[0][0])
         self.assertIn("endDate=", stub.calls[0][0])
 
-    def test_the_window_is_today_and_the_days_asked_for(self):
+    def test_the_window_is_the_librarys_today_and_the_days_asked_for(self):
         _, _, _, stub = self.run_main([PAGE, ""])
-        today = dt.date.today()
+        today = dt.datetime.now(tz=events.library_timezone()).date()
         self.assertIn(f"startDate={today.isoformat()}", stub.calls[0][0])
         self.assertIn(f"endDate={(today + dt.timedelta(days=21)).isoformat()}",
                       stub.calls[0][0])
+
+    def test_rows_with_no_branch_code_are_not_evidence_the_branch_is_right(self):
+        # Every location removed, as an unknown code that answers with virtual
+        # rows alone would: the rows parse, but none of them names branch CL.
+        page = re.sub(r"<bc:location>.*?</bc:location>", "", EDGE, flags=re.S)
+        self.assertNotIn("<bc:location>", page)
+        code, out, err, _ = self.run_main([page, ""])
+        self.assertEqual(code, 2)
+        self.assertIn("without the code for branch 'CL'", err)
+        self.assertIn("Nothing was written", err)
+        self.assertFalse(self.out.exists(), "an unproven branch must not be written")
+        self.assertEqual(out, "")
+
+    def test_a_snapshot_the_schema_would_reject_is_not_written(self):
+        # `--branch ''` used to exit 0 and write a file with an empty branch,
+        # which data/events.schema.json rejects (minLength 1).
+        code, out, err, _ = self.run_main([PAGE, ""], branch="")
+        self.assertEqual(code, 2)
+        self.assertIn("does not match data/events.schema.json", err)
+        self.assertIn("Nothing was written", err)
+        self.assertFalse(self.out.exists(), "the schema must be checked before the write")
+        self.assertEqual(out, "")
+
+    def test_a_network_failure_is_one_plain_sentence_not_a_traceback(self):
+        def refused(request, timeout=None):
+            raise urllib.error.URLError("Name or service not known")
+
+        fetcher = fetch.Fetcher(opener=refused, cache_dir=self.tmp.name,
+                                sleep=lambda seconds: None)
+        code, out, err, _ = self.run_main([], fetcher=fetcher)
+        self.assertEqual(code, 1)
+        self.assertIn("Nothing was written", err)
+        self.assertIn("Name or service not known", err)
+        self.assertNotIn("Traceback", err)
+        self.assertFalse(self.out.exists())
+        self.assertEqual(out, "")
+
+    def test_a_window_the_page_cap_cannot_cover_is_labelled_with_what_it_covers(self):
+        # Five full pages is the cap: page six is never asked for, and the file
+        # must not claim the whole 21 days were read.
+        code, out, err, stub = self.run_main([PAGE] * 5)
+        self.assertEqual(code, 0)
+        self.assertEqual(len(stub.calls), events.MAX_PAGES)
+        self.assertNotIn("page=6", [call[0] for call in stub.calls])
+        snap = json.loads(self.out.read_text(encoding="utf-8"))
+        covered = max(event["start"][:10] for event in snap["events"])
+        self.assertEqual(snap["window"]["end"], covered,
+                         "the file's window is the window that was read")
+        self.assertNotEqual(snap["window"]["end"],
+                            (dt.datetime.now(tz=events.library_timezone()).date()
+                             + dt.timedelta(days=21)).isoformat())
+        self.assertIn(f"covers {snap['window']['start']} to {covered}", err)
+        self.assertEqual(events.check_snapshot(snap), [])
 
 
 if __name__ == "__main__":

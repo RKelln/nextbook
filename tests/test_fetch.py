@@ -54,7 +54,9 @@ class FakeClock:
         self.now += seconds
 
 
-class FetcherTest(unittest.TestCase):
+class FetcherHarness(unittest.TestCase):
+    """A fetcher wired to a fake network, a fake clock and a scratch cache."""
+
     def setUp(self):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
@@ -69,6 +71,8 @@ class FetcherTest(unittest.TestCase):
         kwargs.setdefault("cache_dir", self.tmp.name)
         return fetch.Fetcher(**kwargs)
 
+
+class FetcherTest(FetcherHarness):
     def test_a_disallowed_path_raises(self):
         fetcher = self.make()
         with self.assertRaises(fetch.DisallowedPath):
@@ -287,6 +291,96 @@ class RobotsParserTest(unittest.TestCase):
     def test_an_empty_disallow_does_not_block(self):
         robots = fetch.parse_robots("User-agent: *\nDisallow:\n")
         self.assertTrue(robots.allowed("/v2/search"))
+
+
+class EventsGatewayTest(FetcherHarness):
+    """The only route to the events feed: the gateway host and its one path.
+
+    The catalogue tests above never touch the gateway, so without these a
+    regression that refuses the feed — or that lets the gateway fetch anything
+    else — would leave the whole suite green and break the only way the events
+    snapshot is made.
+    """
+
+    def setUp(self):
+        super().setUp()
+        self.events = fetch.events_url("CL", "2026-11-03", "2026-11-24")
+        self.gateway = fetch.GATEWAY_HOST
+
+    def test_the_events_url_is_allowed_and_fetched(self):
+        fetcher = self.make()
+        body = fetcher.get(self.events, "batch")
+        self.assertEqual(len(self.net.urls), 1)
+        self.assertEqual(self.net.urls[0], self.events)
+        self.assertTrue(self.net.urls[0].startswith(
+            self.gateway + "/v2/libraries/tpl/rss/events?"))
+        self.assertIn("locations=CL", self.net.urls[0])
+        self.assertIn("startDate=2026-11-03", self.net.urls[0])
+        self.assertIn("page=1", self.net.urls[0])
+        self.assertEqual(body, "<html>page</html>")
+
+    def test_the_gateway_robots_txt_is_not_read(self):
+        fetcher = self.make(robots_text=None)  # a read would go to the opener
+        fetcher.get(self.events, "batch")
+        self.assertEqual([url for url in self.net.urls if url.endswith("/robots.txt")], [],
+                         "the gateway answers 404 for robots.txt; reading it is one wasted request")
+
+    def assert_the_feed_still_works(self):
+        """The refusal was about the path, not a gateway that got shut off.
+
+        Without this, a fetcher that refuses everything on the gateway would
+        satisfy every refusal test here, and the feed route could be broken in
+        silence — the very regression these tests exist for.
+        """
+        fetcher = self.make()
+        fetcher.get(self.events, "batch")
+        self.assertEqual(self.net.urls[-1], self.events)
+
+    def test_a_made_up_gateway_path_is_refused(self):
+        fetcher = self.make()
+        for path in ("/v2/libraries/tpl/rss/blog",
+                     "/v2/libraries/tpl/rss/events/extra/page",
+                     "/item/full_record/S234C1"):
+            with self.subTest(path=path):
+                with self.assertRaises(fetch.DisallowedPath):
+                    fetcher.get(self.gateway + path, "batch")
+        self.assertEqual(self.net.urls, [], "an unlisted gateway path must not reach the network")
+        self.assert_the_feed_still_works()
+
+    def test_another_librarys_events_path_is_refused(self):
+        fetcher = self.make()
+        url = self.events.replace("/libraries/tpl/", "/libraries/nypl/")
+        self.assertNotEqual(url, self.events)
+        with self.assertRaises(fetch.DisallowedPath):
+            fetcher.get(url, "batch")
+        self.assertEqual(self.net.urls, [])
+        self.assert_the_feed_still_works()
+
+    def test_the_search_path_on_the_gateway_is_refused(self):
+        fetcher = self.make()
+        with self.assertRaises(fetch.DisallowedPath):
+            fetcher.get(self.gateway + "/v2/search?searchType=keyword&query=le+guin",
+                        "batch")
+        self.assertEqual(self.net.urls, [])
+        self.assert_the_feed_still_works()
+
+    def test_the_events_path_on_the_library_host_is_refused(self):
+        fetcher = self.make()
+        url = self.events.replace(self.gateway, "https://tpl.bibliocommons.com")
+        self.assertTrue(url.startswith("https://tpl.bibliocommons.com/"))
+        with self.assertRaises(fetch.DisallowedPath):
+            fetcher.get(url, "batch")
+        self.assertEqual(self.net.urls, [])
+        self.assert_the_feed_still_works()
+
+    def test_a_gateway_page_two_waits_the_crawl_delay(self):
+        fetcher = self.make()
+        fetcher.get(fetch.events_url("CL", "2026-11-03", "2026-11-24", 1), "batch")
+        fetcher.get(fetch.events_url("CL", "2026-11-03", "2026-11-24", 2), "batch")
+        self.assertEqual(self.clock.sleeps, [fetch.BATCH_FLOOR],
+                         "the gateway serves no robots.txt, so the batch delay paces it")
+        self.assertEqual(len(self.net.urls), 2)
+        self.assertIn("page=2", self.net.urls[1])
 
 
 class LibraryTest(unittest.TestCase):

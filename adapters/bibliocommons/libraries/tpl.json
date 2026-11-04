@@ -1,6 +1,7 @@
 {
   "subdomain": "tpl",
   "name": "Toronto Public Library",
+  "timezone": "America/Toronto",
   "search_url": "{host}/v2/search?searchType=keyword&query={query}&page={page}",
   "new_titles_url": "{host}/v2/browse/titles/new?page={page}",
   "record_url": "{host}/v2/record/{id}"
