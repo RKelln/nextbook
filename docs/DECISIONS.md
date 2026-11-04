@@ -356,3 +356,31 @@ matched record ids back to the page without the person importing their file agai
 **Not an MCP server.** Two files do the job inside rules the repo already keeps: no dependency, no process, no second
 route to the shelf, and nothing to configure before a workshop. An MCP surface would be a third way in, and the one
 with the largest blast radius, for a capability the files already have.
+## D37. An input can be left unset, and every input state gets a standard run (2026-11-03, Ryan's bug)
+
+Ryan found this by using the app as a participant would: a facet dropdown draws an empty "Pick one", `inputsFor()`
+treats an empty value as missing, and the contract says `choose` is not called until every input has a value. So every
+input was required, and a mode could not offer "any subject" — the mode's own `hasSubject()` branch, written to treat
+"no subject" as "no filter", could never run. The most natural second step for a beginner (add one more input) would
+have shown nothing until they clicked.
+
+The fix, deliberately kept small:
+
+- An input spec may say `optional: true` and give its empty option its own words (`any: 'Any subject'`). Default stays
+  required, so nothing that works today changes meaning.
+- On an optional input, an **empty** value reaches `choose` as `null` instead of blocking the call. An **absent** key
+  is still missing. The distinction is the point: `undefined` = not asked, `null` = asked and left blank, a value = set.
+- The check gains one more standard run, only for modes that have an optional input: that input empty and every other
+  input at its default. A mode that crashes on `null` fails its own check, and the failure names the input.
+
+**The general form of this, and where it stops.** The real gap was not optionality; it was that the checks only ever
+ran inputs at their defaults, so any input state a mode's author had not pictured was untested. The rule that follows:
+**a new input state ships with a standard run, or it is unverified.** That is what makes the next such feature safe
+without a form engine.
+
+Rejected: making the contract expressive enough to say "input B is required only when A is set". That is a validation
+language, and a beginner would have to learn it before growing a mode. A mode that needs a conditional treats `null`
+itself — which is exactly what `hasSubject()` already did, and now can.
+
+Not rejected, and not yet done: a first-timer's *second step* (add one input) belongs in the T7.2 script. Nobody on the
+build found this, because every test ran the contract at its defaults.
