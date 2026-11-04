@@ -11,6 +11,9 @@ app/data/found.js
 # Built copies are made by tools/build.py, never edited, never committed.
 dist/
 
+# The live-reload note tools/serve.py reads: one screen name, written for a moment, never committed.
+.dev-go
+
 # Python
 __pycache__/
 *.pyc
