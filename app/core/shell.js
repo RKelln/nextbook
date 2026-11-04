@@ -44,6 +44,7 @@
     seed: 1,
     // which of the shelf screen's folding panels are open, by name, for this visit only
     folds: {},
+    shelfFilter: 'all',   // the shelf screen's filter: 'all' or one state
     model: blankModel(),  // the pasted answer, if there is one
     words: {}             // per facets input: the pasted words, the prompt and its answer
   };
@@ -466,13 +467,42 @@
     render();
   }
 
+  // Show the whole shelf, or one state of it. The filter is for this visit only; it never
+  // changes what the find screen reads, which is always the whole shelf.
+  function shelfFilter(entries) {
+    var counts = { all: entries.length, want: 0, reading: 0, read: 0, stopped: 0 };
+    entries.forEach(function (e) { var st = e.state || 'want'; if (has(counts, st)) counts[st] += 1; });
+    var bar = h('div', { class: 'nb-filter', role: 'group', 'aria-label': t('filterLabel'), 'data-test': 'shelf-filter' });
+    [{ value: 'all', label: t('filterAll') }].concat(stateOptions()).forEach(function (o) {
+      if (o.value !== 'all' && !counts[o.value] && state.shelfFilter !== o.value) return;
+      var on = (state.shelfFilter || 'all') === o.value;
+      bar.appendChild(h('button', {
+        type: 'button',
+        class: 'nb-filter-chip',
+        'aria-pressed': on ? 'true' : 'false',
+        'data-test': 'shelf-filter-' + o.value,
+        on: { click: function () { state.shelfFilter = o.value; render(); } }
+      }, h('span', null, o.label), h('span', { class: 'nb-filter-count' }, String(counts[o.value]))));
+    });
+    return bar;
+  }
+
   function shelfList() {
     var entries = [];
     try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
     if (!entries.length) return p(t('shelfEmpty'), 'nb-empty');
+    var wrap = h('div', { class: 'nb-shelf-list' });
+    if (entries.length > 1) wrap.appendChild(shelfFilter(entries));
+    var want = state.shelfFilter || 'all';
+    var shown = want === 'all' ? entries : entries.filter(function (e) { return (e.state || 'want') === want; });
+    if (!shown.length) {
+      wrap.appendChild(p(t('filterEmpty'), 'nb-empty', { 'data-test': 'shelf-filter-empty' }));
+      return wrap;
+    }
     var list = h('ul', { class: 'nb-books', 'data-test': 'shelf-list' });
-    entries.forEach(function (entry, i) { list.appendChild(shelfRow(entry, i + 1)); });
-    return list;
+    shown.forEach(function (entry, i) { list.appendChild(shelfRow(entry, i + 1)); });
+    wrap.appendChild(list);
+    return wrap;
   }
 
   // ---- Add a book ------------------------------------------------------------------------------
@@ -3606,6 +3636,9 @@
     navSelftest: 'Self-test',
     navLabel: 'Screens',
     messageClose: 'Close this note',
+    filterLabel: 'Show',
+    filterAll: 'All',
+    filterEmpty: 'No books here now. Choose All to see the whole shelf.',
     // shelf
     shelfOwnHeading: 'Your own shelf',
     shelfPracticeHeading: 'The practice shelf',

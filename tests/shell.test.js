@@ -247,3 +247,21 @@ test('the shelf rows still show the books the practice data seeds', () => {
   const { doc } = openPage({});
   assert.deepStrictEqual(plain(keys(doc)), plain(PRACTICE.entries.map((e) => e.key)));
 });
+
+test('P5d: the filter shows one state of the shelf, says how many, and All brings the rest back', () => {
+  const { doc } = openPage({});
+  const total = rows(doc).length;
+  const all12 = byTest(doc, 'shelf-filter-all');
+  assert.ok(all12, 'the shelf has a filter');
+  assert.strictEqual(all12.getAttribute('aria-pressed'), 'true', 'and starts on All');
+  assert.ok(all12.textContent.indexOf(String(total)) !== -1, 'All says how many books there are');
+
+  byTest(doc, 'shelf-filter-reading').click();
+  const reading = rows(doc).length;
+  assert.ok(reading > 0 && reading < total, 'Reading shows only the books being read');
+  assert.ok(byTest(doc, 'shelf-filter-reading').textContent.indexOf(String(reading)) !== -1, 'with its own count');
+  assert.strictEqual(byTest(doc, 'shelf-filter-stopped') !== null, true, 'a state with a book has a chip');
+
+  byTest(doc, 'shelf-filter-all').click();
+  assert.strictEqual(rows(doc).length, total);
+});

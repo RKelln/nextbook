@@ -35,6 +35,9 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 |---|---|---|
 | `shelf-list` | The list (not pressed) | — |
 | `shelf-link-N` | The book's title, a link | Opens the library's page for the book (the library's own page for it when there is one, otherwise its search page). A book typed in and not in the list links to the library's search for its title and author. |
+| `shelf-filter` | The filter above the list: one chip per state that has a book, each with its count (not pressed) | — |
+| `shelf-filter-all`, `shelf-filter-<state>` | Chip "All" or a state's name (`aria-pressed`) | Shows the whole shelf or only that state, for this visit. N below counts the rows shown. |
+| `shelf-filter-empty` | The line when a filter shows no books | — |
 | `shelf-state-N` | A fieldset of four radios drawn as one bar (not pressed) | — |
 | `shelf-state-N-<state>` | Radio: `want` / `reading` / `read` / `stopped` | Saves the new state in this browser. |
 | `shelf-rating-N` | The rating group; its `aria-label` is the question. Absent on a book to read with no rating | — |
