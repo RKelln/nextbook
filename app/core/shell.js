@@ -3461,10 +3461,16 @@
     } catch (e) { /* no router: the page still draws */ }
 
     render();
-    loadModes(function () { render(); });
+    loadModes(function () {
+      render();
+      // A plain flag for tools that drive the page (tools/screens.py, tests/e2e): the modes are
+      // in and the screen is drawn.
+      Nextbook.shell.ready = true;
+    });
   }
 
   Nextbook.shell = {
+    ready: false,
     boot: boot,
     loadModes: loadModes,
     render: render,

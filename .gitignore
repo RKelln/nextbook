@@ -29,3 +29,6 @@ __pycache__/
 .idea/
 .vscode/
 .pytest_cache/
+
+# Design screenshots from tools/screens.py. Never committed.
+screens/
