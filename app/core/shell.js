@@ -198,6 +198,41 @@
     try { return Nextbook.linkFor(work, library()) || ''; } catch (e) { return ''; }
   }
 
+  // Sign in at the library, then land on this book's own page, where Place hold is. Only for a
+  // book with a catalogue record; '' otherwise (T8.12, docs/DESIGN.md "Holds").
+  function holdLinkFor(work) {
+    if (!work) return '';
+    try { return Nextbook.links.holdLink(work, library()) || ''; } catch (e) { return ''; }
+  }
+
+  function holdLinkNode(work, test) {
+    var href = holdLinkFor(work);
+    if (!href) return null;
+    return h('a', { class: 'nb-button nb-button-small nb-button-quiet nb-hold', href: href, 'data-test': test },
+      t('holdLink'));
+  }
+
+  // The library account, one click away: each link signs in on the library's own page and
+  // lands on that page. This page never sees a card or a password, and never knows whether
+  // anyone is signed in, so it says nothing about it. Drawn only when the library's data
+  // names a sign-in page.
+  var ACCOUNT_PAGES = [['holds', 'accountHolds'], ['forLater', 'accountForLater'], ['checkedOut', 'accountCheckedOut']];
+
+  function accountBox(test) {
+    var lib = library();
+    var links = [];
+    ACCOUNT_PAGES.forEach(function (page) {
+      var href = '';
+      try { href = Nextbook.links.accountLink(lib, page[0]) || ''; } catch (e) { href = ''; }
+      if (href) links.push(h('a', { class: 'nb-account-link', href: href, 'data-test': test + '-' + page[0] }, t(page[1])));
+    });
+    if (!links.length) return null;
+    return h('section', { class: 'nb-account', 'data-test': test, 'aria-label': t('accountHead') },
+      h('p', { class: 'nb-account-head' }, t('accountHead')),
+      h('div', { class: 'nb-account-links' }, links),
+      p(t('accountNote'), 'nb-note'));
+  }
+
   // "Subjects: a, b, c." from the work's own facets, at most five. A typed book that matched
   // a work shows these too, which is how a person sees that it was linked.
   function subjectsLine(work) {
@@ -420,6 +455,11 @@
     controls.appendChild(stateGroup(entry, index));
     var question = ratingQuestion(entry);
     if (question) controls.appendChild(ratingGroup(entry, index, question));
+    // A book to read is the hold list: it can go straight to the library's Place hold.
+    if ((entry.state || 'want') === 'want') {
+      var hold = holdLinkNode(work || entry, 'shelf-hold-' + index);
+      if (hold) controls.appendChild(h('div', { class: 'nb-hold-row' }, hold));
+    }
     var remove = button('shelf-remove-' + index, t('removeButton'), function () {
       try {
         if (state.store.remove(entry.key)) state.message = t('removedBook', { title: entry.title || '' });
@@ -2485,6 +2525,8 @@
     card.appendChild(h('div', { class: 'nb-card-actions' },
       button('pick-want-' + index, t('pickWant'), function () { addPickToShelf(work, 'want'); }, 'nb-button nb-button-small'),
       button('pick-read-' + index, t('pickRead'), function () { addPickToShelf(work, 'read'); }, 'nb-button nb-button-small')));
+    var hold = holdLinkNode(work, 'pick-hold-' + index);
+    if (hold) card.lastChild.appendChild(hold);
     return card;
   }
 
@@ -2795,6 +2837,8 @@
     if (!ids.length) {
       sec.appendChild(p(t('noModes'), 'nb-empty'));
       sec.appendChild(button('find-to-shelf', t('findShelfHint'), function () { go('shelf'); }, 'nb-button nb-button-quiet'));
+      var bareAccount = accountBox('find-account');
+      if (bareAccount) sec.appendChild(bareAccount);
       return sec;
     }
 
@@ -2840,6 +2884,8 @@
       list.appendChild(li);
     });
     var side = h('div', { class: 'nb-split-side' }, list);
+    var account = accountBox('find-account');
+    if (account) side.appendChild(account);
     var main = h('div', { class: 'nb-split-main' });
     var def = state.modeId ? defOf(state.modeId) : null;
     if (def) main.appendChild(modePanel(def, state.modeId));
@@ -3400,6 +3446,8 @@
     // The tools fold away, so the side column reads as a short menu. Adding a book is open to
     // start with; a panel holding a report from this visit opens itself, so the report is seen.
     var side = h('div', { class: 'nb-split-side' });
+    var account = accountBox('shelf-account');
+    if (account) side.appendChild(account);
     side.appendChild(foldPanel('add', addPanel(), true));
     side.appendChild(foldPanel('library', libraryPanel(), !!state.libReport));
     side.appendChild(foldPanel('list', listPanel(), !!state.listReport));
@@ -3826,6 +3874,12 @@
     ourNote: 'Our note: {note}',
     pickWant: 'Want to read',
     pickRead: 'Read it',
+    holdLink: 'Sign in and hold',
+    accountHead: 'At the library',
+    accountHolds: 'Your holds',
+    accountForLater: 'For Later',
+    accountCheckedOut: 'Checked out',
+    accountNote: "Each link opens the library's page. You sign in there, not here: this page never sees your card or password.",
     pickWantAdded: 'Added {title} to "Want to read".',
     pickReadAdded: 'Added {title} as read. Rate it on the shelf.',
     modeCrashed: 'This way of choosing books stopped with an error. The rest of the page still works.',

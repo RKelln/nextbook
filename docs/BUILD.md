@@ -489,19 +489,16 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
   What it is for: a starting catalogue broad enough that a mode has something to choose from on a subject the pack
   does not carry. What it is **not** for: matching a person's imported books, which is T8.9c — a slice is built once
   from a fixed query list at the crawl delay, while a person's list is their own request and runs at a person's pace.
-- [ ] **T8.12 Your library account, one click away** (DESIGN.md "Holds"). The adapter's `libraries/tpl.json` gains
-  `account` paths, measured (`DATA.md`, "The library account's own pages"): sign in, holds, checked out, For Later.
-  They reach the page through the slice's `library` block, and `core/links.js` makes them like the record link. The
-  shelf and find screens get a short line, "At the library: Sign in · Your holds · For Later", each opening the
-  library's own page in a new tab, plus one sentence: "You sign in on the library's page. This page never sees your
-  card or password." A pick card's library link reads "Hold or borrow on the library's page". Never a link into the
-  hold form, never a request to any of these pages, never a word about whether the person is signed in (the app
-  cannot know). Signing in goes through the library's own return address, measured by hand on 2026-11-04:
-  "Your holds" is `/user/login?destination=%2Fholds`, which signs in if needed and lands on the holds page, and the
-  same shape serves For Later and checked out. A signed-in person who presses it goes straight to the page (check
-  this once by hand before relying on it). A record page works the same way, also measured by hand:
-  `/user/login?destination=%2Fv2%2Frecord%2F<id>` signs in and lands on that book, so a pick card with a record id
-  can offer "Sign in and hold" straight to the Place hold button.
+- [x] **T8.12 Your library account, one click away** (DESIGN.md "Holds"). Measured paths (`DATA.md`, "The library
+  account's own pages") in the slice's `library` block: `account` (the sign-in template with `{path}`, and holds,
+  For Later, checked out) and `recordIdUrl` (a real record id's page, so a found book links to its record and not a
+  search). `core/links.js` gives `accountLink` and `holdLink`. The shelf's side column and the find screen show
+  "At the library: Your holds · For Later · Checked out", each through `/user/login?destination=<path>`, with the
+  sentence "You sign in there, not here: this page never sees your card or password." A pick, and a book to read on
+  the shelf, that has a catalogue record gets "Sign in and hold", which lands on its own page, where Place hold is.
+  A pack book has no record id, so it keeps its search link and no hold link. Never a link into the hold form, never
+  a request to any of these pages, never a word about whether the person is signed in. Not yet checked by hand:
+  that a person already signed in goes straight through `/user/login?destination=` without the form.
 - [ ] **T8.10 Look further, with Open Library** (D26). For the hosted copy, where there is no agent: a "Look further"
   button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never shelf
   titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off

@@ -58,6 +58,7 @@ function openPage(opts) {
   nb.data.put('tags', { schema: 'nextbook/tags-1', vocab: {}, works: {} });
   nb.data.put('practice', options.practice || PRACTICE);
   if (options.workshop) nb.data.put('workshop', { workshop: true });
+  if (options.found) nb.data.put('found', options.found);
   run('app/core/shell.js');
 
   return { nb, doc, app };
@@ -265,3 +266,44 @@ test('P5d: the filter shows one state of the shelf, says how many, and All bring
   byTest(doc, 'shelf-filter-all').click();
   assert.strictEqual(rows(doc).length, total);
 });
+
+// T8.12: the library account, one click away, and "Sign in and hold" on a book with a record.
+const FOUND_BOOK = {
+  id: 'S234C4827395', groupKey: 'turbulent_sun_test', title: 'The Turbulent Sun', author: 'Leon Golub',
+  year: 2001, facets: [], found: { query: 'the sun' },
+};
+const withFoundWant = () => ({
+  schema: PRACTICE.schema,
+  entries: PRACTICE.entries.concat([{
+    key: 'w:turbulent_sun_test', id: FOUND_BOOK.id, groupKey: FOUND_BOOK.groupKey, title: FOUND_BOOK.title,
+    author: FOUND_BOOK.author, state: 'want', rating: null, updated: '2026-11-01T10:00:00Z',
+  }]),
+});
+
+test('T8.12: the shelf and find screens offer the library account, signed in on the library\'s page', () => {
+  const lib = SLICE.library;
+  assert.ok(lib.account && lib.account.signIn, 'the slice names the library\'s sign-in page');
+  for (const [hash, test] of [['#shelf', 'shelf-account'], ['#find', 'find-account']]) {
+    const { nb, doc } = openPage({ hash });
+    assert.ok(byTest(doc, test), test + ' is drawn');
+    assert.strictEqual(byTest(doc, test + '-holds').getAttribute('href'),
+      lib.account.signIn.replace('{path}', encodeURIComponent(lib.account.holds)));
+    assert.ok(byTest(doc, test + '-forLater') && byTest(doc, test + '-checkedOut'));
+    assert.strictEqual(byTest(doc, test + '-holds').getAttribute('target'), '_blank', 'it opens beside this page');
+    assert.ok(doc.body.textContent.indexOf(nb.t('accountNote')) !== -1, 'and says this page never sees the card');
+  }
+  const bare = Object.assign({}, SLICE, { library: Object.assign({}, SLICE.library, { account: undefined }) });
+  const { doc } = openPage({ slice: JSON.parse(JSON.stringify(bare)) });
+  assert.strictEqual(byTest(doc, 'shelf-account'), null, 'a library with no sign-in page: no box at all');
+});
+
+test('T8.12: a book to read with a record offers Sign in and hold; a pack book has no record to hold', () => {
+  const { doc } = openPage({ practice: withFoundWant(), found: { schema: 'nextbook/found-1', works: [FOUND_BOOK] } });
+  const holds = all(doc, '[data-test]').filter((el) => /^shelf-hold-/.test(el.getAttribute('data-test')));
+  assert.strictEqual(holds.length, 1, 'only the found book, which has a record, can be held from here');
+  assert.ok(holds[0].getAttribute('href').endsWith(encodeURIComponent('/v2/record/' + FOUND_BOOK.id)),
+    'signing in lands on the book\'s own page');
+  const row = holds[0].parentNode.parentNode.parentNode;
+  assert.strictEqual(row.getAttribute('data-book'), 'w:turbulent_sun_test');
+});
+

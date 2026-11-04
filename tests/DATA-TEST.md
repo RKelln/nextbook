@@ -43,6 +43,9 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `shelf-rating-N` | The rating group; its `aria-label` is the question. Absent on a book to read with no rating | — |
 | `shelf-rating-N-<rating>` | Chip: `loved` / `liked` / `ok` / `not-for-me` (`aria-pressed`) | Saves that rating; pressing the chip that is on takes the rating off. |
 | `shelf-remove-N` | Button "Remove" | Takes the book off the shelf in use. |
+| `shelf-hold-N` | Link "Sign in and hold", on a book to read that has a catalogue record | Opens the library's sign-in page in a new tab, which lands on the book's own page after signing in. |
+| `shelf-account`, `find-account` | The "At the library" box (not pressed) | — |
+| `shelf-account-<page>`, `find-account-<page>` | Link: `holds`, `forLater`, `checkedOut` | Opens the library's sign-in page in a new tab, which lands on that page of the person's account. |
 
 ## Adding a book
 
@@ -133,6 +136,7 @@ came in. A reload with the same note draws nothing: its name is remembered in th
 | `pick-link-N` | The card's title, a link | Opens the library's page for the book. |
 | `pick-want-N` | Button "Want to read" | Adds the book to the shelf in use as "Want to read" and runs the mode again. |
 | `pick-read-N` | Button "Read it" | Adds it as "Read" (ready to rate) and runs the mode again. |
+| `pick-hold-N` | Link "Sign in and hold", on a pick that has a catalogue record | As `shelf-hold-N`. |
 | `find-to-shelf` | Button "Go to the shelf" | Goes to `#shelf`. |
 
 ## The model box

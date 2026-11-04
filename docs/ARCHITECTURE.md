@@ -393,7 +393,13 @@ with nothing valid says so. Titles, authors, years and links in the answer are i
   the library's own suggestions, and the app says so once, near the results.
 - A typed book: `library.searchUrl` with `{q}` = title and author, URL-encoded.
 - A pack work (`library.recordUrl` is `null`): the search URL, as for a typed book, until a find enriches it with a
-  `recordId`, and then the record URL.
+  `recordId`, and then the record URL from `library.recordIdUrl`, the template for a real record id. A book a find
+  brought in has its record id as its `id`, and links the same way.
+- The library account (T8.12): `library.account` holds the sign-in template, `signIn` with `{path}`, and the paths
+  of the person's own pages (`holds`, `forLater`, `checkedOut`). `accountLink(library, page)` is the sign-in page
+  with that page as its return address; `holdLink(work, library)` is the sign-in page returning to the book's
+  record, for a book with a record id only. The return address is only ever a path on the library's host. The app
+  never requests any of these pages and never knows whether anyone is signed in.
 
 Never stored; always derived.
 

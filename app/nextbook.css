@@ -514,6 +514,35 @@
   .nb-card-head { margin-block-end: var(--nb-s1); }
   .nb-card-actions { margin-block-start: auto; padding-block-start: var(--nb-s3); }
 
+  /* ---- The library account: links out, signed in on the library's own page ---- */
+  .nb-account {
+    padding: var(--nb-s3) var(--nb-s4);
+    border: 1px solid var(--nb-line);
+    border-radius: var(--nb-radius);
+    background: var(--nb-raised);
+  }
+  .nb-account-head { margin: 0 0 var(--nb-s2); font-weight: 650; }
+  .nb-account-links { display: flex; flex-wrap: wrap; gap: var(--nb-s2); }
+  .nb-account-link {
+    display: inline-flex;
+    align-items: center;
+    min-height: 40px;
+    padding: 6px 14px;
+    border: 1px solid var(--nb-line-strong);
+    border-radius: var(--nb-pill);
+    color: var(--nb-ink);
+    text-decoration: none;
+    font-size: var(--nb-small);
+    font-weight: 600;
+  }
+  .nb-account-link:hover { border-color: var(--nb-accent); color: var(--nb-accent); }
+  .nb-account .nb-note { margin-block-start: var(--nb-s2); }
+
+  /* A link out reads as one: an arrow after the words, drawn by CSS so the words stay plain. */
+  .nb-account-link::after,
+  .nb-hold::after { content: "\2197"; margin-inline-start: 6px; font-weight: 400; }
+  .nb-hold { text-decoration: none; }
+
   /* ---- Choice pills (an input's choices on the find screen) ---- */
   .nb-choices { display: flex; flex-wrap: wrap; gap: var(--nb-s2); margin-block-start: var(--nb-s1); }
   .nb-choice {
@@ -667,6 +696,7 @@
   .nb-book-head { grid-area: head; min-width: 0; padding-block-start: var(--nb-s1); }
   .nb-controls { grid-area: controls; display: grid; gap: var(--nb-s2); align-content: start; min-width: 0; }
   .nb-remove { grid-area: remove; align-self: start; }
+  .nb-hold-row { display: flex; }
 
   /* A book in a search result or a report has no controls grid: its parts sit in a row. */
   .nb-book:not(:has(.nb-controls)) {

@@ -112,3 +112,53 @@ test('a record id is encoded, and a recordId wins over an id', () => {
   assert.strictEqual(nb.links.linkFor({ id: 'a b/c' }, LIBRARY),
     'https://catalogue.example.org/record/a%20b%2Fc');
 });
+
+// T8.12: the library account, one click away. Made-up host, as above.
+const ACCOUNT_LIBRARY = Object.assign({}, PACK_LIBRARY, {
+  recordIdUrl: 'https://catalogue.example.org/record/{id}',
+  account: {
+    signIn: 'https://catalogue.example.org/login?destination={path}',
+    holds: '/holds',
+    forLater: '/shelves/for_later',
+  },
+});
+
+test('T8.12: a record id links to its record even when the list\'s own ids are not record ids', () => {
+  assert.strictEqual(nb.links.linkFor(Object.assign({}, PACK_WORK, { recordId: 'S1C2' }), ACCOUNT_LIBRARY),
+    'https://catalogue.example.org/record/S1C2');
+  assert.ok(nb.links.linkFor(PACK_WORK, ACCOUNT_LIBRARY).indexOf('/search?') !== -1,
+    'a pack id is still never a record id');
+});
+
+test('T8.12: an account link signs in and lands on that page of the library', () => {
+  assert.strictEqual(nb.links.accountLink(ACCOUNT_LIBRARY, 'holds'),
+    'https://catalogue.example.org/login?destination=%2Fholds');
+  assert.strictEqual(nb.links.accountLink(ACCOUNT_LIBRARY, 'forLater'),
+    'https://catalogue.example.org/login?destination=%2Fshelves%2Ffor_later');
+  assert.strictEqual(nb.links.accountLink(ACCOUNT_LIBRARY, 'checkedOut'), '', 'a page the library did not name: nothing');
+  assert.strictEqual(nb.links.accountLink(ACCOUNT_LIBRARY, 'signIn'), '');
+  assert.strictEqual(nb.links.accountLink(PACK_LIBRARY, 'holds'), '', 'a library with no account: nothing');
+});
+
+test('T8.12: sign in and hold lands on the book\'s own record page, and only for a record id', () => {
+  assert.strictEqual(nb.links.holdLink({ recordId: 'S234C4805630' }, ACCOUNT_LIBRARY),
+    'https://catalogue.example.org/login?destination=%2Frecord%2FS234C4805630');
+  assert.strictEqual(nb.links.holdLink(PACK_WORK, ACCOUNT_LIBRARY), '', 'no record id, no hold link');
+  assert.strictEqual(nb.links.holdLink({ title: 'A Typed Book', author: 'Someone' }, ACCOUNT_LIBRARY), '');
+  assert.strictEqual(nb.links.holdLink({ recordId: 'S1C2' }, PACK_LIBRARY), '', 'no sign-in template, nothing');
+});
+
+test('T8.12: the return address is only ever a path on the library\'s own host', () => {
+  assert.strictEqual(nb.links.signInTo('//evil.example.com/x', ACCOUNT_LIBRARY), '');
+  assert.strictEqual(nb.links.signInTo('https://evil.example.com/x', ACCOUNT_LIBRARY), '');
+  assert.strictEqual(nb.links.signInTo('holds', ACCOUNT_LIBRARY), '');
+  assert.strictEqual(nb.links.signInTo('/a b&c', ACCOUNT_LIBRARY),
+    'https://catalogue.example.org/login?destination=%2Fa%20b%26c', 'and it is encoded');
+});
+
+test('T8.12: a book a find brought in is held by its id, which is its record id', () => {
+  const found = { id: 'S111C222', title: 'The Turbulent Sun', author: 'Leon Golub', found: { query: 'the sun' } };
+  assert.strictEqual(nb.links.linkFor(found, ACCOUNT_LIBRARY), 'https://catalogue.example.org/record/S111C222');
+  assert.strictEqual(nb.links.holdLink(found, ACCOUNT_LIBRARY),
+    'https://catalogue.example.org/login?destination=%2Frecord%2FS111C222');
+});

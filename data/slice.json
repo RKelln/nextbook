@@ -3,8 +3,15 @@
   "library": {
     "name": "Toronto Public Library",
     "recordUrl": null,
+    "recordIdUrl": "https://tpl.bibliocommons.com/v2/record/{id}",
     "searchUrl": "https://tpl.bibliocommons.com/v2/search?searchType=keyword&query={q}",
-    "idPattern": "^[a-z0-9-]+$"
+    "idPattern": "^[a-z0-9-]+$",
+    "account": {
+      "signIn": "https://tpl.bibliocommons.com/user/login?destination={path}",
+      "holds": "/holds",
+      "forLater": "/collection/show/my/library/for_later",
+      "checkedOut": "/checkedout"
+    }
   },
   "fetched": "2026-11-03",
   "sources": [

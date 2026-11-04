@@ -12,6 +12,18 @@
       "properties": {
         "name": { "type": "string", "minLength": 1 },
         "recordUrl": { "type": ["string", "null"] },
+        "recordIdUrl": { "type": ["string", "null"] },
+        "account": {
+          "type": "object",
+          "required": ["signIn"],
+          "additionalProperties": false,
+          "properties": {
+            "signIn": { "type": "string", "minLength": 1 },
+            "holds": { "type": "string", "pattern": "^/[^/]" },
+            "forLater": { "type": "string", "pattern": "^/[^/]" },
+            "checkedOut": { "type": "string", "pattern": "^/[^/]" }
+          }
+        },
         "searchUrl": { "type": "string", "minLength": 1 },
         "idPattern": { "type": "string", "minLength": 1 }
       }
