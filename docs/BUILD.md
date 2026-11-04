@@ -336,7 +336,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   the app cannot make ("recommends", "knows you", "learns").
   *Done when:* the commit message lists what changed and says it was checked at 360 px and 1280 px, light and dark.
 
-- [ ] **T3.6 The events screen** (C, S, H). Last in priority; needs T2.9. `#events`: the snapshot's events with date,
+- [x] **T3.6 The events screen** (C, S, H). Last in priority; needs T2.9. `#events`: the snapshot's events with date,
   time, title, the summary, a link to the library's event page, and "Snapshot taken <date>. Check the library's page
   before you go."; a "Books for this event" button when the event-hook mode is loaded.
 
