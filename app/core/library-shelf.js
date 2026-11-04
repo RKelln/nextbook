@@ -11,13 +11,20 @@
 //     -> the same, from several saved pages of one shelf (docs/ARCHITECTURE.md, "The edges":
 //        a shelf is 25 books a page, so a long shelf is several files)
 //
+// A saved On Hold page (My Borrowing) is read too (D43). Its result carries `holds`:
+//   {entries, count, pages, pageNumbers, got, complete}   or null on any other page
+// and claims nothing about a shelf: the shelf items such a page carries are only the shelf
+// each held book is on, never a shelf listing, and its "1 to 2 of 2 items" counts holds.
+//
 // THE ONE SECURITY RULE OF THIS FILE (docs/DATA.md, "A person's own shelf page"): the same
 // file holds the person's card barcode, name, email, a session id and an auth token. So this
-// reader looks at exactly two things, `entities.shelves` and the `briefInfo` of the records
-// those items point at (`entities.bibs[metadataId].briefInfo`), and at nothing under
-// `users`, `accounts`, `auth`, `borrowing` or any other key. A work is built field by field
+// reader looks at `entities.shelves` and the `briefInfo` of the records those items point at
+// (`entities.bibs[metadataId].briefInfo`); on a holds page, at two fields of each hold
+// (`entities.holds[*].metadataId` and `holdPlacedDate`) and at the four numbers of
+// `borrowing.holds.pagination`; and at nothing under `users`, `accounts`, `auth`, the rest of
+// `borrowing` or any other key. A hold's pickup branch, queue place and ids are never read. A work is built field by field
 // from a list (see `workOf`), never copied whole, so a field this file does not name cannot
-// come out. tests/library-shelf.test.js puts all five decoys in the fixture and fails if any
+// come out. tests/library-shelf.test.js puts all five decoys in the fixtures and fails if any
 // of them appears anywhere in the output.
 //
 // The facet rules are a port of adapters/bibliocommons/normalise.py, with the tables from
@@ -46,7 +53,8 @@
     libraryShelfNoTitle: 'A book on the {shelf} shelf has no title on the page, so it was left out.',
     libraryShelfUnknownShelf: '{title}: the page says it is on a shelf called "{shelf}", which this app ' +
       'does not know, so it was left out.',
-    libraryShelfNoRecord: '{title}: the page does not carry this book\'s details, so it was left out.'
+    libraryShelfNoRecord: '{title}: the page does not carry this book\'s details, so it was left out.',
+    libraryHoldNoRecord: 'A book on hold has no details on the page, so it was left out.'
   });
 
   function t(key, vars) {
@@ -83,6 +91,7 @@
   var STATE_RANK = { want: 1, reading: 2, read: 3 };
 
   var FROM = 'library-shelf';
+  var FROM_HOLDS = 'library-holds';
 
   // 9 and 10 are loved, 7 and 8 liked, 5 and 6 ok, 1 to 4 not-for-me, 0 is not rated. The
   // same table as merge.js and import.js, repeated because a reader may load without them.
@@ -791,6 +800,85 @@
     });
   }
 
+  // ---- holds (D43) ----------------------------------------------------------------------------
+  // `borrowing.holds.pagination`, numbers only: {count, page, limit, pages}. A shelf page and a
+  // search page carry the key with an empty object, so a number in it is what makes a holds page.
+  function holdsPagination(state) {
+    var borrowing = isObj(state.borrowing) ? state.borrowing : null;
+    var holds = borrowing && isObj(borrowing.holds) ? borrowing.holds : null;
+    var pg = holds && isObj(holds.pagination) ? holds.pagination : null;
+    if (!pg) return null;
+    var out = {};
+    var any = false;
+    ['count', 'page', 'pages'].forEach(function (name) {
+      var n = pg[name];
+      out[name] = typeof n === 'number' && isFinite(n) && n >= 0 ? n : null;
+      if (out[name] !== null) any = true;
+    });
+    return any ? out : null;
+  }
+
+  function isHoldsPage(state) {
+    var holds = state.entities.holds;
+    return (isObj(holds) && Object.keys(holds).length > 0) || holdsPagination(state) !== null;
+  }
+
+  // The holds on this page as entries in the shape the merge takes, with a work for each. Two
+  // fields of a hold are read, by name; the rest of it is never touched.
+  function readHolds(state) {
+    var holds = isObj(state.entities.holds) ? state.entities.holds : {};
+    var bibs = isObj(state.entities.bibs) ? state.entities.bibs : {};
+    var raw = [];
+    var problems = [];
+    var ids = Object.keys(holds).sort();
+    for (var i = 0; i < ids.length; i++) {
+      var hold = holds[ids[i]];
+      if (!isObj(hold)) continue;
+      var recordId = str(hold.metadataId);
+      var brief = briefOf(bibs, recordId);
+      var title = collapse(brief ? brief.title : '');
+      if (!brief || !title || !normText(title)) {
+        if (problems.indexOf(t('libraryHoldNoRecord')) === -1) problems.push(t('libraryHoldNoRecord'));
+        continue;
+      }
+      var author = authorOf(brief, null);
+      var groupKey = str(brief.groupKey) || null;
+      raw.push({
+        brief: brief,
+        work: workOf(brief, recordId),
+        entry: {
+          key: keyFor(groupKey, title, author),
+          id: recordId,
+          groupKey: groupKey,
+          title: title,
+          author: author,
+          isbn: isbnOf(brief.isbns),
+          dateAdded: dateOf(hold.holdPlacedDate),
+          from: FROM_HOLDS
+        }
+      });
+    }
+    var entries = groupBy(raw.map(function (row) { return row.entry; }), function (entry) {
+      return entry.key;
+    }).map(function (group) { return group[0]; });
+    var pg = holdsPagination(state) || { count: null, page: null, pages: null };
+    var got = raw.length;
+    // Whole when the page says how many holds there are and every one of them was read. No
+    // count, no claim, the same rule as a shelf; a hold that could not be read means not whole.
+    var complete = problems.length === 0 && pg.count !== null && got >= pg.count;
+    return {
+      entries: entries,
+      works: workGroups(raw),
+      count: pg.count,
+      pages: pg.pages,
+      pageNumbers: pg.page !== null ? [pg.page] : [],
+      got: got,
+      missing: ids.length - got,
+      complete: complete,
+      problems: problems
+    };
+  }
+
   // ---- read -----------------------------------------------------------------------------------
   // `tally` is the page's own line (tallyOf), when the page was given as text. It is optional:
   // a caller with a state object only has the JSON, and then the shelf stays unknown.
@@ -924,13 +1012,28 @@
       pages: emptyPages(),
       problems: [],
       error: '',
-      seen: str(options.now)
+      seen: str(options.now),
+      holds: null
     };
 
     try {
       var state = stateOf(page);
       if (!state) {
         result.error = t('libraryShelfNotPage');
+        return result;
+      }
+      // An On Hold page says what is on hold and nothing else (D43). Its shelf items are only
+      // the shelf each held book is on, and its "1 to 2 of 2 items" counts holds: read as a
+      // shelf, it would call For Later whole with one book and mark the rest of it gone.
+      if (isHoldsPage(state)) {
+        var held = readHolds(state);
+        result.ok = true;
+        result.works = held.works;
+        result.problems = held.problems;
+        result.unknown = emptyUnknown();
+        delete held.works;
+        delete held.problems;
+        result.holds = held;
         return result;
       }
       // The state carries no totals, but the page's own words may (D39). Read from the text
@@ -962,7 +1065,8 @@
         pages: emptyPages(),
         problems: [],
         error: t('libraryShelfUnreadable'),
-        seen: str(options.now)
+        seen: str(options.now),
+        holds: null
       };
     }
   }
@@ -991,6 +1095,37 @@
     return reach > total;
   }
 
+  // Several saved On Hold pages, as one list. Whole when every hold was read and the pages
+  // cover the list: all of 1..pages saved, or as many holds as the page says there are.
+  function combineHolds(results) {
+    var parts = results.filter(function (r) { return isObj(r.holds); }).map(function (r) { return r.holds; });
+    if (!parts.length) return null;
+    var entries = [];
+    var count = null;
+    var pages = null;
+    var numbers = [];
+    var missing = 0;
+    parts.forEach(function (part) {
+      entries = entries.concat(arr(part.entries));
+      if (typeof part.count === 'number') count = count === null ? part.count : Math.max(count, part.count);
+      if (typeof part.pages === 'number') pages = pages === null ? part.pages : Math.max(pages, part.pages);
+      arr(part.pageNumbers).forEach(function (n) { if (numbers.indexOf(n) === -1) numbers.push(n); });
+      missing += typeof part.missing === 'number' ? part.missing : 0;
+    });
+    var byKey = groupBy(entries, function (entry) { return str(entry.key); }).map(function (g) { return g[0]; });
+    var covered = pages !== null && pages > 0;
+    for (var q = 1; covered && q <= pages; q++) if (numbers.indexOf(q) === -1) covered = false;
+    return {
+      entries: byKey,
+      count: count,
+      pages: pages,
+      pageNumbers: numbers.sort(function (a, b) { return a - b; }),
+      got: byKey.length,
+      missing: missing,
+      complete: missing === 0 && count !== null && (covered || byKey.length >= count)
+    };
+  }
+
   function combine(list) {
     var results = arr(list).filter(function (r) { return isObj(r) && Array.isArray(r.entries); });
     var out = {
@@ -1002,7 +1137,8 @@
       pages: emptyPages(),
       problems: [],
       error: '',
-      seen: ''
+      seen: '',
+      holds: null
     };
 
     if (!results.length) {
@@ -1136,6 +1272,7 @@
     }
 
     out.ok = anyOk;
+    out.holds = combineHolds(results);
     out.entries = combinedEntries;
     out.works = combinedWorks;
     out.problems = problems;

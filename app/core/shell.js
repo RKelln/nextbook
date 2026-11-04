@@ -1029,6 +1029,8 @@
     if (c.kept) parts.push(countLine(c.kept, 'listKeptOne', 'listKept', { n: c.kept }));
     if (c.gone) parts.push(countLine(c.gone, 'listGoneOne', 'listGone', { n: c.gone }));
     if (c.ignored) parts.push(countLine(c.ignored, 'listIgnoredOne', 'listIgnored', { n: c.ignored }));
+    if (c.held) parts.push(countLine(c.held, 'libHeldOne', 'libHeld', { n: c.held }));
+    if (c.unheld) parts.push(countLine(c.unheld, 'libUnheldOne', 'libUnheld', { n: c.unheld }));
     return parts.join(' ');
   }
 
@@ -1449,10 +1451,11 @@
 
     report.counts = isObj(plan.report)
       ? plan.report
-      : { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 };
+      : { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 };
     report.refusals = Array.isArray(plan.refusals) ? plan.refusals : [];
     report.tidy = Array.isArray(plan.tidy) ? plan.tidy : [];
     report.choose = Array.isArray(plan.choose) ? plan.choose : [];
+    report.unheld = Array.isArray(plan.unheld) ? plan.unheld : [];
     report.problems = Array.isArray(combined.problems) ? combined.problems : [];
 
     // The practice shelf refuses at the merge and hands back the shelf it was given, so
@@ -1510,7 +1513,7 @@
   // but the list itself only holds what is still open.
   function dropLibraryRow(row) {
     if (!isObj(state.libReport)) return;
-    ['tidy', 'choose'].forEach(function (name) {
+    ['tidy', 'choose', 'unheld'].forEach(function (name) {
       var list = Array.isArray(state.libReport[name]) ? state.libReport[name] : [];
       for (var i = 0; i < list.length; i++) {
         if (list[i] && list[i].key === row.key) { list.splice(i, 1); return; }
@@ -1638,6 +1641,26 @@
     return li;
   }
 
+  function libraryUnheldRow(row, n) {
+    return h('li', { class: 'nb-unheld-row', 'data-test': 'lib-unheld-' + n },
+      h('div', null,
+        h('strong', { class: 'nb-text' }, row.title),
+        row.author ? p(t('byLine', { author: row.author }), 'nb-by') : null),
+      button('lib-unheld-reading-' + n, t('libPickedUp'), function () {
+        var did = false;
+        try {
+          did = changeLibraryEntry(row.key, function (entry) {
+            entry.state = 'reading';
+            entry.updated = nowText();
+          });
+        } catch (e) { did = false; }
+        dropLibraryRow(row);
+        state.message = did ? t('libPickedUpDone', { title: row.title }) : t('shelfBroken');
+        render();
+        focusLibraryBlock();
+      }, 'nb-button nb-button-quiet nb-button-small'));
+  }
+
   function libraryReportBox() {
     var report = state.libReport;
     var box = h('div', { class: 'nb-list-report', 'data-test': 'lib-report' });
@@ -1686,6 +1709,16 @@
       box.appendChild(choose);
     }
 
+    // D43: a hold the library's whole list does not have went back to "want". Picked up,
+    // cancelled or run out: the page cannot say which, so the person does, in one tap.
+    if ((report.unheld || []).length) {
+      box.appendChild(h('h4', t('libUnheldHead')));
+      box.appendChild(p(t('libUnheldNote'), 'nb-hint'));
+      var gone = h('ul', { class: 'nb-unheld', 'data-test': 'lib-unheld' });
+      report.unheld.forEach(function (row, i) { gone.appendChild(libraryUnheldRow(row, i + 1)); });
+      box.appendChild(gone);
+    }
+
     if ((report.problems || []).length) {
       box.appendChild(h('h4', t('listProblems')));
       report.problems.forEach(function (sentence, i) {
@@ -1721,7 +1754,10 @@
     // The round trip, as steps, with the doors in them: each shelf opens on the library's own
     // page (signed in there, as T8.12's links do), so "save the page" is the only new thing.
     var steps = h('ol', { class: 'nb-steps', 'data-test': 'lib-steps' });
+    // The holds list too (D43): it is My Borrowing at the library, not a shelf, but it comes back
+    // the same way.
     var shelfLinks = Nextbook.library.shelves.map(function (s) { return [s.account, s.word]; })
+      .concat([['holds', 'accountOnHold']])
       .map(function (page) {
         var href = '';
         try { href = Nextbook.links.accountLink(library(), page[0]) || ''; } catch (e) { href = ''; }
@@ -3909,7 +3945,16 @@
     // bringing in the library's shelf (T8.8c)
     libHeading: 'Bring in your library shelf',
     libHelp: 'Moved a book at the library, or finished one? Bring the change in here. Do it again any time: a book changed here and there is shown so you can choose.',
-    libStepOpen: "Open a shelf at the library. You sign in there, not here.",
+    libStepOpen: "Open a shelf, or your holds, at the library. You sign in there, not here.",
+    accountOnHold: 'On Hold',
+    libHeldOne: '1 book is on hold.',
+    libHeld: '{n} books are on hold.',
+    libUnheldOne: '1 book is no longer on hold.',
+    libUnheld: '{n} books are no longer on hold.',
+    libUnheldHead: 'No longer on hold',
+    libUnheldNote: 'Your holds list at the library does not have these now, so they are back on Want to read. Picked one up? Say so.',
+    libPickedUp: 'I picked it up',
+    libPickedUpDone: '{title} is set to Reading.',
     libStepSave: 'Save the page, on a computer: press Ctrl+S, or Command+S on a Mac. A long shelf has more than one page: save each one.',
     libStepChoose: 'Choose the saved pages below, or drop them on the box.',
     libPrivacy: 'The page keeps the books, not the file. Delete the saved pages afterwards.',

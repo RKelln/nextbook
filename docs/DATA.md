@@ -165,6 +165,26 @@ opens in their own browser, signed in as themselves; the app links to them and n
 Placing a hold starts from the record page's own button. Its path, `/holds/select_hold/`, is disallowed to robots, and
 the app neither links into it nor builds one.
 
+## A person's own On Hold page (measured 2026-11-04)
+
+One real saved page (`/holds`, signed in, one hold), read for shape only with `research/probes/saved_page_shape.py`
+and two scripts that printed booleans and codes, kept outside the repo, never committed. The made-up
+`tests/fixtures/tpl/holds-page.html` has the same shape.
+
+| Where | What | Read by the app |
+|---|---|---|
+| `entities.holds[<holdsId>]` | `metadataId` (the record id, `S…C…`), `holdPlacedDate`, `expiryDate`, `status` (`NOT_YET_AVAILABLE` seen), `holdsPosition`, `pickupLocation {code, name}`, `itemId`, `holdsId`, `materialType`, `actions`, `bibTitle` | `metadataId` and `holdPlacedDate` only |
+| `entities.bibs[<metadataId>].briefInfo` | the book, as on a shelf page (`groupKey`, title, authors, …) | yes, as for a shelf |
+| `borrowing.holds.pagination` | `{count, page, limit: 25, pages}`; `{}` on a shelf page and a search page | the numbers |
+| `borrowing.holds.items`, `.summary` | the holds ids on this page; `totalOperative`, a count per status, quotas | no |
+| `entities.shelves` | the shelf each held book is on (the held book was on For Later), **not** a shelf listing | no |
+| page text | "1 to 1 of 1 items", the holds count, in the same words as a shelf's count line (D39) | no: read as a shelf line it would call For Later whole |
+| `users`, `accounts`, `auth` | name, email, barcode, session, token, as on every signed-in page | never |
+
+Cancelled and expired holds are not in the list (`borrowing.inactiveHolds`, separate pages). Not yet seen: a page with
+no holds (whether `pagination.count` is 0 or the key is empty), a page of more than 25, and any status but
+`NOT_YET_AVAILABLE`.
+
 ## A person's own shelf page (measured 2026-11-03, re-checked on two saved pages 2026-11-04)
 
 What a signed-in "Completed" shelf page carries when the person saves it from their browser. Read by

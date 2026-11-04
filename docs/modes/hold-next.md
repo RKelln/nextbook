@@ -44,7 +44,7 @@ keeps the list but cannot answer that, because it does not know what you loved.
   gives a "want" no weight; a hand-made profile must do the same.
 - Counting a held book as a candidate. The practice shelf has one on hold, so the standard shelves catch it.
 - Promising more than a link can do. The app never places a hold and never knows how long the queue is. "On hold"
-  is what the person told the app, not what the library says. Say "on the library's page", not "held".
+  is what the person told the app, or what the last saved On Hold page they brought in said, never live. Say "on the library's page", not "held".
 
 **Out of scope:** placing the hold for the person, hold queues and wait times, availability, which branch to pick up
 from, how many holds a card allows. All of that is on the library's page, behind the person's own sign-in. The

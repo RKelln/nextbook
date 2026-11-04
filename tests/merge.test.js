@@ -65,7 +65,7 @@ const one = (out) => out.entries.filter((e) => e.key === 'w:g1')[0];
 test('row 1: new at the library, not here, is added', () => {
   const out = plan([there(1, 'read', 'loved')], []);
 
-  assert.deepStrictEqual(out.report, { added: 1, updated: 0, kept: 0, gone: 0, ignored: 0 });
+  assert.deepStrictEqual(out.report, { added: 1, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 });
   assert.strictEqual(out.entries.length, 1);
   const added = one(out);
   assert.strictEqual(added.state, 'read');
@@ -137,7 +137,7 @@ test('row 5: changed in both the same way, nothing to do', () => {
   const ours = [Object.assign(here(1, 'read', 'loved'), { library: memory('for_later', 10) })];
   const out = plan([there(1, 'read', 'loved')], ours);
 
-  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 });
+  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 });
   assert.deepStrictEqual(out.tidy, []);
   assert.deepStrictEqual(out.choose, []);
   assert.strictEqual(one(out).library.shelf, 'completed', 'B still moves to L');
@@ -176,7 +176,7 @@ test('row 7: on the app shelf, never at the library, is nothing at all', () => {
   const ours = [here(1, 'want', 'loved')];
   const out = plan([], ours);
 
-  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 });
+  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 });
   assert.deepStrictEqual(out.tidy, []);
   assert.deepStrictEqual(out.choose, []);
   assert.deepStrictEqual(out.entries, plain(ours), 'not even a memory is added');
@@ -195,7 +195,7 @@ test('row 8: first import with the book already here asks when they disagree', (
   assert.strictEqual(entry.library.seen, NOW);
 
   const agree = plan([there(1, 'read', 'loved')], [here(1, 'read', 'loved')]);
-  assert.deepStrictEqual(agree.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 });
+  assert.deepStrictEqual(agree.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 });
   assert.strictEqual(agree.choose.length, 0);
   assert.strictEqual(one(agree).library.shelf, 'completed', 'agreement still starts the memory');
 });
@@ -294,7 +294,7 @@ test('edge: the practice shelf refuses a real import in words and changes nothin
   const out = plan([there(1, 'read', 'ok')], ours, ALL_COMPLETE, { practice: true });
 
   assert.deepStrictEqual(out.entries, plain(ours), 'not one byte changes');
-  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 });
+  assert.deepStrictEqual(out.report, { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 });
   assert.deepStrictEqual(out.tidy, []);
   assert.deepStrictEqual(out.choose, []);
   assert.strictEqual(out.refusals.length, 1);
@@ -324,4 +324,100 @@ test('hold: the first import beside a held book on For Later is not a disagreeme
   const out = plan([there(1, 'want', null)], [here(1, 'hold', null)]);
   assert.strictEqual(one(out).state, 'hold');
   assert.strictEqual(out.choose.length, 0);
+});
+
+// ---- D43: the library's holds list, after the shelves ------------------------------------------
+const NONE_COMPLETE = { for_later: false, in_progress: false, completed: false };
+const NONE_KNOWN = { for_later: true, in_progress: true, completed: true };
+function held(n) {
+  return { key: 'w:g' + n, id: n, groupKey: 'g' + n, title: 'A Book ' + n, author: 'A Writer', from: 'library-holds' };
+}
+function withHolds(ours, holds, complete, extra) {
+  return plain(nb.merge.plan(Object.assign({
+    entries: [], works: [], complete: NONE_COMPLETE, unknown: NONE_KNOWN,
+    holds: { entries: holds, count: holds.length, complete: complete !== false }
+  }, extra || {}), ours, { now: NOW, practice: false }));
+}
+const stateOf = (out, n) => out.entries.filter((e) => e.key === 'w:g' + n)[0].state;
+
+test('holds: a held book not here is added as on hold, with no rating', () => {
+  const out = withHolds([], [held(1)]);
+  assert.strictEqual(out.entries.length, 1);
+  assert.strictEqual(out.entries[0].state, 'hold');
+  assert.strictEqual(out.entries[0].rating, null);
+  assert.strictEqual(out.entries[0].updated, NOW);
+  assert.strictEqual(out.report.held, 1);
+  assert.deepStrictEqual(out.refusals, []);
+});
+
+test('holds: want becomes hold; hold stays and is not counted again', () => {
+  const out = withHolds([here(1, 'want', null), here(2, 'hold', null)], [held(1), held(2)]);
+  assert.strictEqual(stateOf(out, 1), 'hold');
+  assert.strictEqual(stateOf(out, 2), 'hold');
+  assert.strictEqual(out.report.held, 1);
+});
+
+test('holds: reading, read and stopped are left alone: the person has moved past the hold', () => {
+  const out = withHolds([here(1, 'reading', null), here(2, 'read', 'loved'), here(3, 'stopped', null)],
+    [held(1), held(2), held(3)]);
+  assert.deepStrictEqual([1, 2, 3].map((n) => stateOf(out, n)), ['reading', 'read', 'stopped']);
+  assert.strictEqual(out.report.held, 0);
+});
+
+test('holds: from a whole list, a hold here that is not on it goes back to want, and is named', () => {
+  const out = withHolds([here(1, 'hold', null), here(2, 'hold', null), here(3, 'want', null)], [held(2)]);
+  assert.strictEqual(stateOf(out, 1), 'want');
+  assert.strictEqual(stateOf(out, 2), 'hold');
+  assert.strictEqual(stateOf(out, 3), 'want');
+  assert.strictEqual(out.report.unheld, 1);
+  assert.deepStrictEqual(out.unheld, [{ key: 'w:g1', title: 'A Book 1', author: 'A Writer' }]);
+});
+
+test('holds: an empty whole list takes every hold off', () => {
+  const out = withHolds([here(1, 'hold', null), here(2, 'hold', null)], []);
+  assert.deepStrictEqual([stateOf(out, 1), stateOf(out, 2)], ['want', 'want']);
+  assert.strictEqual(out.report.unheld, 2);
+});
+
+test('holds: a partial list adds holds but takes none off, and says so', () => {
+  const out = withHolds([here(1, 'hold', null), here(2, 'want', null)], [held(2)], false);
+  assert.strictEqual(stateOf(out, 1), 'hold', 'not on this page is not "gone"');
+  assert.strictEqual(stateOf(out, 2), 'hold');
+  assert.strictEqual(out.report.unheld, 0);
+  assert.deepStrictEqual(out.refusals, [nb.t('importPartialHolds')]);
+});
+
+test('holds: no holds page in the import touches no hold', () => {
+  const out = plan([], [here(1, 'hold', null)], NONE_COMPLETE);
+  assert.strictEqual(stateOf(out, 1), 'hold');
+  assert.deepStrictEqual(out.unheld, []);
+  assert.strictEqual(out.report.held + out.report.unheld, 0);
+});
+
+test('holds: a shelf page and a holds page together: a book new on both is one entry, on hold', () => {
+  const out = withHolds([], [held(1)], true, {
+    entries: [there(1, 'want', null)], complete: { for_later: true, in_progress: false, completed: false },
+    unknown: { for_later: false, in_progress: true, completed: true }
+  });
+  assert.strictEqual(out.entries.length, 1);
+  assert.strictEqual(out.entries[0].state, 'hold');
+  assert.strictEqual(out.entries[0].library.shelf, 'for_later', 'the shelf memory is kept');
+  assert.strictEqual(out.report.added, 1);
+  assert.strictEqual(out.report.held, 1);
+});
+
+test('holds: the library moved a held book to In Progress: the shelf wins, and the hold is not undone twice', () => {
+  const mine = [Object.assign(here(1, 'hold', null), { library: memory('for_later', 0) })];
+  const out = withHolds(mine, [], true, {
+    entries: [there(1, 'reading', null)], complete: ALL_COMPLETE, unknown: { for_later: false, in_progress: false, completed: false }
+  });
+  assert.strictEqual(stateOf(out, 1), 'reading', 'the shelf pass followed the library');
+  assert.strictEqual(out.report.unheld, 0, 'reading is not a hold, so nothing comes off');
+});
+
+test('holds: the practice shelf refuses holds as it refuses shelves', () => {
+  const out = plain(nb.merge.plan({ entries: [], holds: { entries: [held(1)], complete: true } }, [],
+    { now: NOW, practice: true }));
+  assert.deepStrictEqual(out.entries, []);
+  assert.deepStrictEqual(out.unheld, []);
 });

@@ -473,5 +473,29 @@ states are now `want`, `hold`, `reading`, `read` and `stopped`, in that order on
   hold and a mode that treats "not want" as "read" fails its check.
 
 Holds still do not come in from the library: a saved holds page is unmeasured (`BUILD.md`, Open questions). When it
-is, an import could set `hold` and clear it, and this decision says what it would set.
+is, an import could set `hold` and clear it, and this decision says what it would set. (It was measured the same day:
+D43.)
+
+## D43. The holds list comes back like a shelf (2026-11-04, Ryan)
+
+Ryan saved his On Hold page (My Borrowing) and asked for the app to read it. Measured for shape only (`DATA.md`, "A
+person's own On Hold page"): each hold names its record by `metadataId`, the page carries that book's `briefInfo`, and
+`borrowing.holds.pagination` says how many holds there are. So it goes in the same drop box as the shelf pages, as part
+of the same one import with one Undo.
+
+- **What it sets.** A held book that is not here is added as `hold`. A `want` becomes `hold`. `reading`, `read` and
+  `stopped` stay: the person has moved past it, and a hold for a re-read says nothing new. `hold` stays `hold`.
+- **What it takes off.** Only from a whole list (every hold the page counts was read): a `hold` here that the list does
+  not have goes back to `want`, and the report names it with "I picked it up" (to Reading). The page cannot say whether
+  a hold was picked up, cancelled or ran out, so it asks rather than guesses. A partial list takes nothing off and says
+  so (`importPartialHolds`).
+- **After the shelves.** The shelf pass runs first, with `hold` seen as `want` (D42), so a book the library moved to
+  In Progress takes that answer and is no longer a hold to take off.
+- **What it never reads.** Two fields of each hold (`metadataId`, `holdPlacedDate`) and the four numbers of the
+  pagination. Pickup branch, queue place, hold and item ids, status, the barcode and the rest are never touched; the
+  test fixture carries decoys in all of them. The status is not read because only one value (`NOT_YET_AVAILABLE`) has
+  been seen; "ready to pick up" could be a later step once a page with one is measured.
+- **A bug it fixed.** Before this, a holds page dropped in the box was read as a shelf page: its "1 to 1 of 1 items"
+  became For Later's count, so For Later was called whole with one book and every other For Later book was listed as
+  gone. A holds page now says nothing about any shelf.
 

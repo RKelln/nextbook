@@ -547,13 +547,11 @@ Found by the build's reviews, judged not worth a change now, and written down so
 
 ## Open questions
 
-- **Can holds come back in?** (2026-11-04, from D41.) A saved holds page (`/holds`, signed in) has not been measured.
-  If it carries the books with record ids, as a saved shelf page does, an import could mark a want-to-read book as on
-  hold, and hold-next could skip it. The state exists now (D42); what an import would do with it (set it, clear it
-  when a hold is gone) is still open. Measure first: save the page by hand, read it with
-  `research/probes/saved_page_shape.py`, never commit it. Checked Out and Borrowing History are the same kind of
-  question (ARCHITECTURE, "Lining up with the library's own shelves", the table of pages not read yet); each would
-  be one row in `Nextbook.library` (core/base.js) once its page is measured.
+- **Can holds come back in?** (2026-11-04, from D41.) Yes, since D43: a saved On Hold page goes in the same drop box.
+  Still open: a page with no holds has not been seen (the reader assumes `pagination.count` 0 means an empty whole
+  list, and a page with an empty `pagination` is not taken for a holds page at all, so nothing comes off); nor a page
+  of more than 25 holds, nor a status but `NOT_YET_AVAILABLE`. Checked Out and Borrowing History are the same kind of
+  question (ARCHITECTURE, "Lining up with the library's own shelves"), not read yet.
 
 - **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how
   much. It would be a new stored field (store, merge, export, the CSV and shelf readers, the contract's standard

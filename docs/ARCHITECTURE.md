@@ -204,7 +204,8 @@ import readers use too.
 `hold` is ours alone (D42). The library keeps holds apart from its shelves, and a held book usually sits on For Later
 too, so when the merge compares with the library a `hold` counts as `want`: For Later unchanged never undoes a hold,
 and a book the library moved to In Progress or Completed takes the library's answer. Only the person sets `hold`, by
-hand or with "Yes, it's on hold" after "Sign in and hold"; no import brings it in.
+hand, with "Yes, it's on hold" after "Sign in and hold", or by bringing in a saved On Hold page (D43): a held
+book becomes `hold` unless it is past `want` here, and from a whole list a `hold` the list lacks goes back to `want`.
 
 In code this is one table, `Nextbook.library` in `app/core/base.js`: each shelf's code, its state, the key of its
 address in the library's `account` block, and its words; plus `seenAs`, which says how a state with no shelf of its
@@ -217,12 +218,14 @@ Borrowing is three more lists, and Lists are the person's own:
 
 | Library page | Could mean | Which way |
 |---|---|---|
-| My Borrowing: On Hold | `hold`, set and cleared by an import | in only: the app never places a hold |
+| My Borrowing: On Hold | `hold`, set and cleared by an import: **read since D43** | in only: the app never places a hold |
 | My Borrowing: Checked Out | a question, "set these to Reading?" (borrowed is not reading) | in only |
 | My Borrowing: Borrowing History | a question, "did you read these?"; only kept if the person turned history on | in only |
 | Lists (made and shared by the person) | no state; perhaps a second shelf for swap or club-season | link only for now |
 
-None of these is read yet: each needs a saved page measured first (`DATA.md`), read for its shape only.
+Only On Hold is read (D43, `readHolds` in `app/core/library-shelf.js`, applied by `applyHolds` in `merge.js`); it is
+not a shelf, so it is not a row of `Nextbook.library`. Each of the others needs a saved page measured first (`DATA.md`),
+read for its shape only.
 
 Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
 lands on the same works with no fuzzy matching — which is what `app/core/library-shelf.js` relies on. The shapes were

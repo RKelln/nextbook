@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>On Hold | Toronto Public Library | BiblioCommons</title>
+</head>
+<body>
+<!--
+  A made-up account's On Hold page (My Borrowing), in the shape docs/DATA.md measured on a
+  real saved page on 2026-11-04. Two holds, on books the shelf fixtures already carry
+  (Piranesi, S1004, which is also on For Later; The Dispossessed, S1005, on no shelf).
+  Every personal field holds a decoy -- the pickup branch, the hold and item ids, the
+  queue position, the barcode, the name, the session -- so a test can prove the reader
+  never returns one. The page's own line, "1 to 2 of 2 items", counts holds, not a shelf.
+-->
+<div id="app"><h1>On Hold</h1>
+  <div class="sort"><span>Sort by</span> <span>Hold date</span></div>
+  <div class="pagination"><span>1 to 2 of 2 items</span></div>
+</div>
+
+<script type="application/json" id="bc-initial-state">
+{
+  "entities": {
+    "shelves": {
+      "N0TPERS0N": {
+        "2997315299": {
+          "id": 2997315299,
+          "metadataId": "S1004",
+          "shelf": "for_later",
+          "privateItem": true,
+          "dateAdded": "2026-10-20",
+          "authors": null,
+          "title": null,
+          "rating": 0
+        }
+      }
+    },
+    "holds": {
+      "H0TR3AL1": {
+        "materialType": "PHYSICAL",
+        "expiryDate": "2027-11-04",
+        "metadataId": "S1004",
+        "holdPlacedDate": "2026-11-04",
+        "itemId": "ITEM-N0TR3AL",
+        "holdsId": "H0TR3AL1",
+        "pickupLocation": { "code": "ZZ", "name": "NOT A REAL BRANCH", "ips": [] },
+        "status": "NOT_YET_AVAILABLE",
+        "holdsPosition": 7,
+        "actions": ["cancel", "suspend", "updateLocation", "updateExpiry"],
+        "bibTitle": "Piranesi"
+      },
+      "H0TR3AL2": {
+        "materialType": "PHYSICAL",
+        "expiryDate": "2027-11-02",
+        "metadataId": "S1005",
+        "holdPlacedDate": "2026-11-02",
+        "itemId": "ITEM-N0TR3AL2",
+        "holdsId": "H0TR3AL2",
+        "pickupLocation": { "code": "ZZ", "name": "NOT A REAL BRANCH", "ips": [] },
+        "status": "READY_FOR_PICKUP",
+        "holdsPosition": 1,
+        "actions": ["cancel"],
+        "bibTitle": "The Dispossessed"
+      }
+    },
+    "bibs": {
+      "S1004": {
+        "briefInfo": {
+          "id": "S1004",
+          "metadataId": "S1004",
+          "groupKey": "piranesi�clarke_susanna�text_eng",
+          "title": "Piranesi",
+          "subtitle": null,
+          "authors": ["Clarke, Susanna"],
+          "publicationDate": "2020",
+          "isbns": ["9781635575637"],
+          "callNumber": null,
+          "format": "BK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [],
+          "subjectHeadings": ["Fantasy fiction", "Labyrinths -- Fiction", "Fiction"],
+          "genreForm": ["Fantasy"],
+          "description": "<p>A blurb on the Piranesi record.</p>",
+          "jacket": "https://example.invalid/jacket/piranesi.jpg",
+          "rating": 4
+        }
+      },
+      "S1005": {
+        "briefInfo": {
+          "id": "S1005",
+          "metadataId": "S1005",
+          "groupKey": "the_dispossessed�guin_ursula_k_le�text_eng",
+          "title": "The Dispossessed",
+          "subtitle": null,
+          "authors": ["Guin, Ursula K. Le"],
+          "publicationDate": "1974",
+          "isbns": ["9780061054884"],
+          "callNumber": "FIC LEG",
+          "format": "BK",
+          "contentType": "FICTION",
+          "audiences": ["ADULT"],
+          "primaryLanguage": "eng",
+          "series": [{ "name": "Hainish Cycle", "volume": null }],
+          "subjectHeadings": ["Science fiction", "Anarchism -- Fiction", "Fiction"],
+          "genreForm": ["Science Fiction"],
+          "description": "<p>A blurb the reader must never keep.</p>",
+          "jacket": "https://example.invalid/jacket/dispossessed.jpg",
+          "rating": 4.5
+        }
+      }
+    },
+    "users": {
+      "N0TPERS0N": {
+        "name": "Nora Notaperson",
+        "email": "n0ra.notaperson@example.invalid",
+        "barcode": "99999000000000"
+      }
+    },
+    "accounts": {
+      "acct-N0TR3AL": { "barcode": "99999000000000", "displayName": "Nora Notaperson" }
+    }
+  },
+  "auth": {
+    "sessionId": "session-N0TR3ALSESSION",
+    "authToken": "token-N0TR3ALTOKEN"
+  },
+  "borrowing": {
+    "holds": {
+      "items": ["H0TR3AL1", "H0TR3AL2"],
+      "summary": { "totalOperative": 2, "status": { "NOT_YET_AVAILABLE": 1, "READY_FOR_PICKUP": 1 } },
+      "pagination": { "count": 2, "page": 1, "limit": 25, "pages": 1 }
+    },
+    "fines": { "results": [{ "amount": "NOT-A-REAL-FINE" }] }
+  }
+}
+</script>
+
+<div class="pagination"><span>1 to 2 of 2 items</span></div>
+</body>
+</html>

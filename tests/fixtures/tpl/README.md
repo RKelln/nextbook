@@ -51,3 +51,12 @@ words do (D39, measured on two real pages 2026-11-04). The first page holds item
 shelves -- the case a real shelf page never has -- so its line is deliberately not attributed;
 the second holds one shelf's items, so its line is. The line is the only reason those numbers are
 in the fixtures, and the reader is not told about them any other way.
+
+## On Hold page
+
+`holds-page.html` is **made up** in the shape `docs/DATA.md` measured on one real saved page ("A person's own On
+Hold page", 2026-11-04). Two holds, on books the shelf fixtures already carry: Piranesi (S1004, also on For Later in
+`entities.shelves`, as the real page had its held book) and The Dispossessed (S1005, status `READY_FOR_PICKUP`, a
+value not yet seen on a real page: it is there as a decoy, since the reader never reads a status). Every personal
+field holds a decoy (pickup branch, hold and item ids, queue place, barcode, name, session, token, a fine), so
+`tests/library-shelf.test.js` can prove none comes out. Its "1 to 2 of 2 items" counts holds, not a shelf.

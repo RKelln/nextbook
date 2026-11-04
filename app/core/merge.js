@@ -15,7 +15,12 @@
 // rating out of 10 is kept in B (`rating10`) but never compared, so 9 and 10 agree.
 //
 //   Nextbook.merge.plan(brought, ours, {now, practice})
-//     -> {entries, report, tidy, choose, refusals}
+//     -> {entries, report, tidy, choose, refusals, unheld}
+//
+// `brought.holds`, when the import had an On Hold page (D43), is the library's list of holds.
+// It is applied after the shelves, as its own small rule (applyHolds): a held book is "hold"
+// here unless the person has moved past it, and from a whole list, a "hold" that is not on it
+// goes back to "want". `unheld` names those, so the screen can offer "I picked it up".
 //
 // `entries` is the shelf as it should be after the import. `tidy` rows are for "Tidy up at
 // the library"; `choose` rows are for "Which is right?". `report` counts are ready to turn
@@ -40,7 +45,8 @@
   }
   addStrings({
     importPracticeRefused: 'The practice shelf does not take a real import. Do this at home, on your own shelf.',
-    importPartialShelf: 'Your {shelf} shelf was not fully saved, so nothing was taken off it.'
+    importPartialShelf: 'Your {shelf} shelf was not fully saved, so nothing was taken off it.',
+    importPartialHolds: 'Your holds list was not fully saved, so no hold was taken off.'
   });
 
   function t(key, vars) {
@@ -404,13 +410,71 @@
     if (now) entry.updated = now;
   }
 
+  // ---- holds (D43) ----------------------------------------------------------------------------
+  // The library's holds list against ours, after the shelves. Only "want" (or no entry) becomes
+  // "hold": a book here as reading, read or stopped stays as it is, because the person has
+  // moved past it (a hold for a re-read says nothing new). From a whole list, a "hold" here that
+  // the list does not have goes back to "want": the hold was picked up, cancelled or ran out,
+  // and the app cannot tell which, so the screen asks. A partial list takes no hold off.
+  function applyHolds(mine, holds, now, report, refusals) {
+    var unheld = [];
+    var list = Array.isArray(holds.entries) ? holds.entries.filter(isObj) : [];
+    var index = indexOurs(mine); // again: the shelves may have added books
+    var used = Object.create(null);
+    var held = Object.create(null); // index -> true
+    var i;
+    for (i = 0; i < list.length; i++) {
+      var work = list[i];
+      var at = findOurs(index, work, used);
+      if (at === -1) {
+        var fresh = {
+          key: keyFor(work),
+          id: work.id,
+          groupKey: work.groupKey,
+          state: 'hold',
+          rating: null,
+          updated: now,
+          title: str(work.title),
+          author: str(work.author),
+          from: str(work.from) || 'library-holds'
+        };
+        if (!fresh.key) continue;
+        mine.push(fresh);
+        held[mine.length - 1] = true;
+        report.held += 1;
+        continue;
+      }
+      used[at] = true;
+      held[at] = true;
+      var entry = mine[at];
+      if (entry.state === 'want') {
+        entry.state = 'hold';
+        if (now) entry.updated = now;
+        report.held += 1;
+      }
+    }
+    if (holds.complete !== true) {
+      if (list.length || typeof holds.count === 'number') refusals.push(t('importPartialHolds'));
+      return unheld;
+    }
+    for (i = 0; i < mine.length; i++) {
+      var here = mine[i];
+      if (held[i] || !isObj(here) || here.state !== 'hold') continue;
+      here.state = 'want';
+      if (now) here.updated = now;
+      report.unheld += 1;
+      unheld.push({ key: str(here.key), title: str(here.title), author: str(here.author) });
+    }
+    return unheld;
+  }
+
   function plan(brought, ours, opts) {
     var options = isObj(opts) ? opts : {};
     var now = str(options.now);
     var mine = clone(Array.isArray(ours) ? ours : []);
     if (!Array.isArray(mine)) mine = [];
 
-    var report = { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 };
+    var report = { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0, held: 0, unheld: 0 };
     var tidy = [];
     var choose = [];
     var refusals = [];
@@ -419,7 +483,7 @@
     // does not belong there, especially not on a shared library computer.
     if (options.practice) {
       refusals.push(t('importPracticeRefused'));
-      return { entries: mine, report: report, tidy: tidy, choose: choose, refusals: refusals };
+      return { entries: mine, report: report, tidy: tidy, choose: choose, refusals: refusals, unheld: [] };
     }
 
     var source = isObj(brought) ? brought : {};
@@ -484,7 +548,9 @@
       }
     }
 
-    return { entries: mine, report: report, tidy: tidy, choose: choose, refusals: refusals };
+    var unheld = isObj(source.holds) ? applyHolds(mine, source.holds, now, report, refusals) : [];
+
+    return { entries: mine, report: report, tidy: tidy, choose: choose, refusals: refusals, unheld: unheld };
   }
 
   Nextbook.merge.plan = plan;

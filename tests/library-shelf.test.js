@@ -631,3 +631,78 @@ test('a last page on its own is not the shelf, however high its Y', () => {
   assert.strictEqual(covered.unknown.completed, false);
   assert.strictEqual(covered.complete.completed, true, 'the ranges together cover 1..40');
 });
+
+// ---- D43: an On Hold page -------------------------------------------------------------------------
+const holdsPage = PAGE('holds-page.html');
+
+test('holds: an On Hold page gives the holds, with a work each, and says nothing about a shelf', () => {
+  const out = plain(nb.libraryShelf.read(holdsPage, { now: NOW }));
+  assert.strictEqual(out.ok, true);
+  assert.deepStrictEqual(out.entries, [], 'its shelf items are not a shelf listing');
+  assert.deepStrictEqual(out.complete, { for_later: false, in_progress: false, completed: false },
+    'its "1 to 2 of 2 items" is the holds count, so no shelf is called whole');
+  assert.deepStrictEqual(out.unknown, { for_later: true, in_progress: true, completed: true });
+  assert.deepStrictEqual(out.holds.entries.map((e) => [e.title, e.id, e.dateAdded, e.from]), [
+    ['Piranesi', 'S1004', '2026-11-04', 'library-holds'],
+    ['The Dispossessed', 'S1005', '2026-11-02', 'library-holds'],
+  ]);
+  assert.strictEqual(out.holds.count, 2);
+  assert.strictEqual(out.holds.complete, true);
+  assert.deepStrictEqual(out.works.map((w) => w.title).sort(), ['Piranesi', 'The Dispossessed']);
+});
+
+test('holds: a shelf page and a search page have none', () => {
+  assert.strictEqual(plain(nb.libraryShelf.read(pageOne)).holds, null);
+  assert.strictEqual(plain(nb.libraryShelf.read(pageTwo)).holds, null);
+  assert.strictEqual(plain(nb.libraryShelf.combine([one, two])).holds, null);
+});
+
+test('holds: no pickup branch, queue place, hold id, barcode, name or token comes out', () => {
+  const out = JSON.stringify(plain(nb.libraryShelf.read(holdsPage, { now: NOW })));
+  ['NOT A REAL BRANCH', 'H0TR3AL1', 'ITEM-N0TR3AL', 'READY_FOR_PICKUP', 'holdsPosition', 'pickupLocation',
+    '99999000000000', 'Nora Notaperson', 'session-N0TR3ALSESSION', 'token-N0TR3ALTOKEN', 'NOT-A-REAL-FINE',
+    'A blurb'].forEach((decoy) => {
+    assert.strictEqual(out.indexOf(decoy), -1, 'the reader returned ' + decoy);
+    assert.ok(holdsPage.indexOf(decoy) !== -1 || decoy === 'A blurb', decoy + ' is in the fixture');
+  });
+});
+
+// A holds page by hand: `n` holds stated, the given record ids on this page.
+function holdsMini(ids, pagination) {
+  const holds = {};
+  const bibs = {};
+  ids.forEach((id, i) => {
+    holds['H' + i + id] = { metadataId: id, holdPlacedDate: '2026-11-0' + (i + 1), status: 'NOT_YET_AVAILABLE' };
+    bibs[id] = { briefInfo: { id, metadataId: id, groupKey: 'g-' + id, title: 'Held ' + id, authors: ['Writer, A'] } };
+  });
+  return { entities: { holds, bibs }, borrowing: { holds: { pagination } } };
+}
+
+test('holds: a list is whole only when every hold the page counts was read', () => {
+  const p1 = plain(nb.libraryShelf.read(holdsMini(['S1', 'S2'], { count: 3, page: 1, limit: 2, pages: 2 })));
+  assert.strictEqual(p1.holds.complete, false, 'page 1 of 2');
+  const p2 = plain(nb.libraryShelf.read(holdsMini(['S3'], { count: 3, page: 2, limit: 2, pages: 2 })));
+  const both = plain(nb.libraryShelf.combine([p1, p2]));
+  assert.strictEqual(both.holds.complete, true, 'pages 1 and 2 of 2');
+  assert.strictEqual(both.holds.entries.length, 3);
+  const again = plain(nb.libraryShelf.combine([p1, p1]));
+  assert.strictEqual(again.holds.complete, false, 'the same page twice is still page 1 of 2');
+  const noCount = plain(nb.libraryShelf.read(holdsMini(['S1'], { page: 1 })));
+  assert.strictEqual(noCount.holds.complete, false, 'no count, no claim');
+});
+
+test('holds: an empty list that says 0 is whole, so every hold can come off', () => {
+  const out = plain(nb.libraryShelf.read({ entities: {}, borrowing: { holds: { pagination: { count: 0, page: 1, limit: 25, pages: 0 } } } }));
+  assert.strictEqual(out.ok, true);
+  assert.deepStrictEqual(out.holds.entries, []);
+  assert.strictEqual(out.holds.complete, true);
+});
+
+test('holds: a hold whose book is not on the page is said, and the list is not whole', () => {
+  const page = holdsMini(['S1', 'S2'], { count: 2, page: 1, limit: 25, pages: 1 });
+  delete page.entities.bibs.S2;
+  const out = plain(nb.libraryShelf.read(page));
+  assert.strictEqual(out.holds.entries.length, 1);
+  assert.strictEqual(out.holds.complete, false);
+  assert.deepStrictEqual(out.problems, [nb.t('libraryHoldNoRecord')]);
+});

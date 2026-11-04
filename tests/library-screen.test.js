@@ -514,3 +514,66 @@ test('back from the library on the practice shelf says nothing, because it canno
   assert.strictEqual(all(doc, '[role]').filter((el) => el.getAttribute('role') === 'status').length, 0);
 });
 
+
+// ---- D43: the holds list comes back the same way ------------------------------------------------
+const holdsPage = fs.readFileSync(path.join(root, 'tests/fixtures/tpl/holds-page.html'), 'utf8');
+function holdShelf() {
+  return [
+    { key: PIRANESI.key, title: PIRANESI.title, author: PIRANESI.author, state: 'want', rating: null,
+      updated: '2026-01-01T00:00:00Z' },
+    { key: TOMBS_KEY, title: 'The Tombs of Atuan', author: 'Ursula K. Le Guin', state: 'hold', rating: null,
+      updated: '2026-01-01T00:00:00Z' },
+  ];
+}
+
+test('H1: the steps open the On Hold page too', () => {
+  const { nb, doc } = ownShelf();
+  const link = byTest(doc, 'lib-open-holds');
+  assert.ok(link, 'the holds link is in the steps');
+  assert.strictEqual(link.textContent, nb.t('accountOnHold'));
+  assert.ok(/\/user\/login\?destination=%2Fholds$/.test(link.getAttribute('href')), link.getAttribute('href'));
+});
+
+test('H2: a saved On Hold page sets holds, takes off the one that is gone, and says both', () => {
+  const { nb, doc, storage } = ownShelf({ entries: holdShelf() });
+  chooseFiles(doc, [{ name: 'On Hold.html', text: holdsPage }]);
+  const shelf = plain(nb.store.open(storage).shelf());
+  const stateOfKey = (key) => shelf.filter((e) => e.key === key)[0].state;
+  assert.strictEqual(stateOfKey(PIRANESI.key), 'hold', 'want, and on the list: on hold');
+  assert.strictEqual(stateOfKey(TOMBS_KEY), 'want', 'on hold here, not on the whole list: back to want');
+  assert.strictEqual(shelf.filter((e) => e.title === 'The Dispossessed')[0].state, 'hold', 'new, and on hold');
+  assert.strictEqual(shelf.length, 3);
+  assert.ok(said(doc).indexOf(nb.t('libHeld', { n: 2 })) !== -1, said(doc));
+  assert.ok(said(doc).indexOf(nb.t('libUnheldOne')) !== -1, said(doc));
+  assert.ok(byTest(doc, 'lib-unheld-1'), 'the gone hold is named');
+  assert.ok(byTest(doc, 'lib-unheld-1').textContent.indexOf('The Tombs of Atuan') !== -1);
+  assert.strictEqual(byTest(doc, 'lib-unheld-2'), null, 'and only that one');
+  assert.strictEqual(byTest(doc, 'lib-refused-1'), null, 'a whole list: nothing refused');
+  assert.ok(byTest(doc, 'shelf-library-undo'), 'one Undo for the whole import');
+});
+
+test('H3: "I picked it up" sets the book to Reading and puts the row away', () => {
+  const { nb, doc, storage } = ownShelf({ entries: holdShelf() });
+  chooseFiles(doc, [{ name: 'On Hold.html', text: holdsPage }]);
+  byTest(doc, 'lib-unheld-reading-1').dispatch('click', { type: 'click' });
+  const tombs = plain(nb.store.open(storage).shelf()).filter((e) => e.key === TOMBS_KEY)[0];
+  assert.strictEqual(tombs.state, 'reading');
+  assert.strictEqual(byTest(doc, 'lib-unheld-1'), null, 'the row is answered');
+});
+
+test('H4: Undo puts every hold back as it was', () => {
+  const { nb, doc, storage } = ownShelf({ entries: holdShelf() });
+  const before = plain(nb.store.open(storage).shelf());
+  chooseFiles(doc, [{ name: 'On Hold.html', text: holdsPage }]);
+  byTest(doc, 'shelf-library-undo').dispatch('click', { type: 'click' });
+  assert.deepStrictEqual(plain(nb.store.open(storage).shelf()), before);
+});
+
+test('H5: the On Hold page beside a For Later page never marks For Later books gone', () => {
+  // The bug D43 fixed: the holds page's "1 to 2 of 2 items" was read as For Later's count.
+  const { nb, doc, storage } = ownShelf();
+  chooseFiles(doc, [{ name: 'On Hold.html', text: holdsPage }]);
+  const shelf = plain(nb.store.open(storage).shelf());
+  assert.ok(shelf.every((e) => !(e.library && e.library.gone)), 'nothing is marked gone');
+  assert.strictEqual(byTest(doc, 'lib-tidy'), null, 'and nothing is listed to tidy');
+});

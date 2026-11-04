@@ -54,6 +54,18 @@ READY = "window.Nextbook && Nextbook.shell && Nextbook.shell.ready === true"
 OWN = "document.querySelector('[data-test=shelf-use-own]').click()"
 FIRST_READING = "document.querySelector('[data-test=shelf-state-1] input[value=reading]').click()"
 FIRST_WANT = "document.querySelector('[data-test=shelf-state-1] input[value=want]').click()"
+# Two saved On Hold pages, made in the page from two slice books: both held, then none.
+HOLDS_TWICE = (
+    "const ws = Nextbook.data.get('slice').works.slice(0, 2);"
+    " const page = (list) => JSON.stringify({ entities: {"
+    "  holds: Object.fromEntries(list.map((w, i) => ['H' + i, { metadataId: w.id, holdPlacedDate: '2026-11-04' }])),"
+    "  bibs: Object.fromEntries(list.map((w) => [w.id, { briefInfo: { id: w.id, metadataId: w.id,"
+    "   groupKey: w.groupKey, title: w.title, authors: [w.author] } }])) },"
+    "  borrowing: { holds: { pagination: { count: list.length, page: 1, limit: 25, pages: 1 } } } });"
+    " Nextbook.shell.importLibraryShelf([{ name: 'On Hold.html', text: page(ws) }]);"
+    " Nextbook.shell.importLibraryShelf([{ name: 'On Hold.html', text: page([]) }]);"
+    " document.querySelector('[data-test=fold-library]').open = true"
+)
 
 # name: (hash, JS to run once the page is ready, or None).
 SHOTS = {
@@ -67,6 +79,8 @@ SHOTS = {
     "shelf-filter": ("shelf", "document.querySelector('[data-test=shelf-filter-read]').click()"),
     "shelf-toast": ("shelf", "document.querySelector('[data-test=shelf-remove-2]').click()"),
     "find-own-empty": ("shelf", OWN + "; location.hash = '#find'"),
+    # D43: a holds page brought in, then an empty one: the "No longer on hold" list.
+    "shelf-own-unheld": ("shelf", OWN + "; " + HOLDS_TWICE),
     "selftest": ("selftest", None),
 }
 

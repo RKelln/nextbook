@@ -46,7 +46,7 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `shelf-holds-N` | Link "Your holds", on a book on hold | Opens the library's holds page through its sign-in, in a new tab. |
 | `message-hold-yes` | Button "Yes, it's on hold" in the toast, after coming back from `shelf-hold-N` or `pick-hold-N` | Sets that book to `hold`, adding it to the shelf first if it came from a pick. |
 | `lib-steps` | The library block's three steps (not pressed) | — |
-| `lib-open-<page>` | Link in step 1: `forLater`, `inProgress`, `completed` | Opens that shelf at the library through its sign-in, in a new tab. Coming back to this tab afterwards on the own shelf says once how to bring a change in (`libBackHere`) and opens the library block. |
+| `lib-open-<page>` | Link in step 1: `forLater`, `inProgress`, `completed`, `holds` | Opens that shelf at the library through its sign-in, in a new tab. Coming back to this tab afterwards on the own shelf says once how to bring a change in (`libBackHere`) and opens the library block. |
 | `lib-drop` | The box around `shelf-library-file`: a click chooses, a drop of saved pages lands | As `shelf-library-file`. |
 | `shelf-hold-N` | Link "Sign in and hold", on a book to read that has a catalogue record | Opens the library's sign-in page in a new tab, which lands on the book's own page after signing in. |
 | `shelf-account`, `find-account` | The "At the library" box (not pressed) | — |
@@ -231,6 +231,9 @@ headings are numbered from 1 on their own.
 | `lib-said` | The report sentence (not pressed) | — |
 | `lib-report` | The report box (not pressed) | — |
 | `lib-refused-N` | One refusal sentence (not pressed) | — |
+| `lib-unheld` | The "No longer on hold" list after a whole holds list came in (D43) (not pressed) | — |
+| `lib-unheld-N` | One book on it (not pressed) | — |
+| `lib-unheld-reading-N` | "I picked it up" | Sets that book to Reading and puts the row away; the toast says so. |
 | `lib-file-error-N` | One page that could not be read, named (not pressed) | — |
 | `lib-problem-N` | One reader problem (not pressed) | — |
 | `lib-not-saved` | The sentence when the write did not persist (not pressed) | — |

@@ -569,6 +569,15 @@
   .nb-steps > li::marker { font-weight: 700; color: var(--nb-accent); }
   .nb-steps .nb-account-links { margin-block-start: var(--nb-s1); }
 
+  /* Holds the library's list no longer has (D43): the book, and "I picked it up". */
+  .nb-unheld { list-style: none; margin: 0; padding: 0; display: grid; gap: var(--nb-s2); }
+  .nb-unheld-row {
+    display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: var(--nb-s2);
+    padding: var(--nb-s2) var(--nb-s3); border: 1px solid var(--nb-line); border-radius: var(--nb-radius);
+    background: var(--nb-paper);
+  }
+  .nb-unheld-row .nb-text, .nb-unheld-row .nb-by { margin: 0; }
+
   /* ---- A file box: the picker's input covers the box, so a click chooses and a drop lands ---- */
   .nb-drop {
     position: relative;
