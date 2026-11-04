@@ -308,12 +308,81 @@
 
   function ratingOptions() {
     return [
-      { value: '', label: t('ratingNone') },
       { value: 'loved', label: t('ratingLoved') },
       { value: 'liked', label: t('ratingLiked') },
       { value: 'ok', label: t('ratingOk') },
       { value: 'not-for-me', label: t('ratingNot') }
     ];
+  }
+
+  // The rating's question follows the state, because the two are not separate facts: a book you
+  // want to read has nothing to rate yet (score.js gives a "want" no weight whatever its rating),
+  // a book you are reading is rated so far, and a finished or stopped book is rated as it was.
+  // Returns null when the row shows no rating at all. A "want" that already carries a rating
+  // (an import, or an older shelf) still shows it, so nothing on the shelf is out of sight.
+  function ratingQuestion(entry) {
+    var st = entry.state || 'want';
+    if (st === 'reading') return t('ratingSoFar');
+    if (st === 'want') return entry.rating ? t('ratingLabel') : null;
+    return t('ratingHowWas');
+  }
+
+  // One row's state: four radios drawn as one segmented control. A radio group is one tab stop,
+  // and the arrow keys move along it, as a person expects of "pick one of these".
+  function stateGroup(entry, index) {
+    var name = 'nb-state-' + index;
+    var now = entry.state || 'want';
+    var group = h('fieldset', { class: 'nb-segmented', 'data-test': 'shelf-state-' + index });
+    group.appendChild(h('legend', { class: 'nb-visually-hidden' }, t('stateLabel')));
+    stateOptions().forEach(function (o) {
+      group.appendChild(h('label', { class: 'nb-segment' },
+        h('input', {
+          type: 'radio',
+          name: name,
+          value: o.value,
+          checked: o.value === now,
+          'data-test': 'shelf-state-' + index + '-' + o.value,
+          on: {
+            change: function () {
+              try { state.store.setState(entry.key, o.value, nowText()); } catch (e) { /* nothing changed */ }
+              render();
+            }
+          }
+        }),
+        h('span', null, o.label)));
+    });
+    return group;
+  }
+
+  // One row's rating: four chips that press and unpress. Pressing the chip that is on takes the
+  // rating off, so "no rating" needs no fifth chip.
+  function ratingGroup(entry, index, question) {
+    var now = entry.rating || '';
+    var group = h('div', {
+      class: entry.state === 'reading' ? 'nb-rating nb-rating-sofar' : 'nb-rating',
+      role: 'group',
+      'aria-label': question,
+      'data-test': 'shelf-rating-' + index
+    });
+    group.appendChild(h('span', { class: 'nb-rating-label', 'aria-hidden': 'true' }, question));
+    var chips = h('span', { class: 'nb-chips' });
+    ratingOptions().forEach(function (o) {
+      var on = o.value === now;
+      chips.appendChild(h('button', {
+        type: 'button',
+        class: 'nb-chip nb-chip-' + o.value,
+        'aria-pressed': on ? 'true' : 'false',
+        'data-test': 'shelf-rating-' + index + '-' + o.value,
+        on: {
+          click: function () {
+            try { state.store.setRating(entry.key, on ? null : o.value, nowText()); } catch (e) { /* nothing changed */ }
+            render();
+          }
+        }
+      }, o.label));
+    });
+    group.appendChild(chips);
+    return group;
   }
 
   function titleNode(work, entry, index) {
@@ -347,32 +416,20 @@
     }
 
     var controls = h('div', { class: 'nb-controls' });
-    controls.appendChild(h('label', { class: 'nb-field' },
-      h('span', { class: 'nb-label' }, t('stateLabel')),
-      selectField('shelf-state-' + index, stateOptions(), entry.state || 'want', t('stateLabel'),
-        function (value) {
-          try { state.store.setState(entry.key, value, nowText()); } catch (e) { /* nothing changed */ }
-          render();
-        })
-    ));
-    controls.appendChild(h('label', { class: 'nb-field' },
-      h('span', { class: 'nb-label' }, t('ratingLabel')),
-      selectField('shelf-rating-' + index, ratingOptions(), entry.rating || '', t('ratingLabel'),
-        function (value) {
-          try { state.store.setRating(entry.key, value || null, nowText()); } catch (e) { /* nothing changed */ }
-          render();
-        })
-    ));
-    controls.appendChild(button('shelf-remove-' + index, t('removeButton'), function () {
+    controls.appendChild(stateGroup(entry, index));
+    var question = ratingQuestion(entry);
+    if (question) controls.appendChild(ratingGroup(entry, index, question));
+    var remove = button('shelf-remove-' + index, t('removeButton'), function () {
       try {
         if (state.store.remove(entry.key)) state.message = t('removedBook', { title: entry.title || '' });
       } catch (e) {
         state.message = t('shelfBroken');
       }
       render();
-    }, 'nb-button nb-button-quiet'));
+    }, 'nb-button nb-button-ghost nb-remove');
     li.appendChild(head);
     li.appendChild(controls);
+    li.appendChild(remove);
     return li;
   }
 
@@ -3590,6 +3647,8 @@
     stateRead: 'Read',
     stateStopped: 'Stopped',
     ratingNone: 'No rating',
+    ratingHowWas: 'How was it?',
+    ratingSoFar: 'So far',
     ratingLoved: 'Loved',
     ratingLiked: 'Liked',
     ratingOk: 'OK',

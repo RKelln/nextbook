@@ -35,8 +35,10 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 |---|---|---|
 | `shelf-list` | The list (not pressed) | — |
 | `shelf-link-N` | The book's title, a link | Opens the library's page for the book (the library's own page for it when there is one, otherwise its search page). A book typed in and not in the list links to the library's search for its title and author. |
-| `shelf-state-N` | Select: Want to read / Reading / Read / Stopped | Saves the new state in this browser. |
-| `shelf-rating-N` | Select: No rating / Loved / Liked / OK / Not for me | Saves the new rating in this browser. |
+| `shelf-state-N` | A fieldset of four radios drawn as one bar (not pressed) | — |
+| `shelf-state-N-<state>` | Radio: `want` / `reading` / `read` / `stopped` | Saves the new state in this browser. |
+| `shelf-rating-N` | The rating group; its `aria-label` is the question. Absent on a book to read with no rating | — |
+| `shelf-rating-N-<rating>` | Chip: `loved` / `liked` / `ok` / `not-for-me` (`aria-pressed`) | Saves that rating; pressing the chip that is on takes the rating off. |
 | `shelf-remove-N` | Button "Remove" | Takes the book off the shelf in use. |
 
 ## Adding a book

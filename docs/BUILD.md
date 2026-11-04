@@ -534,6 +534,12 @@ Found by the build's reviews, judged not worth a change now, and written down so
 
 ## Open questions
 
+- **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how
+  much. It would be a new stored field (store, merge, export, the CSV and shelf readers, the contract's standard
+  shelves), BiblioCommons' For Later has no such level to line up with (D20), and `score.js` gives every "want" no
+  weight today. Two shapes: a plain "next up" flag a mode can read, or a weight that makes a keen want count as a
+  little evidence. Not built until decided.
+
 Write here; do not guess. Each one is Ryan's to answer.
 
 1. Product name (D11, D22). The domain is settled; `nextbook` is still a working name.

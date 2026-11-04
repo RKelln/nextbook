@@ -172,23 +172,75 @@ test('P4: the shelf in use is still in use after a reload of the page', () => {
 test('P5: keyboard focus stays on the control after a state or rating change', () => {
   const { doc } = openPage({});
 
-  const stateSelect = byTest(doc, 'shelf-state-1');
-  assert.ok(stateSelect, 'the first row has a state control');
-  stateSelect.focus();
-  assert.strictEqual(doc.activeElement, stateSelect);
-  stateSelect.value = 'reading';
-  stateSelect.dispatch('change', { type: 'change', target: stateSelect });
+  const reading = byTest(doc, 'shelf-state-1-reading');
+  assert.ok(reading, 'the first row has a state control with a Reading choice');
+  reading.focus();
+  assert.strictEqual(doc.activeElement, reading);
+  reading.checked = true;
+  reading.dispatch('change', { type: 'change', target: reading });
 
-  const stateAgain = byTest(doc, 'shelf-state-1');
-  assert.notStrictEqual(stateAgain, stateSelect, 'the screen was rebuilt');
-  assert.strictEqual(doc.activeElement, stateAgain, 'but the keyboard is still on the state control');
+  const readingAgain = byTest(doc, 'shelf-state-1-reading');
+  assert.notStrictEqual(readingAgain, reading, 'the screen was rebuilt');
+  assert.strictEqual(doc.activeElement, readingAgain, 'but the keyboard is still on the state control');
 
-  const ratingSelect = byTest(doc, 'shelf-rating-1');
-  ratingSelect.focus();
-  ratingSelect.value = 'liked';
-  ratingSelect.dispatch('change', { type: 'change', target: ratingSelect });
-  assert.strictEqual(doc.activeElement, byTest(doc, 'shelf-rating-1'), 'and on the rating control after a rating');
-  assert.strictEqual(byTest(doc, 'shelf-rating-1').getAttribute('data-test'), 'shelf-rating-1');
+  const liked = byTest(doc, 'shelf-rating-1-liked');
+  liked.focus();
+  liked.click();
+  assert.strictEqual(doc.activeElement, byTest(doc, 'shelf-rating-1-liked'), 'and on the rating chip after a rating');
+});
+
+// The shelf's controls are one decision, not two: what a rating means follows the state.
+// The page's own storage, opened again, is what the page wrote.
+const firstEntry = (nb, storage) => nb.store.open(storage).shelf()[0];
+const choose = (doc, value) => {
+  const radio = byTest(doc, 'shelf-state-1-' + value);
+  radio.checked = true;
+  radio.dispatch('change', { type: 'change', target: radio });
+};
+
+test('P5b: the state is one radio group, and the chosen state is the checked one', () => {
+  const storage = memoryStorage();
+  const { nb, doc } = openPage({ storage });
+  const stateOf = () => firstEntry(nb, storage).state;
+  const group = byTest(doc, 'shelf-state-1');
+  assert.strictEqual(group.tagName.toLowerCase(), 'fieldset', 'a fieldset, so the four choices are one group');
+  const radios = all(doc, '[data-test]').filter((el) => /^shelf-state-1-/.test(el.getAttribute('data-test')));
+  assert.deepStrictEqual(radios.map((r) => r.getAttribute('value')), ['want', 'reading', 'read', 'stopped']);
+  assert.ok(radios.every((r) => r.getAttribute('name') === radios[0].getAttribute('name')), 'one name, so one tab stop');
+  const on = radios.filter((r) => r.hasAttribute('checked')).map((r) => r.getAttribute('value'));
+  assert.deepStrictEqual(on, [stateOf()]);
+});
+
+test('P5c: a book to read has no rating to give; reading is rated so far; read is rated as it was', () => {
+  const storage = memoryStorage();
+  const { nb, doc } = openPage({ storage });
+  const stateOf = () => firstEntry(nb, storage).state;
+  const ratingOf = () => firstEntry(nb, storage).rating;
+  // The practice shelf's first book is read and loved.
+  assert.strictEqual(stateOf(), 'read');
+  const label = () => byTest(doc, 'shelf-rating-1') && byTest(doc, 'shelf-rating-1').getAttribute('aria-label');
+  assert.strictEqual(label(), nb.t('ratingHowWas'));
+
+  choose(doc, 'reading');
+  assert.strictEqual(label(), nb.t('ratingSoFar'), 'reading asks how it is so far');
+  assert.strictEqual(ratingOf(), 'loved', 'and the rating is kept');
+
+  // A rating on a "want" stays in sight while there is one, so nothing hidden still scores.
+  choose(doc, 'want');
+  assert.strictEqual(label(), nb.t('ratingLabel'));
+  byTest(doc, 'shelf-rating-1-loved').click();
+  assert.strictEqual(ratingOf(), null, 'pressing the chip that is on takes the rating off');
+  assert.strictEqual(byTest(doc, 'shelf-rating-1'), null, 'and then a book to read shows no rating at all');
+
+  choose(doc, 'read');
+  assert.ok(byTest(doc, 'shelf-rating-1'), 'a read book asks again');
+  const pressed = () => all(doc, '[data-test]')
+    .filter((el) => /^shelf-rating-1-/.test(el.getAttribute('data-test')) && el.getAttribute('aria-pressed') === 'true')
+    .map((el) => el.getAttribute('data-test'));
+  assert.deepStrictEqual(pressed(), []);
+  byTest(doc, 'shelf-rating-1-liked').click();
+  assert.strictEqual(ratingOf(), 'liked');
+  assert.deepStrictEqual(pressed(), ['shelf-rating-1-liked'], 'one chip is pressed, and it is the rating');
 });
 
 test('the shelf rows still show the books the practice data seeds', () => {

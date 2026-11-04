@@ -420,3 +420,24 @@ So the number is there, the word distinguishes the two page types, and both are 
 
 Rejected: a tick asking the person to promise they saved every page. It shifts a fact the file already states onto the
 person, and it is the kind of promise someone mis-remembers.
+
+## D40. The rating follows the state; the page is laid out in layers (2026-11-04, Ryan and Claude)
+
+Ryan: the state and rating drop-downs were "kinda meh" and "should be aware of each other". They are now one control.
+The state is a radio group drawn as a segmented bar; the rating is four chips that press and unpress, and it asks
+the question the state makes: **How was it?** for read and stopped, **So far** for reading (its pressed chip is drawn
+dashed, as a guess so far), and nothing for a book to read. This matches the arithmetic already in `score.js`: a
+"want" carries no weight whatever its rating, and a reading book's rating counts. A "want" that already has a rating
+(an import, an older shelf) still shows it, so no rating that scores is ever out of sight. Pressing the pressed chip
+clears the rating, so "No rating" needs no option of its own. Nothing about the stored shelf changed.
+
+The page is responsive: on a phone the nav is a tab bar at the foot of the screen and the ways of choosing scroll
+sideways; from 48rem the nav is a sticky bar at the top; from 64rem the shelf and find screens split into a main
+column and a side. The shelf's tools fold away in the side column. The status note is a toast that stays until
+closed. `nextbook.css` is in cascade layers (reset, tokens, base, layout, components, screens, modes, utilities); the
+mode panel carries `data-mode`, so a mode's look is one rule in the `modes` layer. `tools/screens.py` (uv and
+Playwright, a dev tool that never ships, ported from Search Desk) takes every screen at every size in both schemes.
+
+Forecloses: rating a book you have not started. Leaves open: how much you want to read a book (`BUILD.md`, Open
+questions).
+
