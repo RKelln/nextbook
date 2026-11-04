@@ -518,6 +518,10 @@ Found by the build's reviews, judged not worth a change now, and written down so
 - An events snapshot is labelled with its date, never blocked for age. A room that opens a copy months later sees the
   date, which is the promise `ARCHITECTURE.md` makes.
 - The events feed's host is not asked for `robots.txt` on every run; the 404 is re-checked by hand (A lane, above).
+- The saved shelf page's per-shelf summary (`entities.shelves.shelfSearch`) is not in `DATA.md`, so the reader
+  accepts several spellings of count, page and pages. A shape it does not recognise leaves that shelf **incomplete**,
+  which errs towards nothing being marked gone — the safe direction, and the one a person can fix by saving the
+  other pages.
 - No shipped work carries `series:` facets and every pack work is tagged, so journey's series sentence and
   challenge's "no mood words" count are exercised by their checks, not by the practice data.
 

@@ -384,3 +384,16 @@ itself — which is exactly what `hasSubject()` already did, and now can.
 
 Not rejected, and not yet done: a first-timer's *second step* (add one input) belongs in the T7.2 script. Nobody on the
 build found this, because every test ran the contract at its defaults.
+## D38. Three ways in, on one shelf screen (2026-11-03, led)
+
+The shelf screen now offers three separate bring-it-in blocks: a Goodreads or StoryGraph CSV, the library's own saved
+shelf pages, and a shelf file (a backup, or a friend's shelf). Each has its own heading, its own sentence about what it
+reads, and its own refusal.
+
+Kept as three labelled blocks rather than tabs or one wizard: each sentence has to be true on its own — a CSV carries
+ratings but no record ids, saved pages carry record ids and facets but are several files, a shelf file is neither — and
+a beginner can ignore the two they do not want. If it reads as clutter on a screen, collapsing it is copy and layout,
+not a rebuild.
+
+The library pages carry one extra sentence the others do not need: the page keeps the books, not the file, so delete the
+saved pages afterwards. That is the one path where a file on the person's disk holds more than a book list.
