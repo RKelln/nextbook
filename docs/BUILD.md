@@ -447,6 +447,16 @@ After everything above. Not for a workshop (the import is off in a workshop copy
 opens the hosted copy and already keeps shelves at the library. The hand-made test page follows the shape in
 `DATA.md`, "A person's own shelf page", with a made-up user.
 
+- [ ] **T8.9d The inbox: an agent writes to the app (D36).** `app/data/inbox.js` (gitignored) holding
+  `window.NEXTBOOK_INBOX = {schema: "nextbook/inbox-1", records, source: "ai", updated}`. On load the shell merges it
+  once through the store's existing import, shows "Brought in 4 changes from your helper" with one Undo, and marks it
+  applied in storage (keyed by the inbox's own `id`) so a reload does nothing. A record with an `updated` more than a
+  day in the future is left out and named; an entry that is newer here wins, as the store's rule already says. Off in a
+  workshop copy? No — the workshop's shelf is made up, and a helper writing to it is the demo. `find.py --from-shelf`
+  gains `--write-inbox`, and `tools/inbox.py` is the general writer (one record, or a file), so an agent can add a
+  book or set a state without a browser. Tests: applied once, Undo restores, a stale duplicate is kept-not-duplicated,
+  a future date is refused, a bad schema changes nothing.
+
 - [ ] **T8.8 One-way sync from a saved library shelf.** Spec: `ARCHITECTURE.md`, "Bringing in the library's shelf".
   - **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
     `entities.shelves` and the matching `briefInfo` only (facets by the adapter's rules, ported to JS). A test asserts

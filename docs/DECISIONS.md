@@ -333,3 +333,26 @@ the mode when it has that input, and keeps the title-in-the-text-box path for a 
 
 Forecloses nothing: a mode that never lists the input is unaffected, and the event snapshot is still the only source,
 so nothing here reaches the network.
+## D36. An agent reads and writes the app through two files, not an MCP server (2026-11-03, Ryan's steer)
+
+Search Desk solved this and the answer is worth copying rather than reinventing. It has two halves:
+
+- **Read:** `tools/serve.py --mirror` — the page posts its records to a token-guarded route on localhost about a
+  second after any change, and the server writes them to `searchdesk-live.json`, which an agent reads *in part*
+  (`read-desk.py --type`, `--id`, `--find`) rather than opening the whole file.
+- **Write:** `data/inbox.js` — the agent writes `window.DESK_INBOX = {schema, records}`, records marked `source: "ai"`;
+  on load the page merges the inbox as one batch, with Undo, idempotently, and the date rule that decides whether a
+  record wins.
+
+nextbook takes the second half and not the first. **No shelf mirror**: the mirror exists in Search Desk because the
+desk *is* the product and the agent has to see it; here the shelf is the person's reading history, and a file of it on
+disk is exactly what rule 1 refuses. The person's export is the read path, and they choose it.
+
+**The inbox is in**, as `app/data/inbox.js` (gitignored, like `workshop.js`): `window.NEXTBOOK_INBOX =
+{schema: "nextbook/inbox-1", records, source: "ai", updated}`, merged once at load through the store's existing import,
+with Undo and a marker in storage so a reload does not apply it twice. It is what lets `find.py --from-shelf` hand the
+matched record ids back to the page without the person importing their file again.
+
+**Not an MCP server.** Two files do the job inside rules the repo already keeps: no dependency, no process, no second
+route to the shelf, and nothing to configure before a workshop. An MCP surface would be a third way in, and the one
+with the largest blast radius, for a capability the files already have.
