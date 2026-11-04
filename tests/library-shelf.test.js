@@ -706,3 +706,38 @@ test('holds: a hold whose book is not on the page is said, and the list is not w
   assert.strictEqual(out.holds.complete, false);
   assert.deepStrictEqual(out.problems, [nb.t('libraryHoldNoRecord')]);
 });
+
+// D43, measured on a real page saved after its last hold was cancelled on it: the words said
+// "You have no items on hold" and had no count line, while the state still carried the hold.
+const noHoldsWords = holdsPage.split('<span>1 to 2 of 2 items</span>').join('<p>You have no items on hold</p>');
+
+test('holds: the page\'s words win: "no items on hold" is an empty, whole list, whatever the state says', () => {
+  assert.notStrictEqual(noHoldsWords, holdsPage);
+  const out = plain(nb.libraryShelf.read(noHoldsWords));
+  assert.strictEqual(out.ok, true);
+  assert.deepStrictEqual(out.holds.entries, [], 'the stale state\'s two holds are not read');
+  assert.strictEqual(out.holds.complete, true);
+  assert.strictEqual(out.holds.count, 0);
+});
+
+test('holds: "no items on hold" alone, with nothing in the state, is still a holds page', () => {
+  const page = '<p>You have no items on hold</p><script type="application/json">{"entities":{}}</script>';
+  const out = plain(nb.libraryShelf.read(page));
+  assert.strictEqual(out.ok, true);
+  assert.strictEqual(out.holds.complete, true);
+});
+
+test('holds: a count line that disagrees with the state reads nothing, and says to reload', () => {
+  const stale = holdsPage.split('1 to 2 of 2 items').join('1 to 1 of 1 items');
+  const out = plain(nb.libraryShelf.read(stale));
+  assert.deepStrictEqual(out.holds.entries, []);
+  assert.strictEqual(out.holds.complete, false);
+  assert.deepStrictEqual(out.problems, [nb.t('libraryHoldsStale')]);
+});
+
+test('holds: words with neither a count line nor "no items" add holds but are never whole', () => {
+  const quiet = holdsPage.split('1 to 2 of 2 items').join('');
+  const out = plain(nb.libraryShelf.read(quiet));
+  assert.strictEqual(out.holds.entries.length, 2);
+  assert.strictEqual(out.holds.complete, false);
+});

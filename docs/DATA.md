@@ -178,12 +178,17 @@ and two scripts that printed booleans and codes, kept outside the repo, never co
 | `borrowing.holds.pagination` | `{count, page, limit: 25, pages}`; `{}` on a shelf page and a search page | the numbers |
 | `borrowing.holds.items`, `.summary` | the holds ids on this page; `totalOperative`, a count per status, quotas | no |
 | `entities.shelves` | the shelf each held book is on (the held book was on For Later), **not** a shelf listing | no |
-| page text | "1 to 1 of 1 items", the holds count, in the same words as a shelf's count line (D39) | no: read as a shelf line it would call For Later whole |
+| page text | "1 to 1 of 1 items", the holds count, in the same words as a shelf's count line (D39); with no holds, "You have no items on hold" and no count line | yes, and it wins over the state: never as a shelf line, which would call For Later whole |
 | `users`, `accounts`, `auth` | name, email, barcode, session, token, as on every signed-in page | never |
 
-Cancelled and expired holds are not in the list (`borrowing.inactiveHolds`, separate pages). Not yet seen: a page with
-no holds (whether `pagination.count` is 0 or the key is empty), a page of more than 25, and any status but
-`NOT_YET_AVAILABLE`.
+Cancelled and expired holds are not in the list (`borrowing.inactiveHolds`, separate pages).
+
+**The state can be stale.** A second save of the same page, made after its one hold was cancelled on the page without
+a reload, showed "You have no items on hold" and no count line, while the state still carried the hold with
+`pagination.count` 1 (2026-11-04). The state is the page as it was opened; the words are what it showed when saved.
+A shelf page is presumably the same (a book moved on the page, then saved), which has not been tested.
+
+Not yet seen: a page of more than 25 holds, and any status but `NOT_YET_AVAILABLE`.
 
 ## A person's own shelf page (measured 2026-11-03, re-checked on two saved pages 2026-11-04)
 

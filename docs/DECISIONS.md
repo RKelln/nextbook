@@ -495,6 +495,11 @@ of the same one import with one Undo.
   pagination. Pickup branch, queue place, hold and item ids, status, the barcode and the rest are never touched; the
   test fixture carries decoys in all of them. The status is not read because only one value (`NOT_YET_AVAILABLE`) has
   been seen; "ready to pick up" could be a later step once a page with one is measured.
+- **The page's words win over its state.** A second save, made after the last hold was cancelled on the page,
+  said "You have no items on hold" with no count line while its state still carried the hold: the state is the page
+  as it was opened. So on a saved page, "no items on hold" is an empty, whole list; a count line that disagrees with
+  the state reads nothing and asks for a reload (`libraryHoldsStale`); words with neither are read but never whole.
+  Step 2 now says to reload a changed page before saving it.
 - **A bug it fixed.** Before this, a holds page dropped in the box was read as a shelf page: its "1 to 1 of 1 items"
   became For Later's count, so For Later was called whole with one book and every other For Later book was listed as
   gone. A holds page now says nothing about any shelf.

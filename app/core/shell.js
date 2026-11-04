@@ -3955,7 +3955,7 @@
     libUnheldNote: 'Your holds list at the library does not have these now, so they are back on Want to read. Picked one up? Say so.',
     libPickedUp: 'I picked it up',
     libPickedUpDone: '{title} is set to Reading.',
-    libStepSave: 'Save the page, on a computer: press Ctrl+S, or Command+S on a Mac. A long shelf has more than one page: save each one.',
+    libStepSave: 'Changed something there? Reload the page first. Then save it, on a computer: press Ctrl+S, or Command+S on a Mac. A long shelf has more than one page: save each one.',
     libStepChoose: 'Choose the saved pages below, or drop them on the box.',
     libPrivacy: 'The page keeps the books, not the file. Delete the saved pages afterwards.',
     libChoose: 'Choose the saved shelf pages, or drop them here',

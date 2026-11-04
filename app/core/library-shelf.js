@@ -54,7 +54,9 @@
     libraryShelfUnknownShelf: '{title}: the page says it is on a shelf called "{shelf}", which this app ' +
       'does not know, so it was left out.',
     libraryShelfNoRecord: '{title}: the page does not carry this book\'s details, so it was left out.',
-    libraryHoldNoRecord: 'A book on hold has no details on the page, so it was left out.'
+    libraryHoldNoRecord: 'A book on hold has no details on the page, so it was left out.',
+    libraryHoldsStale: 'Your holds page changed after it was opened, so its holds were not read. ' +
+      'Reload the page at the library, then save it again.'
   });
 
   function t(key, vars) {
@@ -818,14 +820,36 @@
     return any ? out : null;
   }
 
-  function isHoldsPage(state) {
+  // The page's own words for "no holds". Measured 2026-11-04 on a page saved after the last
+  // hold was cancelled on it: the words said this while the state still carried the hold.
+  var NO_HOLDS = /you have no items on hold/i;
+
+  function isHoldsPage(state, words) {
     var holds = state.entities.holds;
-    return (isObj(holds) && Object.keys(holds).length > 0) || holdsPagination(state) !== null;
+    return (isObj(holds) && Object.keys(holds).length > 0) || holdsPagination(state) !== null ||
+      NO_HOLDS.test(words || '');
   }
 
   // The holds on this page as entries in the shape the merge takes, with a work for each. Two
   // fields of a hold are read, by name; the rest of it is never touched.
-  function readHolds(state) {
+  // `page` is the saved text, when there is one. Its words win over the state (D43): the state is
+  // the page as it was opened, and a hold cancelled on the page before saving is gone from the
+  // words but not from the state. So "no items on hold" is an empty, whole list; a count line that
+  // disagrees with the state means the state is stale and nothing is read from it; and a page with
+  // words but neither is read, but never whole, so it adds holds and takes none off.
+  function readHolds(state, page) {
+    var words = typeof page === 'string' ? pageText(page) : '';
+    if (words && NO_HOLDS.test(words)) {
+      return { entries: [], works: [], count: 0, pages: 0, pageNumbers: [1], got: 0, missing: 0,
+        complete: true, problems: [] };
+    }
+    var tally = words ? tallyOf(page) : null;
+    if (tally && tally.unit.indexOf('item') !== 0) tally = null;
+    var stated = holdsPagination(state);
+    if (tally && (!stated || stated.count !== tally.total)) {
+      return { entries: [], works: [], count: tally.total, pages: null, pageNumbers: [], got: 0, missing: 0,
+        complete: false, problems: [t('libraryHoldsStale')] };
+    }
     var holds = isObj(state.entities.holds) ? state.entities.holds : {};
     var bibs = isObj(state.entities.bibs) ? state.entities.bibs : {};
     var raw = [];
@@ -865,7 +889,7 @@
     var got = raw.length;
     // Whole when the page says how many holds there are and every one of them was read. No
     // count, no claim, the same rule as a shelf; a hold that could not be read means not whole.
-    var complete = problems.length === 0 && pg.count !== null && got >= pg.count;
+    var complete = problems.length === 0 && pg.count !== null && got >= pg.count && (!words || !!tally);
     return {
       entries: entries,
       works: workGroups(raw),
@@ -1025,8 +1049,8 @@
       // An On Hold page says what is on hold and nothing else (D43). Its shelf items are only
       // the shelf each held book is on, and its "1 to 2 of 2 items" counts holds: read as a
       // shelf, it would call For Later whole with one book and mark the rest of it gone.
-      if (isHoldsPage(state)) {
-        var held = readHolds(state);
+      if (isHoldsPage(state, typeof page === 'string' ? pageText(page) : '')) {
+        var held = readHolds(state, page);
         result.ok = true;
         result.works = held.works;
         result.problems = held.problems;

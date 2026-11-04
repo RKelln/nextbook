@@ -547,11 +547,17 @@ Found by the build's reviews, judged not worth a change now, and written down so
 
 ## Open questions
 
-- **Can holds come back in?** (2026-11-04, from D41.) Yes, since D43: a saved On Hold page goes in the same drop box.
-  Still open: a page with no holds has not been seen (the reader assumes `pagination.count` 0 means an empty whole
-  list, and a page with an empty `pagination` is not taken for a holds page at all, so nothing comes off); nor a page
-  of more than 25 holds, nor a status but `NOT_YET_AVAILABLE`. Checked Out and Borrowing History are the same kind of
-  question (ARCHITECTURE, "Lining up with the library's own shelves"), not read yet.
+- **Can holds come back in?** (2026-11-04, from D41.) Yes, since D43: a saved On Hold page goes in the same drop box,
+  and the page with no holds was measured too (its words say so; its state was stale). Still open: a page of more
+  than 25 holds, a status but `NOT_YET_AVAILABLE`, and Checked Out and Borrowing History (ARCHITECTURE, "Lining up
+  with the library's own shelves"), not read yet.
+
+- **Can a shelf page's state be stale too?** (2026-11-04, from D43.) A holds page saved after a change made on it
+  kept the old state and showed the new words. A shelf page probably does the same: move a book on the For Later page,
+  save without reloading, and the state still has it. The shelf reader trusts the state's items and uses the words
+  only for the count (D39), so it would bring in the old shelf. Step 2 now says to reload first; a check like the
+  holds reader's (a count line that disagrees with the state's items reads nothing) would catch some of it. Test by
+  hand first: move one book, save without reloading, read the file for shape.
 
 - **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how
   much. It would be a new stored field (store, merge, export, the CSV and shelf readers, the contract's standard
