@@ -284,7 +284,7 @@ Classic scripts that add to `window.Nextbook`. Nothing here touches the page. Un
   changes the own shelf; export then import round-trips; newer wins; a tie keeps ours; a broken file is refused, not
   thrown; unknown keys on an entry survive; a storage object that throws on every call still works, in memory.
 
-- [ ] **T2.9 Events in the core** (B, S, H). Last in priority; needs T1.9. `ctx.events` (the snapshot's events, or
+- [x] **T2.9 Events in the core** (B, S, H). Last in priority; needs T1.9. `ctx.events` (the snapshot's events, or
   `[]`) and `ctx.eventsFetched` (its date). The event-hook mode reads them.
   *Done when:* tests with a two-event fixture.
 

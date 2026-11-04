@@ -459,3 +459,47 @@ test('runModeChecks names the failure when the same shelf answers twice differen
   assert.ok(msgs.indexOf(want) !== -1, msgs.join(' | '));
   assert.strictEqual(run.ok, false);
 });
+
+// ---- T2.9: the events a mode may read ------------------------------------------------------
+
+test('a mode sees the events in the snapshot and its date, and an empty list when there is none', () => {
+  const snapshot = {
+    fetched: '2026-11-03T19:49:50-05:00',
+    branch: 'CL',
+    window: { start: '2026-11-03', end: '2026-11-24' },
+    source: 'https://gateway.bibliocommons.com/v2/libraries/tpl/rss/events',
+    events: [
+      { id: 'e1', title: 'Serger Sewing', start: '2026-11-03T18:00:00', end: '2026-11-03T19:30:00',
+        branch: 'CL', virtual: false, categories: ['Crafts'], summary: 'Learn a serger.', url: 'https://example.test/e1' },
+      { id: 'e2', title: 'Book Club', start: '2026-11-05T14:00:00', end: '2026-11-05T15:00:00',
+        branch: 'CL', virtual: true, categories: [], summary: 'Talk about a book.', url: 'https://example.test/e2' }
+    ]
+  };
+
+  const ctx = nb.makeCtx({ pool: pool, shelf: [], events: snapshot, seed: 1 });
+  assert.deepStrictEqual(plain(ctx.events).map((e) => e.id), ['e1', 'e2']);
+  assert.strictEqual(ctx.events[1].title, 'Book Club');
+  assert.strictEqual(ctx.eventsFetched, '2026-11-03T19:49:50-05:00');
+
+  // A mode reaches them through ctx and nothing else.
+  nb.mode({
+    id: 'event-probe',
+    name: 'Event probe',
+    purpose: 'Reads the events.',
+    shape: 'list',
+    inputs: [],
+    strings: { none: 'No event was in the list.' },
+    logic: {},
+    choose(c) {
+      return c.events.length ? { picks: [{ id: 'w1', why: 'An event was in the list: ' + c.events[0].title + '.' }] }
+        : { picks: [], note: c.t('none') };
+    }
+  });
+  const v = plain(nb.validate(nb.modeDefs['event-probe'].choose(ctx), ctx, nb.modeDefs['event-probe']));
+  assert.strictEqual(v.picks.length, 1);
+  assert.match(v.picks[0].why, /Serger Sewing/);
+
+  const bare = nb.makeCtx({ pool: pool, shelf: [], seed: 1 });
+  assert.deepStrictEqual(plain(bare.events), [], 'a copy with no snapshot gives an empty list');
+  assert.ok(!bare.eventsFetched, 'and no date');
+});
