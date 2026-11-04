@@ -22,11 +22,11 @@
       "updated": "2026-10-12T09:16:00Z"
     },
     {
-      "key": "w:pack:braiding",
-      "id": "braiding",
-      "groupKey": "pack:braiding",
-      "title": "Braiding Sweetgrass",
-      "author": "Robin Wall Kimmerer",
+      "key": "w:pack:left-hand",
+      "id": "left-hand",
+      "groupKey": "pack:left-hand",
+      "title": "The Left Hand of Darkness",
+      "author": "Ursula K. Le Guin",
       "state": "read",
       "rating": "loved",
       "updated": "2026-10-13T20:02:00Z"
@@ -52,11 +52,11 @@
       "updated": "2026-10-15T08:05:00Z"
     },
     {
-      "key": "w:pack:wager",
-      "id": "wager",
-      "groupKey": "pack:wager",
-      "title": "The Wager",
-      "author": "David Grann",
+      "key": "w:pack:sea-tranquility",
+      "id": "sea-tranquility",
+      "groupKey": "pack:sea-tranquility",
+      "title": "Sea of Tranquility",
+      "author": "Emily St. John Mandel",
       "state": "read",
       "rating": "liked",
       "updated": "2026-10-16T21:30:00Z"

@@ -50,10 +50,10 @@
   "practice": [
     { "id": "dispossessed", "state": "read", "rating": "loved", "updated": "2026-10-12T09:14:00Z" },
     { "id": "thursday-murder", "state": "read", "rating": "loved", "updated": "2026-10-12T09:16:00Z" },
-    { "id": "braiding", "state": "read", "rating": "loved", "updated": "2026-10-13T20:02:00Z" },
+    { "id": "left-hand", "state": "read", "rating": "loved", "updated": "2026-10-13T20:02:00Z" },
     { "id": "piranesi", "state": "read", "rating": "loved", "updated": "2026-10-14T18:40:00Z" },
     { "id": "remains", "state": "read", "rating": "liked", "updated": "2026-10-15T08:05:00Z" },
-    { "id": "wager", "state": "read", "rating": "liked", "updated": "2026-10-16T21:30:00Z" },
+    { "id": "sea-tranquility", "state": "read", "rating": "liked", "updated": "2026-10-16T21:30:00Z" },
     { "id": "earthsea", "state": "read", "rating": "liked", "updated": "2026-10-17T07:55:00Z" },
     { "id": "five-little-indians", "state": "read", "rating": "ok", "updated": "2026-10-18T13:20:00Z" },
     { "id": "seven-moons", "state": "read", "rating": "not-for-me", "updated": "2026-10-19T22:10:00Z" },

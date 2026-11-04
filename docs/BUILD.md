@@ -412,7 +412,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
 Built to their briefs in `reference/modes/`, with checks, on the pack data. They prove the contract carries each
 mechanism, give the facilitator a demo, and time the briefs.
 
-- [ ] **T6.1 Survey** (E, S, S). `docs/modes/survey.md`. The facilitator's demo.
+- [x] **T6.1 Survey** (E, S, S). `docs/modes/survey.md`. The facilitator's demo.
 - [ ] **T6.2 Journey** (E, M, S). `docs/modes/journey.md`.
 - [ ] **T6.3 Challenge** (E, M, S). `docs/modes/challenge.md`.
 
