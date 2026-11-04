@@ -73,7 +73,8 @@ Options
   --workshop      serve the copy whose flag makes the practice shelf the only shelf
   --no-reload     serve the files exactly as they are, with no reload helper
   --quiet         do not log each request
-  --check         print the files it watches and the token now, then stop
+  --check         check the page can be sent and the port is free, print the files it watches,
+                  then stop (exit 1 with a sentence when either check fails)
 """
 
 import argparse
@@ -83,6 +84,7 @@ import http.server
 import json
 import posixpath
 import re
+import socket
 import sys
 import threading
 import urllib.parse
@@ -97,7 +99,7 @@ HOST = "127.0.0.1"
 # shelf (a .json) or the repo's notes.
 SERVE_FILES = ("index.html", "nextbook.css")
 SERVE_DIRS = ("core", "modes", "data")
-NEVER = (".git", "docs", "tools", "tests", "reference", "dist", "research", "node_modules", "__pycache__")
+NEVER = (".git", "docs", "tools", "tests", "dist", "research", "node_modules", "__pycache__")
 WORKSHOP_ROUTE = "/data/workshop.js"
 
 # A screen name: the app's ids are lowercase with hyphens, and at most one / for a screen behind a tap.
@@ -108,9 +110,12 @@ WORKSHOP_JS = "Nextbook.data.put('workshop', {\"workshop\": true});\n"
 
 # ---- pure parts, tested in tests/test_serve.py ----------------------------------------------------------
 
-def is_public(rel):
+def is_public(rel, root=None):
     """May the page have this app-relative path? 'core/base.js' yes, 'data/slice.js' yes, 'index.html' yes,
-    'nextbook.css' yes; 'data/found.json' no, '.DS_Store' no, 'AGENTS.md' no, '../data/x.js' no."""
+    'nextbook.css' yes; 'data/found.json' no, '.DS_Store' no, 'AGENTS.md' no, '../data/x.js' no.
+
+    With `root`, the name must also be a regular file there: a folder called `modes/x.js` is not a file the
+    page asked for, and must never become a directory listing."""
     parts = [p for p in str(rel).replace("\\", "/").split("/") if p and p != "."]
     if not parts:
         return False
@@ -123,8 +128,11 @@ def is_public(rel):
     if name.endswith("~") or name.endswith(".json"):    # an editor's backup, or a person's exported shelf
         return False
     if len(parts) == 1:
-        return name in SERVE_FILES
-    return parts[0] in SERVE_DIRS and name.endswith(".js")
+        if name not in SERVE_FILES:
+            return False
+    elif not (parts[0] in SERVE_DIRS and name.endswith(".js")):
+        return False
+    return True if root is None else (Path(root) / "/".join(parts)).is_file()
 
 
 def watched_files(root):
@@ -138,7 +146,7 @@ def watched_files(root):
         if not base.is_dir():
             continue
         for path in base.rglob("*"):
-            if path.is_file() and is_public(path.relative_to(root).as_posix()):
+            if path.is_file() and is_public(path.relative_to(root).as_posix(), root):
                 out.append(path.relative_to(root).as_posix())
     return sorted(set(out))
 
@@ -277,7 +285,8 @@ RELOAD_JS = r"""(function () {
       if (t !== token && !document.hidden) reloadNow();
     })['catch'](function () {});                   // the laptop asleep, or the server stopped
     fetch('/__go', { cache: 'no-store' }).then(function (r) { return r.text(); }).then(function (route) {
-      if (route && route !== shown) { shown = route; if (show(route)) report(route); }
+      if (!route) { shown = ''; return; }          // the note was drawn: the next one may repeat it
+      if (route !== shown) { shown = route; if (show(route)) report(route); }
     })['catch'](function () {});
   }
   function loop() {
@@ -326,7 +335,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if rel in ("", "index.html"):
             return str(self.root / "index.html")
         blocked = str(self.root / ".not-served")
-        if not is_public(rel):
+        if not is_public(rel, self.root):
             return blocked
         full = (self.root / rel).resolve()
         try:
@@ -336,6 +345,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return str(full)
 
     def do_GET(self):
+        if self.refuse_nul():
+            return
         route = self.path.split("?")[0]
         if route in ("/__dev", "/__dev/"):
             return self.serve_token()
@@ -351,6 +362,19 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
     def do_HEAD(self):
         return self.do_GET()
+
+    def refuse_nul(self):
+        """A path with a NUL byte is not a path: 400 in one line, not a ValueError traceback."""
+        if "\x00" in urllib.parse.unquote(self.path):
+            self.send_error(400, "the request path holds a NUL byte")
+            return True
+        return False
+
+    def copyfile(self, source, outputfile):
+        """A HEAD request asks for the headers only, so a static file's body is never written."""
+        if self.command == "HEAD":
+            return
+        http.server.SimpleHTTPRequestHandler.copyfile(self, source, outputfile)
 
     def do_POST(self):
         """The one write a page may ask for: 'I drew this screen', so the note may go."""
@@ -445,6 +469,33 @@ def intro(args, port):
     return "\n".join(lines)
 
 
+PROBE_SCRIPT = "<script></script>"
+
+
+def check_ready(port):
+    """What --check can be sure of without serving: the page can be sent, and the port is free.
+
+    Returns a list of plain sentences; empty means both hold. Nothing is written and nothing is bound
+    for longer than the check."""
+    problems = []
+    try:
+        page = (APP / "index.html").read_text(encoding="utf-8")
+    except OSError as e:
+        problems.append("cannot read app/index.html (%s)" % (e.strerror or e))
+    else:
+        if add_scripts(page, PROBE_SCRIPT) is None:
+            problems.append("app/index.html has no </head>, so every page it sends would be a 500")
+    probe = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    try:
+        probe.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        probe.bind((HOST, port))
+    except OSError as e:
+        problems.append("cannot listen on %s:%d (%s)" % (HOST, port, e.strerror or e))
+    finally:
+        probe.close()
+    return problems
+
+
 def main(argv=None):
     ap = argparse.ArgumentParser(description="Serve app/ with live reload, on this computer only.")
     ap.add_argument("--port", type=int, default=8000, help="port to listen on (default 8000; 0 picks a free one)")
@@ -454,17 +505,25 @@ def main(argv=None):
     ap.add_argument("--no-reload", dest="reload", action="store_false", default=True,
                     help="serve the files exactly as they are, with no reload helper")
     ap.add_argument("--quiet", action="store_true", help="do not log each request")
-    ap.add_argument("--check", action="store_true", help="print the files it watches, then stop")
+    ap.add_argument("--check", action="store_true",
+                    help="check the page can be sent and the port is free, print what it watches, then stop")
     args = ap.parse_args(argv)
 
     if args.host != HOST:
         sys.exit("serve: this server listens on 127.0.0.1 only, so nobody else on the network can open it. "
                  "Drop --host, or pass 127.0.0.1. It will not bind %s." % args.host)
+    if not 0 <= args.port <= 65535:
+        sys.exit("serve: --port must be 0-65535, where 0 picks a free one; %d is not a port." % args.port)
     if not (APP / "index.html").is_file():
         sys.exit("serve: no app/index.html here. Run this from inside the nextbook folder.")
 
     files = watched_files(APP)
     if args.check:
+        problems = check_ready(args.port)
+        if problems:
+            for problem in problems:
+                say("serve: " + problem)
+            sys.exit(1)
         say("app/index.html and %d more files, under %s" % (len(files) - 1, " ".join(SERVE_DIRS)))
         say("token now: %s" % token_for(APP, files))
         note = read_go(ROOT)

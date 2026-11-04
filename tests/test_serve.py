@@ -3,15 +3,20 @@
 Everything here uses a made-up app folder in a temporary directory and a real server on a real port, bound the
 same way the command binds it. The repo's own app/ is only read, by the one test that checks the real page.
 """
+import contextlib
 import http.client
+import io
 import json
+import shutil
 import socket
+import subprocess
 import sys
 import tempfile
 import threading
 import time
 import unittest
 from pathlib import Path
+from unittest import mock
 
 TESTS = Path(__file__).resolve().parent
 REPO = TESTS.parent
@@ -84,6 +89,18 @@ class ServeCase(unittest.TestCase):
         finally:
             conn.close()
 
+    def raw(self, request):
+        """The bytes the server sends, header block and all: what a browser reads off the wire."""
+        with socket.create_connection(("127.0.0.1", self.port), timeout=5) as sock:
+            sock.sendall(request)
+            chunks = []
+            while True:
+                chunk = sock.recv(65536)
+                if not chunk:
+                    break
+                chunks.append(chunk)
+        return b"".join(chunks)
+
     def write_go(self, text):
         (self.repo / ".dev-go").write_text(text, encoding="utf-8")
 
@@ -109,6 +126,21 @@ class TestServing(ServeCase):
                      "/core/../../AGENTS.md", "/app/index.html", "/dist/nextbook.html"):
             status, _, _ = self.get(path)
             self.assertEqual(status, 404, path)
+
+    def test_head_sends_the_headers_and_no_body(self):
+        """A HEAD asks for the headers only: the body is not written, whatever the file is."""
+        for path, size in (("/", None), ("/core/base.js", (self.root / "core" / "base.js").stat().st_size)):
+            with self.subTest(path=path):
+                raw = self.raw(("HEAD %s HTTP/1.0\r\nHost: 127.0.0.1\r\n\r\n" % path).encode("ascii"))
+                head, sep, body = raw.partition(b"\r\n\r\n")
+                self.assertTrue(sep, "the answer had no header block")
+                self.assertTrue(head.startswith(b"HTTP/1.0 200"), head[:40])
+                self.assertEqual(body, b"", "HEAD must not send the body")
+                if size is not None:
+                    self.assertIn(b"Content-Length: %d" % size, head)
+        status, body, _ = self.get("/core/base.js")      # and a GET still has one
+        self.assertEqual(status, 200)
+        self.assertTrue(body)
 
     def test_workshop_is_off_unless_asked(self):
         status, _, _ = self.get("/data/workshop.js")
@@ -158,6 +190,46 @@ class TestReload(ServeCase):
         before = (self.root / "index.html").read_bytes()
         self.get("/")
         self.assertEqual((self.root / "index.html").read_bytes(), before)
+
+
+class TestPaths(ServeCase):
+    """What the page may ask for: a regular file, inside app/, and nothing else."""
+
+    def test_a_nul_byte_in_the_path_is_a_bad_request(self):
+        for path in ("/%00", "/core/base.js%00.js", "/%00/../../AGENTS.md"):
+            with self.subTest(path=path):
+                status, body, _ = self.get(path)
+                self.assertEqual(status, 400, path)
+                self.assertNotIn(b"Traceback", body)
+
+    def test_encoded_traversal_stays_inside_the_folder(self):
+        for path in ("/%2e%2e/%2e%2e/AGENTS.md", "/..%2f..%2fAGENTS.md",
+                     "/core/%2e%2e/%2e%2e/docs/BUILD.md", "/core/..%5c..%5cAGENTS.md"):
+            with self.subTest(path=path):
+                status, _, _ = self.get(path)
+                self.assertIn(status, (400, 404), path)
+
+    def test_a_symlink_out_of_the_folder_is_not_followed(self):
+        outside = Path(self.tmp.name) / "secret.js"
+        outside.write_text("window.secret = true;\n", encoding="utf-8")
+        link = self.root / "modes" / "leak.js"
+        try:
+            link.symlink_to(outside)
+        except (OSError, NotImplementedError):
+            self.skipTest("this machine cannot make a symlink")
+        status, body, _ = self.get("/modes/leak.js")
+        self.assertEqual(status, 404)
+        self.assertNotIn(b"secret", body)
+
+    def test_a_directory_named_like_a_script_is_not_a_listing(self):
+        trap = self.root / "modes" / "trap.js"
+        trap.mkdir()
+        (trap / "inside.txt").write_text("x\n", encoding="utf-8")
+        status, body, _ = self.get("/modes/trap.js")
+        self.assertEqual(status, 404, "a folder is not a file the page asked for")
+        self.assertNotIn(b"inside.txt", body)
+        self.assertFalse(serve.is_public("modes/trap.js", self.root))
+        self.assertTrue(serve.is_public("modes/trap.js"), "the name rule alone says .js")
 
 
 class TestNoReload(ServeCase):
@@ -247,6 +319,98 @@ class TestGo(ServeCase):
         self.assertFalse(self.go_exists())
         self.assertEqual(self.get("/__dev")[1].decode("ascii"), first)
 
+    def test_the_page_forgets_what_it_last_showed_when_the_note_is_gone(self):
+        """Otherwise the second note with the same word looks like the one already on screen."""
+        text = self.get("/")[1].decode("utf-8")
+        self.assertIn("if (!route) { shown = ''; return; }", text)
+
+
+HARNESS = r'''"use strict";
+// Run the page's own reload helper against a fake page, so the poll can be stepped by hand.
+const fs = require("fs");
+const code = fs.readFileSync(process.argv[2], "utf8");
+const calls = [];
+const queue = [];
+let onVisibility = null;
+const onLoad = [];
+global.window = {
+  addEventListener: function (name, fn) { if (name === "load") onLoad.push(fn); },
+  location: { hash: "", reload: function () { throw new Error("reload"); } },
+  Nextbook: { shell: { go: function (route) { calls.push(route); } } }
+};
+global.Nextbook = global.window.Nextbook;
+global.document = {
+  hidden: false,
+  activeElement: null,
+  addEventListener: function (name, fn) { if (name === "visibilitychange") onVisibility = fn; },
+  createElement: function () {
+    return { setAttribute: function () {}, appendChild: function () {},
+             addEventListener: function () {}, style: {} };
+  },
+  body: { appendChild: function () {} }
+};
+global.sessionStorage = { getItem: function () { return null; }, setItem: function () {} };
+global.fetch = function (url) {
+  const route = String(url).split("?")[0];
+  let text = "";
+  if (route === "/__go") text = queue.length ? queue.shift() : "";
+  else if (route === "/__dev") text = "tok";
+  return Promise.resolve({ text: function () { return Promise.resolve(text); } });
+};
+global.setTimeout = function () { return 0; };
+(0, eval)(code);
+const settle = function () { return new Promise(function (r) { setImmediate(r); }); };
+(async function () {
+  if (!onLoad.length) throw new Error("the script registered no load handler");
+  queue.push("shelf");          // a note waits for the tab
+  onLoad[0]();
+  await settle(); await settle();
+  queue.push("");               // the note was drawn, so the server clears it
+  onVisibility();
+  await settle(); await settle();
+  queue.push("shelf");          // the same word written again must move the tab again
+  onVisibility();
+  await settle(); await settle();
+  process.stdout.write(JSON.stringify(calls));
+})().catch(function (e) { console.error(e.stack || e); process.exit(1); });
+'''
+
+NODE = shutil.which("node")
+
+
+@unittest.skipUnless(NODE, "node is not installed, so the page's own script cannot be run here")
+class TestThePageScript(unittest.TestCase):
+    """.dev-go's promise, run as the page runs it: the same word twice moves the tab twice."""
+
+    def run_script(self, script):
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = Path(tmp) / "harness.js"
+            page_script = Path(tmp) / "reload.js"
+            harness.write_text(HARNESS, encoding="utf-8")
+            page_script.write_text(script, encoding="utf-8")
+            done = subprocess.run([NODE, str(harness), str(page_script)],
+                                  capture_output=True, text=True, timeout=30)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        return json.loads(done.stdout)
+
+    def test_the_same_word_twice_moves_the_tab_twice(self):
+        self.assertEqual(self.run_script(serve.RELOAD_JS % (json.dumps("tok"), json.dumps(""))),
+                         ["shelf", "shelf"])
+
+    def test_a_note_shown_once_is_not_shown_again_while_it_stays(self):
+        """The poll runs every second: a note that is still pending must not re-route every tick."""
+        script = serve.RELOAD_JS % (json.dumps("tok"), json.dumps(""))
+        with tempfile.TemporaryDirectory() as tmp:
+            harness = Path(tmp) / "harness.js"
+            page_script = Path(tmp) / "reload.js"
+            harness.write_text(HARNESS.replace('queue.push("");', 'queue.push("shelf");'),
+                               encoding="utf-8")
+            page_script.write_text(script, encoding="utf-8")
+            done = subprocess.run([NODE, str(harness), str(page_script)],
+                                  capture_output=True, text=True, timeout=30)
+        self.assertEqual(done.returncode, 0, done.stderr)
+        self.assertEqual(json.loads(done.stdout), ["shelf"], "one pending note, one move")
+
 
 class TestThisComputerOnly(unittest.TestCase):
     def test_the_server_binds_127_0_0_1_and_nothing_else(self):
@@ -269,8 +433,8 @@ class TestThisComputerOnly(unittest.TestCase):
             self.assertIn("127.0.0.1", str(caught.exception.code))
 
     def test_only_the_loopback_has_the_port(self):
-        """A port held on 127.0.0.1 cannot be reached through another address on this machine. The check is
-        made where an address exists; when the machine has no other one, the bind assertion above is the proof."""
+        """The same port answers on 127.0.0.1 and is REFUSED on this machine's own address: not a page, not a
+        different error, a refused connection."""
         with tempfile.TemporaryDirectory() as tmp:
             repo = Path(tmp)
             make_app(repo)
@@ -279,14 +443,78 @@ class TestThisComputerOnly(unittest.TestCase):
             thread = threading.Thread(target=httpd.serve_forever, daemon=True)
             thread.start()
             try:
+                conn = http.client.HTTPConnection("127.0.0.1", port, timeout=2)
+                try:
+                    conn.request("GET", "/")
+                    self.assertEqual(conn.getresponse().status, 200, "the server is not up to test")
+                finally:
+                    conn.close()
                 lan = serve_lan_address()
-                if lan and lan != "127.0.0.1":
-                    status = connect_status(lan, port)
-                    self.assertNotEqual(status, 200, "%s:%d answered; the server must not answer there" % (lan, port))
+                if not lan or lan == "127.0.0.1":
+                    self.skipTest("this machine has no second IPv4 address to try")
+                with self.assertRaises(ConnectionRefusedError):
+                    socket.create_connection((lan, port), timeout=2)
             finally:
                 httpd.shutdown()
                 httpd.server_close()
                 thread.join(timeout=5)
+
+
+class TestCheck(unittest.TestCase):
+    """--check says what it checked and exits non-zero when the server would not work."""
+
+    def test_check_refuses_a_page_it_would_have_to_500_on(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            make_app(repo)
+            (repo / "app" / "index.html").write_text(
+                "<!doctype html><html><body>no head here</body></html>\n", encoding="utf-8")
+            err = io.StringIO()
+            with mock.patch.object(serve, "APP", repo / "app"), mock.patch.object(serve, "ROOT", repo), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                with self.assertRaises(SystemExit) as caught:
+                    serve.main(["--check", "--port", "0"])
+            self.assertEqual(caught.exception.code, 1)
+            self.assertIn("</head>", err.getvalue())
+
+    def test_check_refuses_a_port_that_is_taken(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            make_app(repo)
+            holder = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            holder.bind(("127.0.0.1", 0))
+            holder.listen(1)
+            self.addCleanup(holder.close)
+            port = holder.getsockname()[1]
+            err = io.StringIO()
+            with mock.patch.object(serve, "APP", repo / "app"), mock.patch.object(serve, "ROOT", repo), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                with self.assertRaises(SystemExit) as caught:
+                    serve.main(["--check", "--port", str(port)])
+            self.assertEqual(caught.exception.code, 1)
+            self.assertIn(str(port), err.getvalue())
+
+    def test_check_passes_on_a_folder_that_can_be_served(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            repo = Path(tmp)
+            make_app(repo)
+            err = io.StringIO()
+            with mock.patch.object(serve, "APP", repo / "app"), mock.patch.object(serve, "ROOT", repo), \
+                    contextlib.redirect_stdout(io.StringIO()), contextlib.redirect_stderr(err):
+                serve.main(["--check", "--port", "0"])       # returns, says nothing is wrong
+            self.assertIn("index.html", err.getvalue())
+            self.assertNotIn("serve: cannot", err.getvalue())
+
+    def test_a_port_outside_the_range_is_one_plain_sentence(self):
+        for port in ("-1", "70000"):
+            with self.subTest(port=port):
+                err = io.StringIO()
+                with contextlib.redirect_stderr(err):
+                    with self.assertRaises(SystemExit) as caught:
+                        serve.main(["--port", port, "--check"])
+                self.assertNotEqual(caught.exception.code, 0)
+                self.assertIn("--port", str(caught.exception.code))
+                self.assertNotIn("Traceback", err.getvalue())
 
 
 def serve_lan_address():
@@ -300,20 +528,6 @@ def serve_lan_address():
         return ""
     finally:
         sock.close()
-
-
-def connect_status(host, port):
-    """200 when something answered as this server, 0 when the connection was refused or failed."""
-    conn = http.client.HTTPConnection(host, port, timeout=2)
-    try:
-        conn.request("GET", "/")
-        r = conn.getresponse()
-        r.read()
-        return r.status
-    except OSError:
-        return 0
-    finally:
-        conn.close()
 
 
 if __name__ == "__main__":

@@ -381,7 +381,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   reference modes loaded too. For the projector, and for the room if the network drops.
   *Done when:* the reference modes show and `#selftest` is green.
 
-- [ ] **T5.4 Live reload** (D, M, S). Port: `searchdesk/tools/serve.py`, only its serving, reload and `.dev-go`
+- [x] **T5.4 Live reload** (D, M, S). Port: `searchdesk/tools/serve.py`, only its serving, reload and `.dev-go`
   parts. **Binds `127.0.0.1` only.** Fix two bugs Search Desk recorded: inject the workshop line inside a `<script>`
   tag, and keep a `.dev-go` note until a page reports it was shown.
   *Done when:* saving `app/modes/more-by.js` reloads an open tab; writing `find` to `.dev-go` moves it to `#find`; the
