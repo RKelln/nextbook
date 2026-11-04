@@ -21,6 +21,8 @@
   var END = 'Answer with two lines. Do not change any files.';
   // One candidate is one line: asking for "two lines" for a single book would be a lie.
   var END_ONE = 'Answer with one line. Do not change any files.';
+  // Subjects are up to four lines, one each: the finalists' "two lines" would be wrong here.
+  var END_LABELS = 'Answer with up to four lines, one subject on each line. Do not change any files.';
   var MAX_SENTENCE = 300;
   var MAX_KEPT_LABELS = 4;
   var MAX_KEPT_FINALISTS = 2;
@@ -480,8 +482,9 @@
     series: 'Series', mood: 'Moods', pace: 'Pace', audience: 'Readers'
   };
 
-  // labelsPrompt(text, facets): the list's own labels, grouped by kind, from the pool's
-  // facet table ({facet: {label, kind}}), an array of labels, or an array of facets.
+  // labelsPrompt(text, facets): the list's own subjects, grouped by kind, from the pool's
+  // facet table ({facet: {label, kind}}), an array of labels, or an array of facets. The words
+  // are "subjects" throughout, because that is what the app calls them on the page.
   function labelsPrompt(text, facets) {
     var index = labelIndex(facets);
     var byKind = {}, kinds = [];
@@ -497,20 +500,20 @@
       return (ia - ib) || (a < b ? -1 : a > b ? 1 : 0);
     });
     var lines = [];
-    lines.push('Pick up to four labels for this text. Use only labels from the list below, spelled exactly as they are.');
+    lines.push('Pick up to four subjects for this text. Use only subjects from the list below, spelled exactly as they are.');
     lines.push('');
     lines.push('The text:');
     lines.push(clean(text) || '(no text)');
     lines.push('');
-    lines.push('The labels:');
+    lines.push('The subjects:');
     kinds.forEach(function (kind) {
       byKind[kind].sort();
       lines.push((HEADINGS[kind] || 'Other') + ': ' + byKind[kind].join(', '));
     });
     lines.push('');
-    lines.push('Write the labels you pick, one per line, exactly as they are spelled above.');
+    lines.push('Write the subjects you pick, one per line, exactly as they are spelled above.');
     lines.push('');
-    lines.push(END);
+    lines.push(END_LABELS);
     return lines.join('\n');
   }
 
@@ -518,6 +521,7 @@
     available: false,          // no keys, no calls: the person carries the prompt
     end: END,
     endOne: END_ONE,
+    endLabels: END_LABELS,
     finalistsPrompt: finalistsPrompt,
     parseFinalists: parseFinalists,
     labelsPrompt: labelsPrompt,

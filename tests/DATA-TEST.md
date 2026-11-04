@@ -135,6 +135,25 @@ Drawn under a result with at least one card. Nothing is sent anywhere.
 The numbering rule holds here too: `N` is the control's place on the page, counted from 1. `<id>`
 and `<input>` are names a mode chose, so they stay the same when cards move.
 
+## From some words (a `facets` input)
+
+Drawn inside a `facets` input, under the subject checkboxes. A mode with no `facets` input has
+no `-words-…` control at all. Nothing is sent anywhere: the person copies the words into a chat
+and pastes the answer back.
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `input-<input>-words-toggle` | Button "From some words" | Opens the panel; `aria-expanded` says whether it is open. |
+| `input-<input>-words-panel` | The panel (not pressed) | — |
+| `input-<input>-words-text` | Box "The words you paste" | An event, a headline or a wish. The words to copy follow as you type. |
+| `input-<input>-words-prompt` | The words to copy, a read-only text box | — |
+| `input-<input>-words-copy` | Button "Copy" | Copies the prompt. If the browser will not copy, it says so and the words are there to select by hand. |
+| `input-<input>-words-answer` | The paste box | — |
+| `input-<input>-words-check` | Button "Use the answer" | Keeps only subjects in this list, ticks up to four checkboxes and names the subjects it did not keep. |
+| `input-<input>-words-result` | "Ticked: …" or "The chat did not name any subject in this list." (not pressed) | — |
+| `input-<input>-words-dropped` | The subjects not kept, named in words (not pressed) | — |
+| `input-<input>-words-said` | A note from Copy or Use the answer (not pressed) | — |
+
 ## Also marked
 
 `not-saving` is the sentence shown on every screen when the store says `persistent: false`.

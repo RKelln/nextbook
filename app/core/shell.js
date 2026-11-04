@@ -30,7 +30,8 @@
     inputs: {},
     bookQuery: {},
     seed: 1,
-    model: blankModel()   // the pasted answer, if there is one
+    model: blankModel(),  // the pasted answer, if there is one
+    words: {}             // per facets input: the pasted words, the prompt and its answer
   };
 
   // ---- Words ---------------------------------------------------------------------------------
@@ -843,6 +844,7 @@
     state.bookQuery = {};
     state.seed = 1;
     state.model = blankModel();
+    state.words = {};
     if (!state.store) return;
     try {
       var saved = state.store.inputs(id);
@@ -967,6 +969,171 @@
     box.appendChild(list);
   }
 
+  // ---- The facets input's "from some words" half (T3.3b) --------------------------------------
+  // Inside a facets input only. The person pastes an event, a headline or a wish; the app writes
+  // the words to copy (seam.labelsPrompt); the answer comes back and only subjects that exist in
+  // this list are kept, as facet keys. The rest are named. Nothing is sent anywhere: the person
+  // carries the words to a chat and back, and the mode never sees the chat's words.
+
+  function wordsState(modeId, id) {
+    var key = String(modeId) + '|' + String(id);
+    if (!isObj(state.words[key])) {
+      state.words[key] = {
+        open: false, text: '', answer: '', message: '', checked: false,
+        ticked: [], unknown: [], over: []
+      };
+    }
+    return state.words[key];
+  }
+
+  function wordsPromptFor(text) {
+    try { return Nextbook.seam.labelsPrompt(text, poolResult().facets); } catch (e) { return ''; }
+  }
+
+  function wordsResultBox(ws, base) {
+    var box = h('div', { class: 'nb-words-result' });
+    if (ws.message) {
+      box.appendChild(p(ws.message, 'nb-note', { role: 'status', 'data-test': base + '-words-said' }));
+    }
+    if (!ws.checked) return box;
+    box.appendChild(p(ws.ticked.length
+      ? t('wordsTicked', { list: ws.ticked.join(', ') })
+      : t('wordsNoneKept'), 'nb-note', { 'data-test': base + '-words-result' }));
+    var said = [];
+    if (ws.unknown.length) {
+      said.push(ws.unknown.length === 1
+        ? t('wordsNoSubject', { name: ws.unknown[0] })
+        : t('wordsNoSubjects', { list: ws.unknown.join(', ') }));
+    }
+    if (ws.over.length) {
+      said.push(ws.over.length === 1
+        ? t('wordsOverOne', { name: ws.over[0] })
+        : t('wordsOverMany', { list: ws.over.join(', ') }));
+    }
+    if (said.length) {
+      box.appendChild(p(said.join(' '), 'nb-dropped', { 'data-test': base + '-words-dropped' }));
+    }
+    return box;
+  }
+
+  // The answer is read by seam.parseLabels and never by the page. A kept subject is a facet key;
+  // up to four tick the checkboxes above. A kept subject that does not fit, and a subject the
+  // answer invented, are named instead of shown.
+  function readWordsAnswer(answer, ws, spec, modeId, facets) {
+    ws.message = '';
+    ws.checked = false;
+    ws.ticked = [];
+    ws.unknown = [];
+    ws.over = [];
+    var text = String(answer || '').trim();
+    if (!text) { ws.message = t('modelNeedAnswer'); render(); return; }
+    ws.answer = text;
+    var parsed = null;
+    try { parsed = Nextbook.seam.parseLabels(text, facets); } catch (e) { parsed = null; }
+    if (!parsed) { ws.message = t('wordsReadFailed'); render(); return; }
+
+    var picked = modeInputValue(spec).slice();
+    var before = picked.join('|');
+    (Array.isArray(parsed.kept) ? parsed.kept : []).forEach(function (key) {
+      var name = facetWords(key);
+      if (picked.indexOf(key) === -1) {
+        if (picked.length >= 4) { ws.over.push(name); return; }
+        picked.push(key);
+      }
+      ws.ticked.push(name);
+    });
+    (Array.isArray(parsed.dropped) ? parsed.dropped : []).forEach(function (drop) {
+      var name = drop && drop.label ? String(drop.label) : '';
+      if (!name) return;
+      if (drop.code === 'over') ws.over.push(name);
+      else ws.unknown.push(name);
+    });
+    if (picked.join('|') !== before) setInputValue(modeId, spec.id, picked);
+    ws.checked = true;
+    render();
+  }
+
+  function wordsPanel(spec, modeId, base, facets) {
+    var ws = wordsState(modeId, spec.id);
+    var wrap = h('div', { class: 'nb-words' });
+    var panelId = 'nb-words-' + String(modeId) + '-' + String(spec.id);
+    wrap.appendChild(h('button', {
+      type: 'button',
+      class: 'nb-button nb-button-quiet nb-button-small nb-words-open',
+      'data-test': base + '-words-toggle',
+      'aria-expanded': ws.open ? 'true' : 'false',
+      'aria-controls': panelId,
+      on: { click: function () { ws.open = !ws.open; render(); } }
+    }, t('wordsOpen')));
+
+    var panel = h('div', { class: 'nb-words-panel', id: panelId, hidden: !ws.open, 'data-test': base + '-words-panel' });
+    wrap.appendChild(panel);
+    if (!ws.open) return wrap;
+
+    panel.appendChild(p(t('wordsHint'), 'nb-hint'));
+    panel.appendChild(p(t('modelNoSend'), 'nb-hint'));
+
+    var wordsBox = h('textarea', {
+      class: 'nb-words-box',
+      rows: 4,
+      placeholder: t('wordsPlaceholder'),
+      'data-test': base + '-words-text',
+      'aria-label': t('wordsTextLabel'),
+      on: { input: function (ev) { ws.text = String(ev.target.value || ''); refresh(); } }
+    }, ws.text);
+    panel.appendChild(h('label', { class: 'nb-field' },
+      h('span', { class: 'nb-label' }, t('wordsTextLabel')), wordsBox));
+
+    panel.appendChild(h('p', { class: 'nb-label' }, t('modelPromptLabel')));
+    var promptBox = h('textarea', {
+      class: 'nb-model-prompt',
+      rows: 8,
+      readonly: true,
+      placeholder: t('wordsPromptEmpty'),
+      'data-test': base + '-words-prompt',
+      'aria-label': t('modelPromptLabel')
+    }, ws.text.trim() ? wordsPromptFor(ws.text) : '');
+    panel.appendChild(promptBox);
+
+    var copyBtn = button(base + '-words-copy', t('modelCopy'), function () {
+      var text = ws.text.trim() ? wordsPromptFor(ws.text) : '';
+      if (!text) { ws.message = t('wordsNeedWords'); render(); return; }
+      writeClipboard(text, function (ok) {
+        ws.message = ok ? t('modelCopied') : t('modelCopyFailed');
+        render();
+        if (!ok) selectTest(base + '-words-prompt');
+      });
+    }, 'nb-button nb-button-small');
+    copyBtn.disabled = !ws.text.trim();
+    panel.appendChild(h('div', { class: 'nb-model-actions' }, copyBtn));
+
+    panel.appendChild(h('p', { class: 'nb-label' }, t('modelAnswerLabel')));
+    var answerBox = h('textarea', {
+      class: 'nb-words-box',
+      rows: 4,
+      placeholder: t('modelAnswerPlaceholder'),
+      'data-test': base + '-words-answer',
+      'aria-label': t('modelAnswerLabel'),
+      on: { input: function (ev) { ws.answer = String(ev.target.value || ''); } }
+    }, ws.answer);
+    panel.appendChild(answerBox);
+
+    panel.appendChild(h('div', { class: 'nb-model-actions' },
+      button(base + '-words-check', t('wordsCheck'), function () {
+        readWordsAnswer(answerBox.value, ws, spec, modeId, facets);
+      })));
+    panel.appendChild(wordsResultBox(ws, base));
+
+    // The prompt follows the words as they are typed, without drawing the page again (a redraw
+    // would move the caret out of the box).
+    function refresh() {
+      var text = ws.text.trim();
+      promptBox.value = text ? wordsPromptFor(text) : '';
+      copyBtn.disabled = !text;
+    }
+    return wrap;
+  }
+
   function inputBlock(spec, modeId) {
     var kind = String(spec.kind || '');
     var label = typeof spec.label === 'string' && spec.label ? spec.label : t(INPUT_LABELS[kind] || 'inputLabelChoice');
@@ -1075,6 +1242,9 @@
         grid.appendChild(h('label', { class: 'nb-facet-choice' }, checkbox, h('span', null, facetWords(key))));
       });
       field.appendChild(grid);
+      // T3.3b: "From some words" belongs to a facets input, and only when the list has subjects
+      // to keep. A mode with no facets input never draws it.
+      if (keys.length) field.appendChild(wordsPanel(spec, modeId, base, poolResult().facets));
       wrap.appendChild(field);
       return wrap;
     }
@@ -1358,20 +1528,25 @@
     } catch (e) { /* the words are still on the page */ }
   }
 
-  function copyPrompt(text) {
-    function said(ok) {
-      state.message = ok ? t('modelCopied') : t('modelCopyFailed');
-      render();
-      if (!ok) selectTest('model-prompt');
-    }
+  // The clipboard is the one thing the page can hand to the outside, and only on a press. A
+  // browser that will not copy says so, and the words stay selected for a manual copy.
+  function writeClipboard(text, done) {
     try {
       var nav = window.navigator;
       if (nav && nav.clipboard && typeof nav.clipboard.writeText === 'function') {
-        nav.clipboard.writeText(text).then(function () { said(true); }, function () { said(false); });
+        nav.clipboard.writeText(text).then(function () { done(true); }, function () { done(false); });
         return;
       }
     } catch (e) { /* no clipboard: say so and select the words */ }
-    said(false);
+    done(false);
+  }
+
+  function copyPrompt(text) {
+    writeClipboard(text, function (ok) {
+      state.message = ok ? t('modelCopied') : t('modelCopyFailed');
+      render();
+      if (!ok) selectTest('model-prompt');
+    });
   }
 
   function readAnswer(answer, result, ctx) {
@@ -1999,8 +2174,8 @@
     importHeading: 'Import a shelf file',
     importHelp: 'This adds a shelf file to the shelf you are using. A newer book wins.',
     importChoose: 'Choose a shelf file',
-    importReport: 'Import done: {added} added, {changed} changed, {kept} kept.',
-    importSkipped: '{skipped} rows were not usable and were skipped.',
+    importReport: 'Import done: {added} added, {changed} changed, {kept} left as they were.',
+    importSkipped: '{skipped} books in the file could not be read. They were left out.',
     importNoFile: 'This browser could not read that file.',
     // friends' shelves
     friendsHeading: "Add a friend's shelf",
@@ -2019,13 +2194,13 @@
     foundCleared: 'The note is hidden. The books stay in the list.',
     // the find screen
     findHeading: 'Find a book',
-    findIntro: 'A way of choosing books picks up to six books and says why. The ones in this copy are listed here.',
+    findIntro: 'Each way of choosing books offers up to six books and says why. The ones in this copy are listed here.',
     findShelfHint: 'Go to the shelf',
     modeUnknown: '"{id}" did not load.',
     modeUnknownHelp: 'This one did not load. Ask your helper to run the check.',
     modeShow: 'Show the books',
     modeShowing: 'Showing now',
-    inputHeading: 'It needs a few things first:',
+    inputHeading: 'This way of choosing books needs a few things first:',
     inputNeeded: 'Pick something for "{label}" first.',
     pickOne: 'Choose one',
     inputLabelShelfBook: 'Pick a book from your shelf',
@@ -2086,10 +2261,25 @@
     modelFromChat: 'From the chat',
     modelSaidLine: 'The chat said: "{sentence}"',
     modelLibraryLink: "Open the library's page",
+    // the facets input's "from some words" half
+    wordsOpen: 'From some words',
+    wordsHint: 'Paste an event, a headline or a wish about what you want to read. This page writes words you can copy into any chat.',
+    wordsTextLabel: 'The words you paste',
+    wordsPlaceholder: 'Paste an event, a headline or a wish here.',
+    wordsPromptEmpty: 'Paste some words above, and the words to copy will appear here.',
+    wordsCheck: 'Use the answer',
+    wordsNeedWords: 'Paste some words first.',
+    wordsReadFailed: 'This page could not read that answer. Try pasting it again.',
+    wordsTicked: 'Ticked: {list}.',
+    wordsNoneKept: 'The chat did not name any subject in this list.',
+    wordsNoSubject: 'This list has no subject called {name}.',
+    wordsNoSubjects: 'This list has no subjects called {list}.',
+    wordsOverOne: 'You can pick four subjects at most, so {name} was not ticked.',
+    wordsOverMany: 'You can pick four subjects at most, so these were not ticked: {list}.',
     // the self-test
     selftestHeading: 'Self-test',
     selftestIntro: 'This page checks the app in your browser. Nothing to install.',
-    dataHeading: 'Data',
+    dataHeading: 'What this copy has',
     dataSlice: 'Book list: {n} books, dated {date}.',
     dataSliceOne: 'Book list: 1 book, dated {date}.',
     dataSliceNoDate: 'Book list: {n} books.',

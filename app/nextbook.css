@@ -2,6 +2,7 @@
    No images, no web fonts, no CDN: a folder opened from file:// needs nothing. */
 
 :root {
+  color-scheme: light dark;   /* native selects, checkboxes and scrollbars follow the page */
   --nb-ink: #1d1d1b;
   --nb-paper: #fbfaf7;
   --nb-soft: #f0ede6;
@@ -42,7 +43,16 @@ body {
   background: var(--nb-paper);
   color: var(--nb-ink);
   font: 17px/1.55 system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  /* T3.5: one unbroken token from a catalogue, a note or a pasted answer wraps instead of
+     pushing the page sideways at 360 px. The class list below stays for the elements whose
+     own min-content width matters in a grid; this rule covers everything else. */
+  overflow-wrap: anywhere;
 }
+
+::placeholder { color: var(--nb-muted); opacity: 1; }
+
+input[type="checkbox"],
+input[type="radio"] { accent-color: var(--nb-accent); }
 
 h1 {
   margin: 0 0 4px;
@@ -539,6 +549,37 @@ strong.nb-book-title { text-decoration: none; }
 
 .nb-model-words { margin-top: 6px; font-style: italic; }
 
+/* ---- From some words, inside a facets input ------------------------------------------------ */
+
+.nb-words { margin-top: 10px; }
+
+.nb-words-panel {
+  margin-top: 8px;
+  padding: 10px 12px 12px;
+  border: 1px dashed var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-soft);
+}
+
+.nb-words-panel[hidden] { display: none; }
+
+.nb-words-box {
+  width: 100%;
+  margin: 4px 0 8px;
+  padding: 10px;
+  border: 1px solid var(--nb-line);
+  border-radius: 8px;
+  background: var(--nb-paper);
+  color: var(--nb-ink);
+  font: inherit;
+  resize: vertical;
+}
+
+.nb-words-result { display: grid; gap: 6px; margin-top: 8px; }
+.nb-words-result:empty { display: none; }
+
+.nb-button:disabled { opacity: 0.55; cursor: not-allowed; }
+
 /* ---- Focus and small screens --------------------------------------------------------------- */
 
 a:focus-visible,
@@ -548,6 +589,14 @@ select:focus-visible,
 textarea:focus-visible {
   outline: 3px solid var(--nb-accent);
   outline-offset: 2px;
+}
+
+/* A checkbox's own ring is small at 17 px. The whole row shows the focus, so a person
+   tabbing through 27 subjects can see where they are. */
+.nb-facet-choice:focus-within {
+  outline: 3px solid var(--nb-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
 }
 
 @media (max-width: 34rem) {
@@ -560,4 +609,7 @@ textarea:focus-visible {
   .nb-banner-actions .nb-button { flex: 1 1 100%; }
   .nb-nav { gap: 6px; }
   .nb-tab { flex: 1 1 auto; }
+  .nb-model { padding: 12px 12px 14px; }
+  .nb-words-panel { padding: 8px 10px 10px; }
+  .nb-facets { grid-template-columns: 1fr; max-height: 13rem; }
 }

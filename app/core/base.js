@@ -19,7 +19,7 @@
     missingMode: 'A way of choosing books did not load. The rest of the app still works.',
     modesLoaded: 'Ways to choose: ',
     noModes: 'No ways of choosing books are loaded yet.',
-    notSaving: 'This browser is not saving. Export before you close it.',
+    notSaving: 'This browser is not saving. Download a copy of your shelf before you close it.',
     libraryPage: "the library's page",
     libraryLine: "Holds, copies, your library shelves and the library's own suggestions are on the library's page.",
     practiceBanner: 'Practice shelf. Try anything. Reset puts it back.',

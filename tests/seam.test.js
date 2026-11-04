@@ -64,13 +64,16 @@ test('a reason that names a shelf book gives a prompt without that title', () =>
   assert.ok(prompt.indexOf('fantasy') !== -1, "the profile's labels are there");
 });
 
-test('both prompts end with the exact sentence', () => {
+test('the finalists prompt ends with the exact sentence, and the subjects prompt asks for lines it wants', () => {
   const finalists = nb.seam.finalistsPrompt(result, profile, pool);
   assert.strictEqual(finalists.split('\n').pop(), END);
-  const labels = nb.seam.labelsPrompt('a night about sea monsters and maps', SLICE.facets);
-  assert.strictEqual(labels.split('\n').pop(), END);
   assert.strictEqual(nb.seam.end, END);
   assert.strictEqual(END, 'Answer with two lines. Do not change any files.');
+  // T3.3b: up to four subjects is up to four lines, not the finalists' two.
+  const labels = nb.seam.labelsPrompt('a night about sea monsters and maps', SLICE.facets);
+  assert.strictEqual(labels.split('\n').pop(), nb.seam.endLabels);
+  assert.strictEqual(nb.seam.endLabels, 'Answer with up to four lines, one subject on each line. Do not change any files.');
+  assert.strictEqual(labels.indexOf('Answer with two lines'), -1);
 });
 
 test('one good id plus one invented keeps one and names the other', () => {
