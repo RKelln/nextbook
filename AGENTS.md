@@ -54,7 +54,8 @@ adapters/bibliocommons/ the only code that knows the library's platform (BiblioC
                         file in libraries/ (tpl.json: subdomain, name, timezone, slice queries)
 adapters/pack/          a reading pack (books, genres, mood, pace, a note) and the converter that makes the data
 tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py,
-                        packets.py (a paste packet per brief), inbox.py (hand the page one change)
+                        packets.py (a paste packet per brief), inbox.py (hand the page one change),
+                        screens.py (screenshots of every screen, for design work; dev only)
 .claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
 tests/                  Node tests for the core and the screens, Python tests for the adapters and the tools,
                         fixtures in tests/fixtures/ (catalogue pages, saved shelf pages, two CSV exports)
@@ -86,7 +87,15 @@ python3 tools/build.py --starter         # dist/starter/, the folder a workshop 
 python3 tools/packets.py                 # dist/packets/, one self-contained text per mode brief
 python3 tools/inbox.py --add "Piranesi" --state read      # one change, handed to the page
 python3 adapters/pack/pack_to_slice.py   # rebuild the data from data/pack/books.json
+uv run tools/screens.py                  # every screen, every size, light and dark: screens/index.html
+uv run tools/screens.py --only shelf --sizes phone --viewport   # one shot, quickly
 ```
+
+For UI work, run `tools/screens.py` before and after and look at the pictures: it also fails on sideways scroll, a
+page error, or "undefined" on screen. It is the one tool that is not standard library (uv fetches Playwright for it;
+first time: `uv run --with playwright==1.60.0 playwright install chromium`), and nothing in the app needs it. Add a
+shot to its `SHOTS` table when a new state is worth seeing. Styles go in the matching layer of `app/nextbook.css`
+(its header lists them); a mode's own look goes in the `modes` layer under `[data-mode="<id>"]`.
 
 In a browser, `app/index.html#selftest` runs the same mode checks with no tools at all.
 

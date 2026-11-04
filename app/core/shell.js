@@ -42,6 +42,8 @@
     inputs: {},
     bookQuery: {},
     seed: 1,
+    // which of the shelf screen's folding panels are open, by name, for this visit only
+    folds: {},
     model: blankModel(),  // the pasted answer, if there is one
     words: {}             // per facets input: the pasted words, the prompt and its answer
   };
@@ -231,7 +233,7 @@
       // Reset stays in every copy: the banner promises it, so the button must be there. A
       // workshop copy replaces only the switch to the own shelf, with the sentence from T3.1.
       var actions = h('div', { class: 'nb-banner-actions' },
-        button('practice-reset', t('resetButton'), resetPractice));
+        button('practice-reset', t('resetButton'), resetPractice, 'nb-button nb-button-quiet'));
       if (isWorkshop()) {
         wrap.appendChild(p(t('practiceOnly'), 'nb-banner-note'));
       } else {
@@ -2656,7 +2658,9 @@
   }
 
   function modePanel(def, modeId) {
-    var wrap = h('section', { class: 'nb-mode-panel', 'data-test': 'mode-panel' });
+    // data-mode is the hook for a mode's own look: a rule in nextbook.css's "modes" layer, such
+    // as [data-mode="journey"] .nb-card { ... }, reaches this panel and nothing else.
+    var wrap = h('section', { class: 'nb-mode-panel', 'data-test': 'mode-panel', 'data-mode': modeId });
     var specs = Array.isArray(def.inputs) ? def.inputs : [];
     if (specs.length) {
       wrap.appendChild(h('h3', t('inputHeading')));
@@ -2748,11 +2752,12 @@
       }
       list.appendChild(li);
     });
-    sec.appendChild(list);
-
+    var side = h('div', { class: 'nb-split-side' }, list);
+    var main = h('div', { class: 'nb-split-main' });
     var def = state.modeId ? defOf(state.modeId) : null;
-    if (def) sec.appendChild(modePanel(def, state.modeId));
-    sec.appendChild(button('find-to-shelf', t('findShelfHint'), function () { go('shelf'); }, 'nb-button nb-button-quiet'));
+    if (def) main.appendChild(modePanel(def, state.modeId));
+    main.appendChild(button('find-to-shelf', t('findShelfHint'), function () { go('shelf'); }, 'nb-button nb-button-quiet'));
+    sec.appendChild(h('div', { class: 'nb-split nb-split-find' }, side, main));
     return sec;
   }
 
@@ -3227,7 +3232,18 @@
       root.appendChild(p(t('notSaving'), 'nb-message nb-message-warn', { 'data-test': 'not-saving' }));
     }
     if (state.message) {
-      root.appendChild(p(state.message, 'nb-message', { role: 'status' }));
+      // A toast, pinned to the foot of the screen, so a note about a tap halfway down a long
+      // shelf is seen where the person is. It stays until closed or the screen changes: an
+      // import's report is worth reading, so it never times out on its own.
+      root.appendChild(h('div', { class: 'nb-toast', 'data-test': 'message' },
+        h('p', { class: 'nb-toast-text', role: 'status' }, state.message),
+        h('button', {
+          type: 'button',
+          class: 'nb-toast-close',
+          'aria-label': t('messageClose'),
+          'data-test': 'message-close',
+          on: { click: function () { state.message = ''; render(); } }
+        }, '\u00d7')));
     }
 
     if (route === 'shelf') root.appendChild(shelfView());
@@ -3235,6 +3251,41 @@
     else if (route === 'selftest') root.appendChild(selfTestView());
     else root.appendChild(findView());
     refocus(keepFocus);
+    showChosenMode();
+  }
+
+  // On a phone the ways of choosing scroll sideways (nextbook.css). Bring the chosen one into
+  // view inside its own row, without moving the page up or down.
+  function showChosenMode() {
+    try {
+      var on = doc.querySelector ? doc.querySelector('.nb-mode-on') : null;
+      var row = on && on.parentNode;
+      if (!row || row.scrollWidth <= row.clientWidth) return;
+      row.scrollLeft = on.offsetLeft - row.offsetLeft - (parseFloat(window.getComputedStyle(row).paddingLeft) || 0);
+    } catch (e) { /* a nicety: the row still scrolls by hand */ }
+  }
+
+  // A panel whose first child is its heading becomes a <details>: the heading is the summary,
+  // the rest folds. The section keeps its id, data-test and tabindex, so a focus call that
+  // lands on it (focusLibraryBlock) still finds it. Whether it is open is kept in state.folds,
+  // because the screen is rebuilt on every change and would otherwise snap shut.
+  function foldPanel(key, panel, openByDefault) {
+    var kids = Array.prototype.slice.call(panel.childNodes || []);
+    if (!kids.length) return panel;
+    kids.forEach(function (k) { panel.removeChild(k); });
+    var head = kids.shift();
+    var open = has(state.folds, key) ? state.folds[key] === true : openByDefault === true;
+    // A report that arrived since the person folded the panel opens it again.
+    if (openByDefault === true && key !== 'add') open = true;
+    var fold = h('details', { class: 'nb-fold', open: open, 'data-test': 'fold-' + key });
+    fold.addEventListener('toggle', function () { state.folds[key] = fold.open === true; });
+    fold.appendChild(h('summary', { class: 'nb-fold-head' }, head));
+    var body = h('div', { class: 'nb-fold-body' });
+    kids.forEach(function (k) { body.appendChild(k); });
+    fold.appendChild(body);
+    panel.appendChild(fold);
+    panel.setAttribute('class', (panel.getAttribute('class') || '') + ' nb-panel-fold');
+    return panel;
   }
 
   function shelfView() {
@@ -3250,18 +3301,26 @@
     var found = foundPanel();
     if (found) sec.appendChild(found);
 
-    sec.appendChild(h('h2', state.store.which() === 'own' ? t('shelfOwnHeading') : t('shelfPracticeHeading')));
-
+    // Two columns where there is room (nextbook.css, "split"): the shelf itself, and beside it
+    // the ways to put books on it and take it with you. One column, in this order, on a phone.
+    var main = h('div', { class: 'nb-split-main' });
+    main.appendChild(h('h2', state.store.which() === 'own' ? t('shelfOwnHeading') : t('shelfPracticeHeading')));
     var entries = [];
     try { entries = state.store.shelf(); } catch (e) { entries = []; }
-    sec.appendChild(p(countLine(entries.length, 'shelfCountOne', 'shelfCount', { n: entries.length }), 'nb-count'));
-    sec.appendChild(shelfList());
-    sec.appendChild(libraryPanel());
-    sec.appendChild(listPanel());
-    sec.appendChild(addPanel());
-    sec.appendChild(exportPanel());
-    sec.appendChild(importPanel());
-    sec.appendChild(friendsPanel());
+    main.appendChild(p(countLine(entries.length, 'shelfCountOne', 'shelfCount', { n: entries.length }), 'nb-count'));
+    main.appendChild(shelfList());
+
+    // The tools fold away, so the side column reads as a short menu. Adding a book is open to
+    // start with; a panel holding a report from this visit opens itself, so the report is seen.
+    var side = h('div', { class: 'nb-split-side' });
+    side.appendChild(foldPanel('add', addPanel(), true));
+    side.appendChild(foldPanel('library', libraryPanel(), !!state.libReport));
+    side.appendChild(foldPanel('list', listPanel(), !!state.listReport));
+    side.appendChild(foldPanel('export', exportPanel(), !!state.exportText));
+    side.appendChild(foldPanel('import', importPanel(), false));
+    side.appendChild(foldPanel('friends', friendsPanel(), false));
+
+    sec.appendChild(h('div', { class: 'nb-split nb-split-shelf' }, main, side));
     return sec;
   }
 
@@ -3489,6 +3548,7 @@
     navShelf: 'Shelf',
     navSelftest: 'Self-test',
     navLabel: 'Screens',
+    messageClose: 'Close this note',
     // shelf
     shelfOwnHeading: 'Your own shelf',
     shelfPracticeHeading: 'The practice shelf',
