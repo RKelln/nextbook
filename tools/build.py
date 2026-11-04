@@ -419,7 +419,7 @@ def write_page(name, demo_modes=None):
     out = DIST / name
     clear_output(out)
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(html, encoding="utf-8", newline="\n")
+    write_lf(out, html)
     info["out"] = out
     info["bytes"] = len(html.encode("utf-8"))
     warn_strays([out])
@@ -509,6 +509,12 @@ STARTER_FILES = (
 )
 
 
+def write_lf(path, text):
+    """Write text with LF line ends. Path.write_text(newline=) needs Python 3.10; the Mini has 3.9."""
+    with open(path, "w", encoding="utf-8", newline="\n") as f:
+        f.write(text)
+
+
 def copy_into(out, rel, target=None):
     source = ROOT / rel
     if not source.is_file():
@@ -548,14 +554,13 @@ def build_starter():
     # The app: every core file, the example mode only, the data the folder ships.
     copy_into(out, "app/modes/%s.js" % EXAMPLE_MODE)
     copy_into(out, "app/modes/%s.check.js" % EXAMPLE_MODE)
-    (out / "app/modes/list.js").write_text(starter_list_js(), encoding="utf-8", newline="\n")
-    for name in ("slice", "tags", "practice"):
+    write_lf(out / "app/modes/list.js", starter_list_js())
+    for name in ("slice", "tags", "practice", "events"):
         src = APP / "data" / (name + ".js")
         if src.is_file():
             copy_into(out, str(src.relative_to(ROOT)))
-    (out / "app/data/workshop.js").write_text(
-        "Nextbook.data.put('workshop', {\"workshop\":true});\n", encoding="utf-8", newline="\n")
-    (out / "app/PLAN.md").write_text(PLAN_MD, encoding="utf-8", newline="\n")
+    write_lf(out / "app/data/workshop.js", "Nextbook.data.put('workshop', {\"workshop\":true});\n")
+    write_lf(out / "app/PLAN.md", PLAN_MD)
 
     # The canonical data and its schemas, and the briefs.
     for path in sorted((ROOT / "data").glob("*.json")):
@@ -578,7 +583,7 @@ def build_starter():
     else:
         notes.append(".claude/commands/ is not here yet, so the starter does not carry it")
 
-    (out / "README.md").write_text(README_MD, encoding="utf-8", newline="\n")
+    write_lf(out / "README.md", README_MD)
 
     files = sorted(p for p in out.rglob("*") if p.is_file())
     for note in notes:
