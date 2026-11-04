@@ -31,6 +31,13 @@ USER_AGENT = "nextbook/1.0 (+https://github.com/RKelln/nextbook)"
 # The only paths this adapter was built to read (docs/DATA.md, "The rules of the house").
 ALLOWED_PATHS = ("/v2/search", "/v2/browse/titles/new")
 
+# The events feed lives on the platform's gateway, not the library's own host,
+# and that host carries nothing else we read. Its robots.txt answers 404
+# (checked 2026-11-03), so the whole host is governed by the allow-list here:
+# one path, one page, paced and cached like every other request.
+GATEWAY_HOST = "https://gateway.bibliocommons.com"
+EVENTS_PATH = "/v2/libraries/{library}/rss/events"
+
 KINDS = ("on-demand", "batch")
 # The robots.txt read is paced like the mildest kind: it is a request like any
 # other, but a cold run should not wait 120 s before saying hello.
@@ -88,6 +95,19 @@ def new_titles_url(page: int = 1, library: str = "tpl") -> str:
     """The new-and-on-order shelf, page `page` (1-based)."""
     template = load_library(library)["new_titles_url"]
     return template.format(page=int(page))
+
+
+def events_url(branch: str, start: str, end: str, page: int = 1,
+               library: str = "tpl") -> str:
+    """One page of one branch's events, for the inclusive window start..end.
+
+    `start` and `end` are ISO dates. The date filter is mandatory: without it
+    the feed carries events that have already happened (docs/RESEARCH.md).
+    """
+    path = EVENTS_PATH.format(library=load_library(library)["subdomain"])
+    query = urllib.parse.urlencode({"locations": branch, "startDate": start,
+                                    "endDate": end, "page": int(page)})
+    return f"{GATEWAY_HOST}{path}?{query}"
 
 
 # --- robots.txt -------------------------------------------------------------
@@ -198,8 +218,9 @@ def normalise_path(path: str) -> str:
     return "/" + "/".join(segments)
 
 
-def _path_under(path: str) -> bool:
-    return any(path == allowed or path.startswith(allowed + "/") for allowed in ALLOWED_PATHS)
+def _path_under(path: str, allowed_paths=ALLOWED_PATHS) -> bool:
+    return any(path == allowed or path.startswith(allowed + "/")
+               for allowed in allowed_paths)
 
 
 def _request_url(parts, path: str) -> str:
@@ -236,23 +257,37 @@ class Fetcher:
     def host(self) -> str:
         return self.library["host"]
 
+    def _allowed_paths(self, hostname=None):
+        """The paths this adapter reads on `hostname`, and none besides.
+
+        The gateway carries the events feed and nothing else; the library's own
+        host keeps its two catalogue paths.
+        """
+        gateway_host = urllib.parse.urlsplit(GATEWAY_HOST).hostname
+        if hostname == gateway_host:
+            return (EVENTS_PATH.format(library=self.library["subdomain"]),)
+        return ALLOWED_PATHS
+
     def get(self, url: str, kind: str = "on-demand") -> str:
         """Return the body at `url`, from the cache when it is already there."""
         if kind not in KINDS:
             raise ValueError(f"kind must be one of {KINDS}, not {kind!r}")
         parts = urllib.parse.urlsplit(url)
-        host = urllib.parse.urlsplit(self.host).hostname
-        if parts.scheme != "https" or parts.hostname != host:
-            raise DisallowedPath(f"{url} is not on {self.host}")
+        library_host = urllib.parse.urlsplit(self.host).hostname
+        gateway_host = urllib.parse.urlsplit(GATEWAY_HOST).hostname
+        if parts.scheme != "https" or parts.hostname not in (library_host, gateway_host):
+            raise DisallowedPath(f"{url} is not on {self.host} or the events gateway")
         # The guard and robots.txt see the path the server would resolve.
         path = normalise_path(parts.path or "/")
-        if not _path_under(path):
+        if not _path_under(path, self._allowed_paths(parts.hostname)):
             raise DisallowedPath(f"{path} is not a path this adapter reads")
         cached = self._cache_path(url)
         if cached.is_file():
             # A body already in the cache costs no request and no wait.
             return cached.read_text(encoding="utf-8", errors="replace")
-        robots = self.robots()
+        # The gateway answers 404 for robots.txt, so its one path is governed by
+        # the allow-list above; the library's own host is checked as before.
+        robots = Robots() if parts.hostname == gateway_host else self.robots()
         target = path + ("?" + parts.query if parts.query else "")
         if not robots.allowed(target):
             raise DisallowedPath(f"robots.txt disallows {path}")

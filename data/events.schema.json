@@ -1,0 +1,44 @@
+{
+  "title": "events.json, one branch's library events, dated",
+  "type": "object",
+  "required": ["fetched", "branch", "window", "source", "events"],
+  "additionalProperties": false,
+  "properties": {
+    "fetched": { "type": "string", "minLength": 19 },
+    "branch": { "type": "string", "minLength": 1 },
+    "window": {
+      "type": "object",
+      "required": ["start", "end"],
+      "additionalProperties": false,
+      "properties": {
+        "start": { "type": "string", "minLength": 10 },
+        "end": { "type": "string", "minLength": 10 }
+      }
+    },
+    "source": { "type": "string", "minLength": 10 },
+    "events": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["id", "title", "start", "end", "branch", "virtual", "categories", "summary", "url"],
+        "additionalProperties": false,
+        "x-forbiddenKeys": ["description"],
+        "properties": {
+          "id": { "type": "string", "minLength": 1 },
+          "title": { "type": "string", "minLength": 1 },
+          "start": { "type": "string", "minLength": 10 },
+          "end": { "type": "string" },
+          "branch": { "type": "string" },
+          "virtual": { "type": "boolean" },
+          "categories": {
+            "type": "array",
+            "items": { "type": "string", "minLength": 1 }
+          },
+          "summary": { "type": "string" },
+          "url": { "type": "string", "minLength": 1 }
+        }
+      }
+    }
+  }
+}

@@ -33,8 +33,9 @@ hour and a quarter, run once and cached. The same slice from record pages would 
 | What | URL | Result |
 |---|---|---|
 | Events RSS | `gateway.bibliocommons.com/v2/libraries/tpl/rss/events` | 200, XML, keyless |
-| With a branch filter | `...?locations=CL&startDate=2026-11-03&endDate=2026-11-24` | 104 events at North York Central |
+| With a branch filter | `...?locations=CL&startDate=2026-11-03&endDate=2026-11-24` | 104 events at North York Central (re-checked 2026-11-03 when the snapshot was built: 103 records, one cancelled, **102 kept**) |
 | Wrong branch code | `...?locations=NY` or `NYCL` | 200 with **zero** events, silently |
+| Events robots.txt | `gateway.bibliocommons.com/robots.txt` | **404** on 2026-11-03, so the feed's host states no rules. It is read at batch pace, through the same fetcher, and only that one path is ever requested |
 
 **CORS:** none. A browser page cannot fetch this either.
 

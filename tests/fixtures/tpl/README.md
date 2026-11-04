@@ -11,5 +11,19 @@
   headings, 47 with a call number, 46 with `genreForm`). No `description`,
   `jacket` or `rating`: the parser drops them before anything is written.
 
-The page is a snapshot; the catalogue changes. The counts and the fields it
-carries are recorded in `docs/DATA.md` and `docs/RESEARCH.md`.
+## Events
+
+- `events-page.xml` — one real page of the events feed,
+  `gateway.bibliocommons.com/v2/libraries/tpl/rss/events?locations=CL&startDate=2026-11-03&endDate=2026-11-24&page=1`,
+  read once through `fetch.Fetcher` (batch kind) on 2026-11-03 and saved as it
+  came: 71,528 bytes, **25 items**, all at North York Central. The feed puts 25
+  items on a page, oldest first, and sends no "next" link; an empty body is the
+  stop signal.
+- `events-edge.xml` — three items of that same page, rearranged so the tests can
+  see the branches the live page did not happen to carry: the first marked
+  `bc:is_cancelled` true, the second made virtual with its `bc:location`
+  removed, the third given a long tag-laden `<description>`. Same element order
+  and namespaces as the feed; no event was invented.
+
+The pages are snapshots; the catalogue changes. The counts and the fields they
+carry are recorded in `docs/DATA.md` and `docs/RESEARCH.md`.
