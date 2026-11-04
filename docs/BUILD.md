@@ -457,13 +457,13 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
   book or set a state without a browser. Tests: applied once, Undo restores, a stale duplicate is kept-not-duplicated,
   a future date is refused, a bad schema changes nothing.
 
-- [ ] **T8.8 One-way sync from a saved library shelf.** Spec: `ARCHITECTURE.md`, "Bringing in the library's shelf".
+- [x] **T8.8 One-way sync from a saved library shelf.** Spec: `ARCHITECTURE.md`, "Bringing in the library's shelf".
   - [x] **T8.8a The reader** (B, S, S): `readLibraryShelf(html) -> {entries, works, complete}`, pure, taking
     `entities.shelves` and the matching `briefInfo` only (facets by the adapter's rules, ported to JS). A test asserts
     no key from `users`, `accounts` or `auth` comes out.
   - [x] **T8.8b The merge** (B, M, S): the three-way rule table, one test per row, plus partial files, editions and
     "stopped". Pure, in `core/merge.js` (named for what it does, since the readers call it too). `Nextbook.merge.plan(brought, ours, {now, practice})`, tests in `tests/merge.test.js` and an end-to-end script through the store.
-  - **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
+  - [x] **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
     "Leave it" remembered, the last-imported date, off on the practice shelf and in a workshop copy.
 
 ## What is not here

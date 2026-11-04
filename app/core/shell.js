@@ -28,6 +28,10 @@
     // it. Both live in memory for this visit only, never in storage and never in an export.
     listReport: null,
     listUndo: null,
+    // the library shelf's import (T8.8c): the last report, and the shelf as it was before it.
+    // Both are in memory for this visit only, like the reading list's above.
+    libReport: null,
+    libUndo: null,
     // the helper's note, brought in once at boot, and the shelf as it was before it. In memory
     // for this visit; the note's own name is the only thing written down (D36).
     inboxReport: null,
@@ -334,6 +338,11 @@
     if (subjects) head.appendChild(p(subjects, 'nb-subjects'));
     if (!work) head.appendChild(p(t('notInList'), 'nb-note'));
     else if (work.found && work.found.query) head.appendChild(p(t('foundFor', { words: work.found.query }), 'nb-note'));
+    // A book the library no longer has on this shelf stays here, with a quiet note. An import
+    // never removes a book by itself (docs/ARCHITECTURE.md, "The edges").
+    if (isObj(entry.library) && entry.library.gone === true) {
+      head.appendChild(p(t('libGoneNote'), 'nb-note', { 'data-test': 'shelf-gone-' + index }));
+    }
 
     var controls = h('div', { class: 'nb-controls' });
     controls.appendChild(h('label', { class: 'nb-field' },
@@ -1043,6 +1052,489 @@
       h('span', { class: 'nb-label' }, t('listChoose')), input));
 
     if (state.listReport) wrap.appendChild(listReportBox());
+    return wrap;
+  }
+
+  // ---- Bringing in the library's shelf (T8.8c) ------------------------------------------------
+  // The one-way sync in ARCHITECTURE.md, "Bringing in the library's shelf": the person saves
+  // shelf pages from the library's site and chooses the files here. core/library-shelf.js reads
+  // them, core/merge.js decides what every book should be, and this file draws the report. One
+  // write for the whole import, one Undo, and nothing is written when no file could be read.
+  //
+  // Off on the practice shelf and in a workshop copy, exactly as the reading list is: a real
+  // reading history does not belong on a shared computer, so there is no picker that can only
+  // refuse. A failure at the merge refuses too, and still writes nothing.
+  var SHELF_STATE_OF = { for_later: 'want', in_progress: 'reading', completed: 'read' };
+
+  function shelfEntries() {
+    try { return state.store ? state.store.shelf() : []; } catch (e) { return []; }
+  }
+
+  function entryForKey(key) {
+    var entries = shelfEntries();
+    for (var i = 0; i < entries.length; i++) {
+      if (isObj(entries[i]) && entries[i].key === key) return entries[i];
+    }
+    return null;
+  }
+
+  // "Last brought in from the library: November 3, 2026", from the newest snapshot an entry
+  // carries. The day is the person's own, because the snapshot is a moment, not a catalogue
+  // date. Nothing is stored for it: the date is in the books' own memories.
+  function dateWordsOf(value) {
+    var ms = null;
+    try { ms = Date.parse(value); } catch (e) { ms = null; }
+    if (ms !== null && isFinite(ms)) {
+      var when = new Date(ms);
+      return t('eventDateLong', {
+        month: t(MONTH_KEYS[when.getMonth()]), day: when.getDate(), year: when.getFullYear()
+      });
+    }
+    var parts = timeParts(value);
+    if (!parts) return dateOnly(value);
+    return t('eventDateLong', { month: t(MONTH_KEYS[parts.m - 1]), day: parts.d, year: parts.y });
+  }
+
+  function lastBroughtIn() {
+    var entries = shelfEntries();
+    var newest = '';
+    for (var i = 0; i < entries.length; i++) {
+      var lib = isObj(entries[i]) && isObj(entries[i].library) ? entries[i].library : null;
+      if (!lib || typeof lib.seen !== 'string' || !lib.seen) continue;
+      if (lib.seen > newest) newest = lib.seen;
+    }
+    return newest ? dateWordsOf(newest) : '';
+  }
+
+  // Every chosen file, read as text. A file the browser cannot read is kept in the list with
+  // `text: null`, so its name can be said back to the person instead of vanishing. The input
+  // takes several pages of one shelf at once, so they are read together and merged once.
+  function readChosenFiles(input, done) {
+    var files = input && input.files ? input.files : null;
+    if (!files || !files.length) { done(null); return; }
+    var out = [];
+    var left = files.length;
+    var finished = false;
+
+    function one() {
+      if (finished) return;
+      left -= 1;
+      if (left <= 0) { finished = true; done(out); }
+    }
+
+    for (var i = 0; i < files.length; i++) {
+      (function (file, at) {
+        var name = file && file.name ? String(file.name) : '';
+        try {
+          var reader = new window.FileReader();
+          reader.onload = function () { out[at] = { name: name, text: String(reader.result || '') }; one(); };
+          reader.onerror = function () { out[at] = { name: name, text: null }; one(); };
+          reader.readAsText(file);
+        } catch (e) {
+          out[at] = { name: name, text: null };
+          one();
+        }
+      }(files[i], i));
+    }
+  }
+
+  // One bad file is named; the others still count. With a name, the sentence reads
+  // "shelf-page.html: This file does not look like a page saved from the library..." so the
+  // person knows which of the saved pages to save again.
+  function badFileSentence(name, error) {
+    return name ? t('libFileBad', { name: name, error: error }) : error;
+  }
+
+  // The whole job for the chosen files: read each, add the pages up, merge once against the
+  // shelf in use, write once, and keep the shelf from before for the one Undo. Called by the
+  // input after its files are read, and by a test with plain strings.
+  function importLibraryShelf(files) {
+    var list = [];
+    if (Array.isArray(files)) {
+      files.forEach(function (item) {
+        if (isObj(item)) {
+          list.push({
+            name: typeof item.name === 'string' ? item.name : '',
+            text: typeof item.text === 'string' ? item.text : null
+          });
+        } else {
+          list.push({ name: '', text: typeof item === 'string' ? item : null });
+        }
+      });
+    }
+    if (!list.length) list.push({ name: '', text: null });
+
+    var which = 'practice';
+    try { which = state.store ? state.store.which() : 'practice'; } catch (e) { which = 'practice'; }
+    var practice = which === 'practice';
+
+    var results = [];
+    var errors = [];
+    list.forEach(function (item) {
+      if (typeof item.text !== 'string') {
+        errors.push(badFileSentence(item.name, t('importNoFile')));
+        results.push(Nextbook.libraryShelf.read(null));
+        return;
+      }
+      var read = null;
+      try { read = Nextbook.libraryShelf.read(item.text, { now: nowText() }); } catch (e) { read = null; }
+      if (!isObj(read) || !Array.isArray(read.entries)) {
+        errors.push(badFileSentence(item.name, t('libraryShelfUnreadable')));
+        results.push(Nextbook.libraryShelf.read(null));
+        return;
+      }
+      if (read.ok === false) errors.push(badFileSentence(item.name, read.error));
+      results.push(read);
+    });
+
+    var combined = null;
+    try { combined = Nextbook.libraryShelf.combine(results); } catch (e) { combined = null; }
+    if (!isObj(combined) || !Array.isArray(combined.entries)) {
+      try { combined = Nextbook.libraryShelf.combine([]); } catch (e) { combined = null; }
+    }
+    if (!isObj(combined)) {
+      combined = { ok: false, entries: [], works: [], complete: {}, problems: [], error: t('libraryShelfUnreadable') };
+    }
+
+    var report = {
+      error: '',
+      which: which,
+      counts: null,
+      refusals: [],
+      tidy: [],
+      choose: [],
+      errors: errors,
+      problems: [],
+      saved: true
+    };
+
+    // No page could be read: the errors are the whole report, and the shelf is not touched.
+    if (combined.ok !== true) {
+      state.libReport = report;
+      state.libUndo = null;
+      render();
+      focusLibraryBlock();
+      return report;
+    }
+
+    var plan = null;
+    try {
+      plan = Nextbook.merge.plan(combined, shelfEntries(), { now: nowText(), practice: practice });
+    } catch (e) {
+      plan = null;
+    }
+    if (!isObj(plan) || !Array.isArray(plan.entries)) {
+      report.error = t('listUnread');
+      state.libReport = report;
+      state.libUndo = null;
+      render();
+      focusLibraryBlock();
+      return report;
+    }
+
+    report.counts = isObj(plan.report)
+      ? plan.report
+      : { added: 0, updated: 0, kept: 0, gone: 0, ignored: 0 };
+    report.refusals = Array.isArray(plan.refusals) ? plan.refusals : [];
+    report.tidy = Array.isArray(plan.tidy) ? plan.tidy : [];
+    report.choose = Array.isArray(plan.choose) ? plan.choose : [];
+    report.problems = Array.isArray(combined.problems) ? combined.problems : [];
+
+    // The practice shelf refuses at the merge and hands back the shelf it was given, so
+    // nothing is written. Any other shelf takes the whole plan in one write.
+    if (!practice) {
+      var previous = shelfEntries();
+      var changed = JSON.stringify(previous) !== JSON.stringify(plan.entries);
+      try {
+        report.saved = state.store.replace(plan.entries) === true;
+      } catch (e) {
+        report.error = t('listRefused');
+        report.saved = false;
+      }
+      if (!report.error && changed) state.libUndo = { which: which, entries: previous };
+    }
+
+    state.libReport = report;
+    render();
+    focusLibraryBlock();
+    return report;
+  }
+
+  function focusLibraryBlock() {
+    selectTest('shelf-library');
+  }
+
+  function undoLibraryImport() {
+    var held = state.libUndo;
+    if (!isObj(held) || !Array.isArray(held.entries)) return;
+    var saved = false;
+    try { saved = state.store.replace(held.entries) === true; } catch (e) { saved = false; }
+    state.libUndo = null;
+    state.libReport = null;
+    state.message = saved ? t('libUndone') : t('libUndone') + ' ' + t('listNotSaved');
+    render();
+    focusLibraryBlock();
+  }
+
+  // One change to one book, written as the whole shelf in one write (store.replace). The entry
+  // keeps everything else it carries, including its `library` memory unless the change is the
+  // change this import asked for.
+  function changeLibraryEntry(key, change) {
+    var entries = shelfEntries();
+    var found = false;
+    for (var i = 0; i < entries.length; i++) {
+      if (!isObj(entries[i]) || entries[i].key !== key) continue;
+      change(entries[i]);
+      found = true;
+    }
+    if (!found) return false;
+    try { return state.store.replace(entries) === true; } catch (e) { return false; }
+  }
+
+  // A row answered is put away for this visit: the plan's numbers stay as they were reported,
+  // but the list itself only holds what is still open.
+  function dropLibraryRow(row) {
+    if (!isObj(state.libReport)) return;
+    ['tidy', 'choose'].forEach(function (name) {
+      var list = Array.isArray(state.libReport[name]) ? state.libReport[name] : [];
+      for (var i = 0; i < list.length; i++) {
+        if (list[i] && list[i].key === row.key) { list.splice(i, 1); return; }
+      }
+    });
+  }
+
+  function useLibraryAnswer(row) {
+    var did = false;
+    try {
+      did = changeLibraryEntry(row.key, function (entry) {
+        var lib = isObj(row.library) ? row.library : {};
+        if (typeof lib.shelf === 'string' && has(SHELF_STATE_OF, lib.shelf)) entry.state = SHELF_STATE_OF[lib.shelf];
+        entry.rating = typeof lib.rating === 'string' && has(RATING_WORD, lib.rating) ? lib.rating : null;
+        entry.updated = nowText();
+      });
+    } catch (e) { did = false; }
+    dropLibraryRow(row);
+    state.message = did ? t('libUsed', { title: row.title || '' }) : t('shelfBroken');
+    render();
+    focusLibraryBlock();
+  }
+
+  // "Leave it": remembered on the book, so the merge stops asking until either side changes
+  // (merge.js owns that rule; this file only writes the snapshot it reads).
+  function leaveLibraryRow(row) {
+    var did = false;
+    var at = nowText();
+    try {
+      did = changeLibraryEntry(row.key, function (entry) {
+        var lib = isObj(entry.library) ? entry.library : {};
+        lib.ignore = {
+          at: at,
+          here: {
+            state: typeof entry.state === 'string' ? entry.state : null,
+            rating: typeof entry.rating === 'string' ? entry.rating : null
+          }
+        };
+        entry.library = lib;
+      });
+    } catch (e) { did = false; }
+    dropLibraryRow(row);
+    state.message = did ? t('libLeft', { title: row.title || '' }) : t('shelfBroken');
+    render();
+    focusLibraryBlock();
+  }
+
+  // "Keep mine" on "Which is right?". The merge has already moved the book's memory, so a new
+  // import will not ask this question again; nothing on the shelf changes here.
+  function keepMine(row) {
+    dropLibraryRow(row);
+    state.message = t('libKeptMine', { title: row.title || '' });
+    render();
+    focusLibraryBlock();
+  }
+
+  // Where the library's own page for a row is. A work in the slice gives the record page when
+  // the library has one; anything else is the catalogue search by title and author, the same
+  // link the rest of the screen uses. Never stored.
+  function libraryLinkForRow(row) {
+    var entry = entryForKey(row.key);
+    return linkFor(workFor(entry) || entry || row);
+  }
+
+  function libOpenLink(row, test) {
+    var href = libraryLinkForRow(row);
+    if (!href) return null;
+    return h('a', { class: 'nb-button nb-button-quiet', href: href, 'data-test': test }, t('libOpen'));
+  }
+
+  // One row from plan.tidy. A book the library no longer has gets the quiet sentence and no
+  // "Use the library's", because there is nothing there to copy.
+  function libraryTidyRow(row, index) {
+    var n = String(index);
+    var li = h('li', { class: 'nb-book', 'data-test': 'lib-tidy-row-' + n });
+    var head = h('div', { class: 'nb-book-head' });
+    head.appendChild(h('strong', { class: 'nb-book-title' }, row.title || t('untitledBook')));
+    if (row.author) head.appendChild(p(t('byLine', { author: row.author }), 'nb-by'));
+    if (row.why === 'gone') {
+      head.appendChild(p(t('libGoneNote'), 'nb-note', { 'data-test': 'lib-tidy-gone-' + n }));
+    } else {
+      head.appendChild(p(t('listHere', {
+        here: hereWords(row),
+        library: libraryWord(row) || t('listNoShelf')
+      }), 'nb-note'));
+    }
+    li.appendChild(head);
+
+    var controls = h('div', { class: 'nb-controls' });
+    var open = libOpenLink(row, 'lib-tidy-open-' + n);
+    if (open) controls.appendChild(open);
+    if (row.why !== 'gone') {
+      controls.appendChild(button('lib-tidy-use-' + n, t('libUse'), function () {
+        useLibraryAnswer(row);
+      }, 'nb-button nb-button-small'));
+    }
+    controls.appendChild(button('lib-tidy-leave-' + n, t('libLeave'), function () {
+      leaveLibraryRow(row);
+    }, 'nb-button nb-button-quiet'));
+    li.appendChild(controls);
+    return li;
+  }
+
+  // One row from plan.choose: both sides, and the person's answer for this visit.
+  function libraryChooseRow(row, index) {
+    var n = String(index);
+    var li = h('li', { class: 'nb-book', 'data-test': 'lib-choose-row-' + n });
+    var head = h('div', { class: 'nb-book-head' });
+    head.appendChild(h('strong', { class: 'nb-book-title' }, row.title || t('untitledBook')));
+    if (row.author) head.appendChild(p(t('byLine', { author: row.author }), 'nb-by'));
+    head.appendChild(p(t('listHere', {
+      here: hereWords(row),
+      library: libraryWord(row) || t('listNoShelf')
+    }), 'nb-note'));
+    li.appendChild(head);
+
+    var controls = h('div', { class: 'nb-controls' });
+    controls.appendChild(button('lib-choose-keep-' + n, t('libKeepMine'), function () {
+      keepMine(row);
+    }, 'nb-button nb-button-quiet'));
+    controls.appendChild(button('lib-choose-use-' + n, t('libUse'), function () {
+      useLibraryAnswer(row);
+    }, 'nb-button nb-button-small'));
+    li.appendChild(controls);
+    return li;
+  }
+
+  function libraryReportBox() {
+    var report = state.libReport;
+    var box = h('div', { class: 'nb-list-report', 'data-test': 'lib-report' });
+    if (!isObj(report)) return box;
+
+    if (report.error) {
+      box.appendChild(p(report.error, 'nb-message nb-message-warn', { role: 'status', 'data-test': 'lib-said' }));
+      return box;
+    }
+
+    var errors = Array.isArray(report.errors) ? report.errors : [];
+    var refused = (report.refusals || []).length > 0;
+    var said = report.counts ? listSentence(report.counts) : '';
+    // A refusal or a file that could not be read is the story when no count moved; "Nothing
+    // changed" would only repeat it.
+    if (!said && !refused && !errors.length) said = t('listNothing');
+    if (said) box.appendChild(p(said, 'nb-text', { role: 'status', 'data-test': 'lib-said' }));
+
+    if (state.libUndo && state.libUndo.which === report.which) {
+      box.appendChild(button('shelf-library-undo', t('libUndo'), undoLibraryImport, 'nb-button nb-button-quiet'));
+    }
+    if (report.counts && report.saved === false) {
+      box.appendChild(p(t('listNotSaved'), 'nb-message nb-message-warn', { 'data-test': 'lib-not-saved' }));
+    }
+
+    (report.refusals || []).forEach(function (sentence, i) {
+      var attrs = { 'data-test': 'lib-refused-' + (i + 1) };
+      if (!said && i === 0) attrs.role = 'status';
+      box.appendChild(p(sentence, 'nb-note', attrs));
+    });
+    errors.forEach(function (sentence, i) {
+      box.appendChild(p(sentence, 'nb-note', { 'data-test': 'lib-file-error-' + (i + 1) }));
+    });
+
+    if ((report.tidy || []).length) {
+      box.appendChild(h('h4', t('listTidy', { n: report.tidy.length })));
+      var tidy = h('ul', { class: 'nb-books', 'data-test': 'lib-tidy' });
+      report.tidy.forEach(function (row, i) { tidy.appendChild(libraryTidyRow(row, i + 1)); });
+      box.appendChild(tidy);
+    }
+
+    if ((report.choose || []).length) {
+      box.appendChild(h('h4', t('listWhich', { n: report.choose.length })));
+      var choose = h('ul', { class: 'nb-books', 'data-test': 'lib-choose' });
+      report.choose.forEach(function (row, i) { choose.appendChild(libraryChooseRow(row, i + 1)); });
+      box.appendChild(choose);
+    }
+
+    if ((report.problems || []).length) {
+      box.appendChild(h('h4', t('listProblems')));
+      report.problems.forEach(function (sentence, i) {
+        box.appendChild(p(sentence, 'nb-note', { 'data-test': 'lib-problem-' + (i + 1) }));
+      });
+    }
+
+    return box;
+  }
+
+  function libraryPanel() {
+    var wrap = h('section', {
+      class: 'nb-panel',
+      id: 'nb-library-shelf',
+      'data-test': 'shelf-library',
+      tabindex: '-1'
+    });
+    wrap.appendChild(h('h3', t('libHeading')));
+
+    var which = 'practice';
+    try { which = state.store ? state.store.which() : 'practice'; } catch (e) { which = 'practice'; }
+
+    // The same rule as the reading list: off on the practice shelf, and off in a workshop copy
+    // (whose only shelf is the practice shelf). One sentence, and no input that can only refuse.
+    if (isWorkshop() || which === 'practice') {
+      wrap.appendChild(p(t('libOff'), 'nb-note', { 'data-test': 'lib-off' }));
+      return wrap;
+    }
+
+    var last = lastBroughtIn();
+    if (last) wrap.appendChild(p(t('libLastSeen', { date: last }), 'nb-note', { 'data-test': 'lib-last' }));
+    wrap.appendChild(p(t('libHelp'), 'nb-hint'));
+    wrap.appendChild(p(t('libPrivacy'), 'nb-note'));
+
+    var input = h('input', {
+      class: 'nb-file',
+      type: 'file',
+      multiple: true,
+      accept: '.html,.htm,text/html,.json,application/json',
+      id: 'nb-library-file',
+      'data-test': 'shelf-library-file',
+      'aria-label': t('libChoose'),
+      on: {
+        change: function (ev) {
+          var chosen = ev.target;
+          readChosenFiles(chosen, function (files) {
+            if (files === null) {
+              state.libReport = {
+                error: t('importNoFile'), which: '', counts: null, refusals: [],
+                tidy: [], choose: [], errors: [], problems: [], saved: true
+              };
+              render();
+              focusLibraryBlock();
+              return;
+            }
+            importLibraryShelf(files);
+          });
+        }
+      }
+    });
+    wrap.appendChild(h('label', { class: 'nb-field' },
+      h('span', { class: 'nb-label' }, t('libChoose')), input));
+
+    if (state.libReport && state.libReport.which === which) wrap.appendChild(libraryReportBox());
     return wrap;
   }
 
@@ -2764,6 +3256,7 @@
     try { entries = state.store.shelf(); } catch (e) { entries = []; }
     sec.appendChild(p(countLine(entries.length, 'shelfCountOne', 'shelfCount', { n: entries.length }), 'nb-count'));
     sec.appendChild(shelfList());
+    sec.appendChild(libraryPanel());
     sec.appendChild(listPanel());
     sec.appendChild(addPanel());
     sec.appendChild(exportPanel());
@@ -2979,7 +3472,9 @@
     route: routeName,
     // The reading-list import's job, in one call: the file input's handler after its text is
     // read, and the way a test drives it with a string instead of a file.
-    importReadingList: importReadingList
+    importReadingList: importReadingList,
+    // The library shelf's import, the same way: one call, an array of {name, text}.
+    importLibraryShelf: importLibraryShelf
   };
 
   addStrings({
@@ -3086,6 +3581,24 @@
     shelfForLater: 'For Later',
     shelfInProgress: 'In Progress',
     shelfCompleted: 'Completed',
+    // bringing in the library's shelf (T8.8c)
+    libHeading: 'Bring in your library shelf',
+    libHelp: "Save the shelf pages from the library's site. Choose the pages here, and save every page of a long shelf.",
+    libPrivacy: 'The page keeps the books, not the file. Delete the saved pages afterwards.',
+    libChoose: 'Choose the saved shelf pages',
+    libOff: "Do this at home, on your own shelf: a shared library computer is not the place for anyone's reading history.",
+    libFileBad: '{name}: {error}',
+    libLastSeen: 'Last brought in from the library: {date}',
+    libOpen: 'Open at the library',
+    libUse: "Use the library's",
+    libLeave: 'Leave it',
+    libKeepMine: 'Keep mine',
+    libUsed: "Changed {title} to the library's answer.",
+    libLeft: 'Left {title} as it is. It will not be suggested again unless you or the library change it.',
+    libKeptMine: 'Kept your answer for {title}.',
+    libUndo: 'Undo this library import',
+    libUndone: 'The shelf is back as it was before the library import.',
+    libGoneNote: 'The library does not have this on your shelf now.',
     // the helper's note (T8.9d)
     inboxNote: 'Brought in {n} changes from your helper.',
     inboxNoteOne: 'Brought in 1 change from your helper.',

@@ -103,9 +103,11 @@ These come from the app's job, not from taste. `docs/DECISIONS.md` records what 
 
 ## Status
 
-The foundation is built and checked: 259 Node tests, 335 Python tests, the three reference modes and the example mode
+The foundation is built and checked: 272 Node tests, 335 Python tests, the three reference modes and the example mode
 passing, and a one-file build with no network requests. A reading list can be imported from Goodreads or StoryGraph,
-merged with the library's shelves, and matched to the catalogue a book at a time. The ten mode briefs in `docs/modes/` are deliberately
+merged with the shelves the library already keeps, and matched to the catalogue a book at a time. A shelf page saved
+from the library's own site can be brought in too, with one Undo, a list of what the two disagree about, and nothing
+of the page's account data kept. The ten mode briefs in `docs/modes/` are deliberately
 unbuilt — that is the work the app leaves to its reader. `docs/BUILD.md` is the plan and the record of how it was made.
 
 The catalogue measurements in `docs/DATA.md` and `docs/RESEARCH.md` carry the URL and the date they were taken, so
