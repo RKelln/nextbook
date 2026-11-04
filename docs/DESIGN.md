@@ -50,6 +50,7 @@ usually goes wrong.
 - **Deliberate disagreement:** challenge (same subject, the other side: fiction against non-fiction, or another mood).
 - **A constraint a vendor cannot take:** time-box (something to listen to on the commute).
 - **Someone else's shelf:** swap (two exported shelves, what each should read from the other's).
+- **The next step after choosing:** hold next (from the want-to-read pile, the ones to put on hold now).
 - **An outside text as the seed:** event hook, news diet. Words become subjects **from the list**, by hand or through
   the model box, and the rules take it from there.
 
@@ -77,6 +78,25 @@ in the design it appears:
 
 That comparison is the clearest statement of what this tool is for, and of what a licensed recommender structurally
 cannot do.
+
+## Holds: the last step of Route
+
+A hold is where a choice turns into a book in a person's hands, and it takes weeks to come in, so "which should I be
+in the queue for now?" is a real next-book question. The library already runs the hold system. The app's part is to
+choose and to make the click short; the hold itself is always the person's, on the library's page, signed in as
+themselves.
+
+- **Ours, in the app:** every pick and every want-to-read book links to the library's page, where Place hold is the
+  first button. A shelf filtered to "Want to read" is the hold list. Signing in is made easy, never done for anyone:
+  plain links to the library's own sign-in, holds, checked-out and For Later pages (`BUILD.md` T8.12), opened in the
+  person's browser, where the library's login is the only place a card number is typed.
+- **A mode, for anyone to build:** `hold-next` (`docs/modes/hold-next.md`) ranks the want-to-read pile against the
+  rest of the shelf and offers the top six to hold. It is the "how much do you want to read it?" question answered by
+  the shelf, with no new field.
+- **Never:** placing a hold from code, a link straight into the hold form (the library's `robots.txt` disallows
+  `/holds/select_hold/`), reading availability or queue length (`/v2/availability/` is disallowed too), knowing what
+  a person has on hold, or signing in for them (D20). If the library ever offers a hold link for outside sites, that
+  is a conversation with the library first.
 
 ## What a licensed recommender cannot do
 

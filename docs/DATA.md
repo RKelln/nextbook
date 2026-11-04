@@ -148,6 +148,23 @@ weights.
 - **Covers** (Syndetics) are licensed. Not stored, not shown.
 - **NoveList** is licensed to the library. Not fetched, not copied, not cached. A link to the record page is fine.
 
+## The library account's own pages (measured 2026-11-04)
+
+The site header's account menu, read from a cached public search page (`docs/RESEARCH.md`). Each is a page a person
+opens in their own browser, signed in as themselves; the app links to them and never requests them.
+
+| Page | Path on `tpl.bibliocommons.com` |
+|---|---|
+| Sign in | `/user/login`, or `/user/login?destination=<path>` to land on a page after signing in: `?destination=%2Fholds` and `?destination=%2Fv2%2Frecord%2F<recordId>` were tried by hand (2026-11-04) and land on the holds page and the record page |
+| Holds | `/holds` |
+| Checked out | `/checkedout` |
+| For Later, In Progress, Completed shelves | `/collection/show/my/library/for_later`, `in_progress`, `completed` |
+| Pickup branch | `/account/pickup_location` |
+| Account | `/account` |
+
+Placing a hold starts from the record page's own button. Its path, `/holds/select_hold/`, is disallowed to robots, and
+the app neither links into it nor builds one.
+
 ## A person's own shelf page (measured 2026-11-03, re-checked on two saved pages 2026-11-04)
 
 What a signed-in "Completed" shelf page carries when the person saves it from their browser. Read by

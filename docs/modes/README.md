@@ -19,6 +19,7 @@ than an M one, and a small brief is not a warm-up for a large one.
 | [club-season](club-season.md) | six weeks of books for a group | M | a friend's shelf; the group's floor, then a chain of weeks | with a friend's shelf added first |
 | [event-hook](event-hook.md) | a library event becomes the seed | S | subjects; a profile from the event's subjects, the shelf at half weight | yes: the event's own text, or its subjects picked by hand |
 | [news-diet](news-diet.md) | headlines become books | S | subjects; the same, plus a point for non-fiction and a warning in the note | yes |
+| [hold-next](hold-next.md) | from your want-to-read books, the ones to put on hold now, one click from Place hold | S | your shelf's "want" books, `allowShelf`; one ranking against the rest of the shelf, and a note that says how to hold | yes |
 
 ## What the sizes mean
 

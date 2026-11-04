@@ -74,7 +74,7 @@ class PacketTest(unittest.TestCase):
         names = {p.name for p in self.out.glob("*.txt")}
         expected = {mode_id + ".txt" for mode_id in self.ids} | {"README.txt"}
         self.assertEqual(names, expected)
-        self.assertEqual(len(self.ids), 10, "the menu has ten briefs")
+        self.assertEqual(len(self.ids), 11, "the menu has eleven briefs")
         for mode_id in self.ids:
             self.assertTrue(self.packet(mode_id).startswith("NEXTBOOK MODE PACKET: " + mode_id))
 
