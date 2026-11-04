@@ -38,6 +38,7 @@
     var state = entry.state || null;
     if (rating === 'not-for-me') return -2;   // any state
     if (state === 'want') return 0;           // a wish, not evidence
+    if (state === 'hold') return 0;           // on hold at the library: still a wish
     if (rating === 'loved') return 3;
     if (rating === 'liked') return 2;
     if (rating === 'ok') return 1;

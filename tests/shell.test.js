@@ -43,7 +43,8 @@ function openPage(opts) {
     console, setTimeout, clearTimeout, setInterval, clearInterval,
     document: doc,
     location: { hash: options.hash || '#shelf' },
-    addEventListener() {},
+    __on: {},
+    addEventListener(name, fn) { (window.__on[name] = window.__on[name] || []).push(fn); },
     confirm() { return true; },
   };
   if (options.storage) window.localStorage = options.storage;
@@ -60,8 +61,9 @@ function openPage(opts) {
   if (options.workshop) nb.data.put('workshop', { workshop: true });
   if (options.found) nb.data.put('found', options.found);
   run('app/core/shell.js');
+  const fire = (name) => (window.__on[name] || []).forEach((fn) => fn({ type: name }));
 
-  return { nb, doc, app };
+  return { nb, doc, app, fire };
 }
 
 // Open "Not in the list? Add it by name", type a title and maybe an author, and press the button.
@@ -206,7 +208,7 @@ test('P5b: the state is one radio group, and the chosen state is the checked one
   const group = byTest(doc, 'shelf-state-1');
   assert.strictEqual(group.tagName.toLowerCase(), 'fieldset', 'a fieldset, so the four choices are one group');
   const radios = all(doc, '[data-test]').filter((el) => /^shelf-state-1-/.test(el.getAttribute('data-test')));
-  assert.deepStrictEqual(radios.map((r) => r.getAttribute('value')), ['want', 'reading', 'read', 'stopped']);
+  assert.deepStrictEqual(radios.map((r) => r.getAttribute('value')), ['want', 'hold', 'reading', 'read', 'stopped']);
   assert.ok(radios.every((r) => r.getAttribute('name') === radios[0].getAttribute('name')), 'one name, so one tab stop');
   const on = radios.filter((r) => r.hasAttribute('checked')).map((r) => r.getAttribute('value'));
   assert.deepStrictEqual(on, [stateOf()]);
@@ -305,5 +307,59 @@ test('T8.12: a book to read with a record offers Sign in and hold; a pack book h
     'signing in lands on the book\'s own page');
   const row = holds[0].parentNode.parentNode.parentNode;
   assert.strictEqual(row.getAttribute('data-book'), 'w:turbulent_sun_test');
+});
+
+// D42: "On hold" is a state of its own, and the page asks for it at the moment it happens.
+// The found book's row, wherever it sits in the practice list.
+const foundRow = (doc) => all(doc, '[data-book]').filter((el) => el.getAttribute('data-book') === 'w:turbulent_sun_test')[0];
+const inFoundRow = (doc, prefix) => {
+  const row = foundRow(doc);
+  return row ? all(row, '[data-test]').filter((el) => el.getAttribute('data-test').indexOf(prefix) === 0)[0] || null : null;
+};
+const holdOf = (doc) => inFoundRow(doc, 'shelf-hold-');
+const heldOf = (doc) => inFoundRow(doc, 'shelf-holds-');
+const ratingOfFound = (doc) => all(foundRow(doc), '[data-test]')
+  .filter((el) => /^shelf-rating-\d+$/.test(el.getAttribute('data-test')))[0] || null;
+
+test('D42: back from Sign in and hold, one press says the hold went through', () => {
+  const storage = memoryStorage();
+  const { nb, doc, fire } = openPage({ storage, practice: withFoundWant(), found: { schema: 'nextbook/found-1', works: [FOUND_BOOK] } });
+  holdOf(doc).click();
+  fire('focus');
+  assert.strictEqual(statusText(doc), nb.t('holdAsk', { title: FOUND_BOOK.title }));
+  byTest(doc, 'message-hold-yes').click();
+  const held = nb.store.open(storage).shelf().filter((e) => e.key === 'w:turbulent_sun_test')[0];
+  assert.strictEqual(held.state, 'hold');
+  assert.strictEqual(statusText(doc), nb.t('holdMarked', { title: FOUND_BOOK.title }));
+  assert.strictEqual(byTest(doc, 'message-hold-yes'), null, 'the button goes with its question');
+
+  // Now a held book: no rating to give, and its link is the person's holds.
+  assert.strictEqual(holdOf(doc), null);
+  assert.ok(heldOf(doc), 'a held book links to your holds');
+  assert.strictEqual(ratingOfFound(doc), null, 'and asks for no rating');
+});
+
+test('D42: closing the question leaves the book as it was', () => {
+  const storage = memoryStorage();
+  const { nb, doc, fire } = openPage({ storage, practice: withFoundWant(), found: { schema: 'nextbook/found-1', works: [FOUND_BOOK] } });
+  holdOf(doc).click();
+  fire('focus');
+  byTest(doc, 'message-close').click();
+  const entry = nb.store.open(storage).shelf().filter((e) => e.key === 'w:turbulent_sun_test')[0];
+  assert.strictEqual(entry.state, 'want');
+  fire('focus');
+  assert.strictEqual(statusText(doc), '', 'asked once per trip');
+});
+
+test('D42: the filter counts books on hold', () => {
+  const storage = memoryStorage();
+  const { doc } = openPage({ storage });
+  const count = () => Number(all(byTest(doc, 'shelf-filter-hold'), '.nb-filter-count')[0].textContent);
+  const before = count();
+  assert.ok(before >= 1, 'the practice shelf has a book on hold');
+  const radio = byTest(doc, 'shelf-state-1-hold');
+  radio.checked = true;
+  radio.dispatch('change', { type: 'change', target: radio });
+  assert.strictEqual(count(), before + 1);
 });
 

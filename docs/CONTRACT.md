@@ -106,7 +106,7 @@ them, for journeys, ladders and seasons.
 |---|---|
 | `works` | every work in the library list: `{id, title, author, authorKey, year, formats, contentType, audience, callNumber, series, facets}`, plus any books the person's helper found on request, which also carry `found: {query}` |
 | `work(id)` | one work, or `null` |
-| `shelf` | the shelf entries: `{key, title, author, state, rating, work}`. `work` is `null` for a book typed in that the list does not have |
+| `shelf` | the shelf entries: `{key, title, author, state, rating, work}`. `state` is `want`, `hold` (on hold at the library), `reading`, `read` or `stopped`. `work` is `null` for a book typed in that the list does not have |
 | `onShelf(id)` | whether a work is on the shelf |
 | `profile(entries?)` | what the shelf adds up to: `{weights: {facet: n}, authors: {authorKey: n}, evidence: {facet: [entry...]}, rated}`. Uses `ctx.shelf` when called with nothing |
 | `score(work, profile)` | `{score, parts: [{facet, label, weight}]}`. The core's rule: shared subjects, weighted, plus the author |

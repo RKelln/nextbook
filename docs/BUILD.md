@@ -137,8 +137,8 @@ Python, standard library only. Every network call goes through `adapters/biblioc
     `romance` are `FICTION`; `history`, `true`, `nature`, `ideas` are `NONFICTION`). `audience` from the pack
     (`either` becomes `ADULT`). `formats: []`, written out, so time-box can say "no audiobook copies in this list".
   - `tags.json`: the pack's `mood`, `pace` and `note`, unchanged, keyed by `groupKey`.
-  - `practice.json`: twelve pack books with a spread (four loved, three liked, one ok, one not-for-me, one stopped,
-    one reading, one want).
+  - `practice.json`: thirteen pack books with a spread (four loved, three liked, one ok, one not-for-me, one stopped,
+    one reading, one want, and one on hold, added by D42 so every standard shelf carries a hold).
   *Done when:* the validator passes all three files; every work has at least three facets including a `section:`;
   `sections()` would give at least six sections (print them); the notes are the pack's words unchanged.
 
@@ -549,8 +549,8 @@ Found by the build's reviews, judged not worth a change now, and written down so
 
 - **Can holds come back in?** (2026-11-04, from D41.) A saved holds page (`/holds`, signed in) has not been measured.
   If it carries the books with record ids, as a saved shelf page does, an import could mark a want-to-read book as on
-  hold, and hold-next could skip it. That needs a way to say "on hold" (a new state, or a note on the entry like
-  `library.shelf`), which is a design call. Measure first: save the page by hand, read it with
+  hold, and hold-next could skip it. The state exists now (D42); what an import would do with it (set it, clear it
+  when a hold is gone) is still open. Measure first: save the page by hand, read it with
   `research/probes/saved_page_shape.py`, never commit it.
 
 - **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how

@@ -24,7 +24,7 @@
   var Nextbook = window.Nextbook = window.Nextbook || {};
   Nextbook.merge = Nextbook.merge || {};
 
-  var STATES = { want: 1, reading: 1, read: 1, stopped: 1 };
+  var STATES = { want: 1, hold: 1, reading: 1, read: 1, stopped: 1 };
   var RATINGS = { loved: 1, liked: 1, ok: 1, 'not-for-me': 1 };
   var SHELF_STATE = { for_later: 'want', in_progress: 'reading', completed: 'read' };
   var STATE_SHELF = { want: 'for_later', reading: 'in_progress', read: 'completed' };
@@ -102,8 +102,15 @@
   function rankOf(state) {
     if (state === 'read') return 3;
     if (state === 'reading') return 2;
-    if (state === 'want') return 1;
+    if (state === 'want' || state === 'hold') return 1;
     return 0;
+  }
+
+  // Ours, as the library's shelves can say it. The library has no hold shelf: a book on hold
+  // is on For Later there, so "hold" compares as "want". A For Later shelf that has not moved
+  // never undoes a hold, and a book the library moved on (picked up, read) takes its answer.
+  function asLibrarySees(side) {
+    return side.state === 'hold' ? { state: 'want', rating: side.rating } : side;
   }
 
   // A from an app entry: state and rating are ours already.
@@ -347,7 +354,7 @@
   // One work that is already here, against the library's word now. Returns nothing; the entry
   // is changed in place.
   function applyLibrary(entry, work, now, report, tidy, choose) {
-    var here = sideOfEntry(entry);
+    var here = asLibrarySees(sideOfEntry(entry));
     var there = { state: work.state, rating: work.rating };
     var old = isObj(entry.library) ? entry.library : null;
     var remembered = hasMemory(old);

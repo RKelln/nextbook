@@ -115,7 +115,7 @@ class ItCanFail(unittest.TestCase):
         short = copy.deepcopy(PRACTICE)
         short["entries"].pop()
         errors = errors_for(short, PRACTICE_SCHEMA)
-        self.assertTrue(any("needs at least 12" in error for error in errors), errors)
+        self.assertTrue(any("needs at least 13" in error for error in errors), errors)
 
     def test_bool_is_not_an_integer(self):
         doc = copy.deepcopy(SLICE)

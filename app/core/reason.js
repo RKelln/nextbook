@@ -80,6 +80,7 @@
     if (entry.state === 'reading') return 'are reading';
     if (entry.state === 'stopped') return 'stopped reading';
     if (entry.state === 'want') return 'want to read';
+    if (entry.state === 'hold') return 'have on hold';
     return 'read';
   }
 

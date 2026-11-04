@@ -58,7 +58,7 @@ SOURCE = "ai"
 NAME = "inbox"
 OUT_DIR = REPO_ROOT / "app" / "data"
 
-STATES = ("want", "reading", "read", "stopped")
+STATES = ("want", "hold", "reading", "read", "stopped")
 RATINGS = ("loved", "liked", "ok", "not-for-me")
 
 _APOSTROPHES = re.compile(r"['\u2018\u2019\u02bc`]")

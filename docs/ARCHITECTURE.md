@@ -194,11 +194,17 @@ line up with theirs without a lookup table nobody wrote down:
 | In Progress | `reading` | 4 | `liked` |
 | Completed | `read` | 3 | `ok` |
 | (none) | `stopped` | 1 or 2 | `not-for-me` |
+| (none: a hold is not a shelf) | `hold` | | |
 
 Measured on a saved shelf page (`DATA.md`): the codes are `for_later`, `in_progress`, `completed`, and `rating` is out of
 10 (stars times two; `0` is unrated). The number is kept exactly; only its bucket is compared. A half star has no
 separate bucket, so it lands on the nearer one of the ten — 9 is loved, 7 is liked, 5 is ok — which is the rule the
 import readers use too.
+
+`hold` is ours alone (D42). The library keeps holds apart from its shelves, and a held book usually sits on For Later
+too, so when the merge compares with the library a `hold` counts as `want`: For Later unchanged never undoes a hold,
+and a book the library moved to In Progress or Completed takes the library's answer. Only the person sets `hold`, by
+hand or with "Yes, it's on hold" after "Sign in and hold"; no import brings it in.
 
 Entries from the slice are keyed by the library's own `groupKey` and record id, so a shelf brought in from the library
 lands on the same works with no fuzzy matching — which is what `app/core/library-shelf.js` relies on. The shapes were
@@ -224,6 +230,7 @@ fixed before it was built, so it needed no migration.
 | state `stopped` with no rating | -1 |
 | rating `not-for-me` (any state) | -2 |
 | state `want` | 0 (it is a wish, not evidence; modes may use it as a target) |
+| state `hold` | 0 (on hold at the library: still a wish, one step nearer) |
 
 ## The scoring core (`core/score.js`, pure)
 

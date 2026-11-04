@@ -238,8 +238,9 @@ class Practice(unittest.TestCase):
         self.ratings = [entry["rating"] for entry in self.entries]
         self.states = [entry["state"] for entry in self.entries]
 
-    def test_twelve_entries_with_the_asked_spread(self):
-        self.assertEqual(len(self.entries), 12)
+    def test_thirteen_entries_with_the_asked_spread(self):
+        # Twelve as asked, and one on hold (D42), so every standard shelf carries a hold.
+        self.assertEqual(len(self.entries), 13)
         self.assertEqual(self.ratings.count("loved"), 4)
         self.assertEqual(self.ratings.count("liked"), 3)
         self.assertEqual(self.ratings.count("ok"), 1)
@@ -247,10 +248,11 @@ class Practice(unittest.TestCase):
         self.assertEqual(self.states.count("stopped"), 1)
         self.assertEqual(self.states.count("reading"), 1)
         self.assertEqual(self.states.count("want"), 1)
+        self.assertEqual(self.states.count("hold"), 1)
 
     def test_unrated_states_carry_no_rating(self):
         for entry in self.entries:
-            if entry["state"] in ("stopped", "reading", "want"):
+            if entry["state"] in ("stopped", "reading", "want", "hold"):
                 self.assertIsNone(entry["rating"], entry["id"])
             else:
                 self.assertIsNotNone(entry["rating"], entry["id"])

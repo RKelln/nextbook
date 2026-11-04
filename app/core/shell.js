@@ -45,7 +45,8 @@
     // which of the shelf screen's folding panels are open, by name, for this visit only
     folds: {},
     shelfFilter: 'all',   // the shelf screen's filter: 'all' or one state
-    libraryTrip: false,   // a link to the library's account was pressed; cleared on the way back
+    libraryTrip: false,   // a library link was pressed ({hold: work} for Sign in and hold); cleared on return
+    messageAction: null,  // {message, label, test, run}: one button for the toast, for that message only
     model: blankModel(),  // the pasted answer, if there is one
     words: {}             // per facets input: the pasted words, the prompt and its answer
   };
@@ -189,6 +190,20 @@
     return false;
   }
 
+  // The shelf entry that is this work, matched as onShelfWork matches, or null.
+  function shelfEntryOf(work) {
+    if (!work || !state.store) return null;
+    var key = keyForWork(work);
+    var entries = [];
+    try { entries = state.store.shelf(); } catch (e) { entries = []; }
+    for (var i = 0; i < entries.length; i++) {
+      var e = entries[i];
+      if (!e) continue;
+      if (e.key === key || (work.groupKey && e.groupKey === work.groupKey) || (work.id && e.id === work.id)) return e;
+    }
+    return null;
+  }
+
   function library() {
     var slice = Nextbook.data.get('slice');
     return isObj(slice) && isObj(slice.library) ? slice.library : {};
@@ -211,8 +226,39 @@
     if (!href) return null;
     return h('a', {
       class: 'nb-button nb-button-small nb-button-quiet nb-hold', href: href, 'data-test': test,
-      on: { click: noteLibraryTrip }
+      on: { click: function () { state.libraryTrip = { hold: work }; } }
     }, t('holdLink'));
+  }
+
+  // A book already on hold links to the person's holds, where its place in the queue is.
+  function holdsLinkNode(test) {
+    var href = '';
+    try { href = Nextbook.links.accountLink(library(), 'holds') || ''; } catch (e) { href = ''; }
+    if (!href) return null;
+    return h('a', {
+      class: 'nb-button nb-button-small nb-button-quiet nb-hold', href: href, 'data-test': test,
+      on: { click: noteLibraryTrip }
+    }, t('accountHolds'));
+  }
+
+  // "Yes, it is on hold": the book becomes "hold" here, added to the shelf first when it came
+  // from a pick. Only the person can say a hold was placed; the app never sees the library.
+  function markOnHold(work) {
+    if (!state.store || !work) return;
+    try {
+      var entry = shelfEntryOf(work);
+      if (entry) state.store.setState(entry.key, 'hold', nowText());
+      else {
+        var fresh = bookFromWork(work);
+        fresh.state = 'hold';
+        state.store.add(fresh);
+      }
+      state.message = t('holdMarked', { title: work.title || '' });
+    } catch (e) {
+      state.message = t('shelfBroken');
+    }
+    state.messageAction = null;
+    render();
   }
 
   // Back from the library. A link to the person's account opened the library in another tab;
@@ -224,7 +270,20 @@
   function backFromLibrary() {
     if (!state.libraryTrip) return;
     try { if (doc.visibilityState && doc.visibilityState !== 'visible') return; } catch (e) { /* carry on */ }
+    var trip = state.libraryTrip;
     state.libraryTrip = false;
+    // Back from "Sign in and hold": ask, once, whether the hold went through, with the answer
+    // one press away. Asked on any shelf: marking a hold needs no import.
+    if (trip && typeof trip === 'object' && trip.hold) {
+      var held = shelfEntryOf(trip.hold);
+      if (held && held.state === 'hold') return;
+      var work = trip.hold;
+      state.message = t('holdAsk', { title: work.title || '' });
+      state.messageAction = { message: state.message, label: t('holdYes'), test: 'message-hold-yes',
+        run: function () { markOnHold(work); } };
+      render();
+      return;
+    }
     var own = false;
     try { own = !!state.store && state.store.which() === 'own'; } catch (e) { own = false; }
     if (!own || isWorkshop()) return;
@@ -361,6 +420,7 @@
   function stateOptions() {
     return [
       { value: 'want', label: t('stateWant') },
+      { value: 'hold', label: t('stateHold') },
       { value: 'reading', label: t('stateReading') },
       { value: 'read', label: t('stateRead') },
       { value: 'stopped', label: t('stateStopped') }
@@ -384,7 +444,7 @@
   function ratingQuestion(entry) {
     var st = entry.state || 'want';
     if (st === 'reading') return t('ratingSoFar');
-    if (st === 'want') return entry.rating ? t('ratingLabel') : null;
+    if (st === 'want' || st === 'hold') return entry.rating ? t('ratingLabel') : null;
     return t('ratingHowWas');
   }
 
@@ -484,6 +544,9 @@
     if ((entry.state || 'want') === 'want') {
       var hold = holdLinkNode(work || entry, 'shelf-hold-' + index);
       if (hold) controls.appendChild(h('div', { class: 'nb-hold-row' }, hold));
+    } else if (entry.state === 'hold') {
+      var holds = holdsLinkNode('shelf-holds-' + index);
+      if (holds) controls.appendChild(h('div', { class: 'nb-hold-row' }, holds));
     }
     var remove = button('shelf-remove-' + index, t('removeButton'), function () {
       try {
@@ -535,7 +598,7 @@
   // Show the whole shelf, or one state of it. The filter is for this visit only; it never
   // changes what the find screen reads, which is always the whole shelf.
   function shelfFilter(entries) {
-    var counts = { all: entries.length, want: 0, reading: 0, read: 0, stopped: 0 };
+    var counts = { all: entries.length, want: 0, hold: 0, reading: 0, read: 0, stopped: 0 };
     entries.forEach(function (e) { var st = e.state || 'want'; if (has(counts, st)) counts[st] += 1; });
     var bar = h('div', { class: 'nb-filter', role: 'group', 'aria-label': t('filterLabel'), 'data-test': 'shelf-filter' });
     [{ value: 'all', label: t('filterAll') }].concat(stateOptions()).forEach(function (o) {
@@ -889,7 +952,7 @@
   // A CSV exported from Goodreads or StoryGraph, read in this browser and merged against the
   // shelf in use. The shell may read the clock; nothing in core/ does.
   var LIST_FROM = { goodreads: 1, storygraph: 1 };
-  var STATE_WORD = { want: 'stateWant', reading: 'stateReading', read: 'stateRead', stopped: 'stateStopped' };
+  var STATE_WORD = { want: 'stateWant', hold: 'stateHold', reading: 'stateReading', read: 'stateRead', stopped: 'stateStopped' };
   var RATING_WORD = { loved: 'ratingLoved', liked: 'ratingLiked', ok: 'ratingOk', 'not-for-me': 'ratingNot' };
   var LIBRARY_WORD = { for_later: 'shelfForLater', in_progress: 'shelfInProgress', completed: 'shelfCompleted' };
 
@@ -3413,12 +3476,21 @@
       // import's report is worth reading, so it never times out on its own.
       root.appendChild(h('div', { class: 'nb-toast', 'data-test': 'message' },
         h('p', { class: 'nb-toast-text', role: 'status' }, state.message),
+        // An action rides with the one message it was made for, and goes when that one does.
+        state.messageAction && state.messageAction.message === state.message
+          ? h('button', {
+            type: 'button',
+            class: 'nb-toast-action',
+            'data-test': state.messageAction.test,
+            on: { click: state.messageAction.run }
+          }, state.messageAction.label)
+          : null,
         h('button', {
           type: 'button',
           class: 'nb-toast-close',
           'aria-label': t('messageClose'),
           'data-test': 'message-close',
-          on: { click: function () { state.message = ''; render(); } }
+          on: { click: function () { state.message = ''; state.messageAction = null; render(); } }
         }, '\u00d7')));
     }
 
@@ -3769,6 +3841,10 @@
     stateLabel: 'State',
     ratingLabel: 'Rating',
     stateWant: 'Want to read',
+    stateHold: 'On hold',
+    holdAsk: 'Did you place a hold on {title}?',
+    holdYes: "Yes, it's on hold",
+    holdMarked: '{title} is on hold. When you pick it up, set it to Reading.',
     stateReading: 'Reading',
     stateRead: 'Read',
     stateStopped: 'Stopped',

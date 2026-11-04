@@ -59,7 +59,8 @@
 
   // The library-style shelf word that goes with each state. "stopped" has no shelf at the
   // library, so it carries none; the state is what the app reads.
-  var SHELF_OF_STATE = { want: 'for_later', reading: 'in_progress', read: 'completed', stopped: '' };
+  // "hold" is on For Later as far as the library's shelves go: a hold is not a shelf.
+  var SHELF_OF_STATE = { want: 'for_later', hold: 'for_later', reading: 'in_progress', read: 'completed', stopped: '' };
 
   // ---- The CSV reader ------------------------------------------------------------------------
   // Comma separated, quoted fields, "" inside a quoted field, newlines inside a quoted field,

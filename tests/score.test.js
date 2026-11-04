@@ -34,6 +34,8 @@ test('the weights table: loved 3, liked 2, ok 1, reading 0.5, stopped -1, not-fo
   assert.strictEqual(nb.weightOf(entry(null, 'read', null)), 1, 'read with no rating weighs 1');
   assert.strictEqual(nb.weightOf(entry(null, 'reading', null)), 0.5);
   assert.strictEqual(nb.weightOf(entry(null, 'stopped', null)), -1);
+  assert.strictEqual(nb.weightOf(entry(null, 'hold', null)), 0, 'a book on hold is still a wish');
+  assert.strictEqual(nb.weightOf(entry(null, 'hold', 'loved')), 0, 'a rating on a hold is not evidence either');
   assert.strictEqual(nb.weightOf(entry(null, 'read', 'not-for-me')), -2);
   assert.strictEqual(nb.weightOf(entry(null, 'stopped', 'not-for-me')), -2, 'not-for-me is negative in any state');
   assert.strictEqual(nb.weightOf(entry(null, 'want', null)), 0, 'want is a wish, not evidence');

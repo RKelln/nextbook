@@ -65,7 +65,8 @@
   var SHELF_SCHEMA = 'nextbook/shelf-1';
   var OTHERS_SCHEMA = 'nextbook/others-1';
 
-  var STATES = { want: 1, reading: 1, read: 1, stopped: 1 };
+  // "hold" is a book on hold at the library: still a wish, one step nearer (D42).
+  var STATES = { want: 1, hold: 1, reading: 1, read: 1, stopped: 1 };
   var RATINGS = { loved: 1, liked: 1, ok: 1, 'not-for-me': 1 };
 
   // The store's own keys join the one table in core/base.js, exactly as the shell's do. A key

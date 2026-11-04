@@ -7,8 +7,8 @@
     "schema": { "type": "string", "enum": ["nextbook/practice-1"] },
     "entries": {
       "type": "array",
-      "minItems": 12,
-      "maxItems": 12,
+      "minItems": 13,
+      "maxItems": 13,
       "items": {
         "type": "object",
         "required": ["key", "id", "groupKey", "title", "author", "state", "rating", "updated"],
@@ -20,7 +20,7 @@
           "groupKey": { "type": "string", "minLength": 1 },
           "title": { "type": "string", "minLength": 1 },
           "author": { "type": "string", "minLength": 1 },
-          "state": { "type": "string", "enum": ["want", "reading", "read", "stopped"] },
+          "state": { "type": "string", "enum": ["want", "hold", "reading", "read", "stopped"] },
           "rating": { "type": ["string", "null"], "enum": ["loved", "liked", "ok", "not-for-me", null] },
           "updated": { "type": "string", "minLength": 20 }
         }

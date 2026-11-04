@@ -68,6 +68,7 @@
     { "id": "seven-moons", "state": "read", "rating": "not-for-me", "updated": "2026-10-19T22:10:00Z" },
     { "id": "norrell", "state": "stopped", "rating": null, "updated": "2026-10-20T19:45:00Z" },
     { "id": "klara", "state": "reading", "rating": null, "updated": "2026-10-21T07:30:00Z" },
-    { "id": "midnight-bargain", "state": "want", "rating": null, "updated": "2026-10-22T16:00:00Z" }
+    { "id": "midnight-bargain", "state": "want", "rating": null, "updated": "2026-10-22T16:00:00Z" },
+    { "id": "fifth-season", "state": "hold", "rating": null, "updated": "2026-10-28T12:10:00Z" }
   ]
 }

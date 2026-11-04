@@ -458,3 +458,20 @@ sync (D20). What changed is the length of the trip:
 Saving a page is a computer's job; the step says so rather than pretend a phone can. Holds cannot come back yet: no
 one has measured what a saved holds page carries (`BUILD.md`, Open questions).
 
+## D42. "On hold" is a state (2026-11-04, Ryan)
+
+Ryan: "we should have a foundational hold state for books to track which are currently on hold at your library." The
+states are now `want`, `hold`, `reading`, `read` and `stopped`, in that order on the shelf's control.
+
+- **It is a wish.** A book on hold weighs 0, as `want` does, and asks for no rating. It is not evidence of taste.
+- **Only the person sets it.** By hand, or with one press: after "Sign in and hold", coming back to the tab asks "Did
+  you place a hold on X?" with "Yes, it's on hold". The app cannot see the library, so it asks rather than guesses.
+- **The library has no hold shelf.** When the merge compares with the library, `hold` counts as `want` (a held book
+  usually sits on For Later). For Later unchanged never undoes a hold; a book the library moved to In Progress or
+  Completed takes the library's answer. The CSV readers never produce it.
+- **Every mode meets one.** The practice shelf gains a thirteenth book, on hold, so every standard shelf carries a
+  hold and a mode that treats "not want" as "read" fails its check.
+
+Holds still do not come in from the library: a saved holds page is unmeasured (`BUILD.md`, Open questions). When it
+is, an import could set `hold` and clear it, and this decision says what it would set.
+

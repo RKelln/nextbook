@@ -39,10 +39,12 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `shelf-filter-all`, `shelf-filter-<state>` | Chip "All" or a state's name (`aria-pressed`) | Shows the whole shelf or only that state, for this visit. N below counts the rows shown. |
 | `shelf-filter-empty` | The line when a filter shows no books | — |
 | `shelf-state-N` | A fieldset of four radios drawn as one bar (not pressed) | — |
-| `shelf-state-N-<state>` | Radio: `want` / `reading` / `read` / `stopped` | Saves the new state in this browser. |
+| `shelf-state-N-<state>` | Radio: `want` / `hold` / `reading` / `read` / `stopped` | Saves the new state in this browser. |
 | `shelf-rating-N` | The rating group; its `aria-label` is the question. Absent on a book to read with no rating | — |
 | `shelf-rating-N-<rating>` | Chip: `loved` / `liked` / `ok` / `not-for-me` (`aria-pressed`) | Saves that rating; pressing the chip that is on takes the rating off. |
 | `shelf-remove-N` | Button "Remove" | Takes the book off the shelf in use. |
+| `shelf-holds-N` | Link "Your holds", on a book on hold | Opens the library's holds page through its sign-in, in a new tab. |
+| `message-hold-yes` | Button "Yes, it's on hold" in the toast, after coming back from `shelf-hold-N` or `pick-hold-N` | Sets that book to `hold`, adding it to the shelf first if it came from a pick. |
 | `lib-steps` | The library block's three steps (not pressed) | — |
 | `lib-open-<page>` | Link in step 1: `forLater`, `inProgress`, `completed` | Opens that shelf at the library through its sign-in, in a new tab. Coming back to this tab afterwards on the own shelf says once how to bring a change in (`libBackHere`) and opens the library block. |
 | `lib-drop` | The box around `shelf-library-file`: a click chooses, a drop of saved pages lands | As `shelf-library-file`. |

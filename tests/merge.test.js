@@ -300,3 +300,28 @@ test('edge: the practice shelf refuses a real import in words and changes nothin
   assert.strictEqual(out.refusals.length, 1);
   assert.match(out.refusals[0], /practice shelf/);
 });
+
+// D42: "on hold" is ours. The library has no hold shelf: a held book sits on For Later there.
+test('hold: For Later unchanged at the library never undoes a hold, and asks nothing', () => {
+  const ours = [Object.assign(here(1, 'hold', null), { library: memory('for_later', 0) })];
+  const out = plan([there(1, 'want', null)], ours);
+  assert.strictEqual(one(out).state, 'hold', 'still on hold');
+  assert.strictEqual(out.tidy.length, 0, 'nothing to tidy');
+  assert.strictEqual(out.choose.length, 0, 'nothing to choose');
+});
+
+test('hold: a held book the library moved on (picked up, then read) takes the library\'s answer', () => {
+  const ours = [Object.assign(here(1, 'hold', null), { library: memory('for_later', 0) })];
+  const reading = plan([there(1, 'reading', null)], ours);
+  assert.strictEqual(one(reading).state, 'reading', 'in progress at the library: reading here');
+  assert.strictEqual(reading.choose.length, 0, 'without asking');
+  const read = plan([there(1, 'read', 'liked')], ours);
+  assert.strictEqual(one(read).state, 'read');
+  assert.strictEqual(one(read).rating, 'liked');
+});
+
+test('hold: the first import beside a held book on For Later is not a disagreement', () => {
+  const out = plan([there(1, 'want', null)], [here(1, 'hold', null)]);
+  assert.strictEqual(one(out).state, 'hold');
+  assert.strictEqual(out.choose.length, 0);
+});

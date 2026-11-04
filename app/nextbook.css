@@ -453,6 +453,19 @@
     animation: nb-rise 180ms ease-out;
   }
   .nb-toast-text { flex: 1; margin: 0; padding-block: 6px; }
+  .nb-toast-action {
+    flex: none;
+    align-self: center;
+    min-height: 36px;
+    padding: 4px 12px;
+    border: 1px solid currentColor;
+    border-radius: var(--nb-radius-small);
+    background: transparent;
+    color: inherit;
+    font-weight: 650;
+    cursor: pointer;
+  }
+  .nb-toast-action:hover { background: color-mix(in srgb, var(--nb-paper) 18%, transparent); }
   .nb-toast-close {
     flex: none;
     width: 36px;
@@ -599,15 +612,17 @@
 
   /* ---- The segmented control: radios drawn as one bar. ---- */
   .nb-segmented {
-    display: grid;
-    /* each segment as wide as its words need, and the spare room shared out */
-    grid-template-columns: repeat(4, auto);
+    /* each segment as wide as its words need, the spare room shared out, and a second row
+       rather than clipped words when five do not fit (a 320 px phone) */
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px;
     padding: 3px;
     border: 1px solid var(--nb-line-strong);
     border-radius: var(--nb-radius-small);
     background: var(--nb-paper);
   }
-  .nb-segment { position: relative; display: flex; min-width: 0; }
+  .nb-segment { position: relative; display: flex; flex: 1 1 auto; }
   .nb-segment input {
     position: absolute;
     inset: 0;
@@ -621,15 +636,14 @@
     align-items: center;
     justify-content: center;
     min-height: 38px;
-    padding: 4px 6px;
+    padding: 4px 8px;
     border-radius: 6px;
     color: var(--nb-muted);
+    white-space: nowrap;
     font-size: var(--nb-small);
     font-weight: 500;
     line-height: 1.15;
     text-align: center;
-    overflow-wrap: normal;
-    text-wrap: balance;
     transition: background var(--nb-ease), color var(--nb-ease);
   }
   .nb-segment:hover span { color: var(--nb-ink); background: var(--nb-soft); }
@@ -741,6 +755,13 @@
     justify-content: space-between;
   }
   .nb-book:not(:has(.nb-controls)) > .nb-book-head { flex: 1 1 14rem; }
+
+  /* A phone's card: tighter segments, so all five states fit one row at 390 px. Below that
+     (320 px) they wrap to two rows rather than clip. */
+  @container nb-books (max-width: 26rem) {
+    .nb-segment span { padding-inline: 4px; font-size: 0.84rem; }
+    .nb-book { padding-inline: var(--nb-s3); }
+  }
 
   @container nb-books (min-width: 50rem) {
     .nb-book {
