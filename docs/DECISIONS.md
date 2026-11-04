@@ -141,8 +141,11 @@ Both templates live in `slice.json`, written by the adapter, so the app never co
 "We want this for the first run." Most of the foundation is a port of Search Desk, which was built and tested in four days;
 the library layers are the new part. The safety net is a slice built from the 30-book pack (the pack's own facets,
 search links instead of record links), made first so every lane has data on day one. If the real slice misses its
-numbers by Wed 18:00 the fallback ships, and if the starter misses gate 2 on Thu 18:00 Saturday runs on the residency
+numbers by Wed 18:00 the fallback ships, and if the starter misses gate 2 on Thu 18:00 the first run uses the earlier
 starter that already exists.
+
+Re-checked 2026-11-03 against the library's own event list: the session is listed for Sat Nov 7, 11:00-13:00, with
+repeats on Wed Nov 25 and Thu Nov 26, 6-8pm, all three full. The target in this entry stands.
 
 Forecloses: nothing permanent. The real slice replaces the fallback whenever it lands.
 
