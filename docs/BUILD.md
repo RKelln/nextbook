@@ -497,8 +497,9 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
   sentence "You sign in there, not here: this page never sees your card or password." A pick, and a book to read on
   the shelf, that has a catalogue record gets "Sign in and hold", which lands on its own page, where Place hold is.
   A pack book has no record id, so it keeps its search link and no hold link. Never a link into the hold form, never
-  a request to any of these pages, never a word about whether the person is signed in. Not yet checked by hand:
-  that a person already signed in goes straight through `/user/login?destination=` without the form.
+  a request to any of these pages, never a word about whether the person is signed in. Checked by hand
+  (2026-11-04): a person already signed in goes straight through `/user/login?destination=` to the page, with no
+  sign-in form, so "Sign in and hold" is right whether or not they are signed in.
 - [ ] **T8.10 Look further, with Open Library** (D26). For the hosted copy, where there is no agent: a "Look further"
   button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never shelf
   titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off

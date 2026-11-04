@@ -155,7 +155,7 @@ opens in their own browser, signed in as themselves; the app links to them and n
 
 | Page | Path on `tpl.bibliocommons.com` |
 |---|---|
-| Sign in | `/user/login`, or `/user/login?destination=<path>` to land on a page after signing in: `?destination=%2Fholds` and `?destination=%2Fv2%2Frecord%2F<recordId>` were tried by hand (2026-11-04) and land on the holds page and the record page |
+| Sign in | `/user/login`, or `/user/login?destination=<path>` to land on a page after signing in: `?destination=%2Fholds` and `?destination=%2Fv2%2Frecord%2F<recordId>` were tried by hand (2026-11-04) and land on the holds page and the record page; signed in already, there is no form, it goes straight there |
 | Holds | `/holds` |
 | Checked out | `/checkedout` |
 | For Later, In Progress, Completed shelves | `/collection/show/my/library/for_later`, `in_progress`, `completed` |
