@@ -495,7 +495,7 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
 - [ ] **T8.4 Browser tests.** Playwright, development only, using the `data-test` names.
 - [x] **T8.5 Paste packets.** Search Desk's `kit.py` idea: each mode brief as one text a browser chat can take.
 - [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03; the answer is in `DATA.md`, "A person's own shelf page".
-- [ ] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
+- [x] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
   unmatched rows become typed books with search links. Same merge as T8.8b.
   - [x] **T8.9a The readers** (B, M, S): `app/core/import.js`, pure: a CSV in, `{entries, works, complete, problems}` out,
     in the shape `Nextbook.merge.plan` takes. Quoted fields with commas, quotes and newlines; Goodreads wraps ISBNs as
