@@ -15,6 +15,7 @@ number at the end changes, and it is always the control's place on the page, cou
 |---|---|---|
 | `nav-find` | Tab "Ways to choose" | Goes to `#find`. |
 | `nav-shelf` | Tab "Shelf" | Goes to `#shelf`. |
+| `nav-events` | Tab "Events" | Goes to `#events`. Drawn only when `app/data/events.js` has a snapshot; a copy without one has no tab. |
 | `nav-selftest` | Tab "Self-test" | Goes to `#selftest`. |
 
 The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows `#find`.
@@ -153,6 +154,28 @@ and pastes the answer back.
 | `input-<input>-words-result` | "Ticked: …" or "The chat did not name any subject in this list." (not pressed) | — |
 | `input-<input>-words-dropped` | The subjects not kept, named in words (not pressed) | — |
 | `input-<input>-words-said` | A note from Copy or Use the answer (not pressed) | — |
+
+## The events screen
+
+Drawn from `app/data/events.js`, which is made ahead by the events snapshot; the page never
+fetches the feed. `N` is the event's place on the page, counted from 1 down the days; day
+headings are numbered from 1 on their own.
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `events-section` | The screen (not pressed) | — |
+| `events-snapshot` | "Snapshot taken <date>. Check the library's page before you go." (not pressed) | — |
+| `events-empty` | The plain sentence in a copy with no events file (not pressed) | Drawn instead of the list; the tab is not drawn at all in such a copy. |
+| `event-day-N` | One day's heading, e.g. "Tuesday, November 3" (not pressed) | — |
+| `event-day-list-N` | That day's list of events (not pressed) | — |
+| `event-N` | One event's box (`data-event="<event id>"`, not pressed) | — |
+| `event-link-N` | The event's title, a link | Opens the library's own page for the event. |
+| `event-open-N` | "Open the library's page" under the words, a link | The same page, for anyone who reads the words first. |
+| `event-time-N` | "6:00 pm to 7:30 pm" (not pressed) | — |
+| `event-virtual-N` | "This event is online." (not pressed) | Drawn only for a virtual event. |
+| `event-summary-N` | The library's own words about the event, as text (not pressed) | — |
+| `event-summary-long-N` | The sentence shown instead when the snapshot's words are over 300 characters (not pressed) | Nothing is cut here: the page says the words are longer than the snapshot keeps and points at the library's page. |
+| `event-books-N` | Button "Books for this event" | Drawn only when a mode with the id `event-hook` is loaded. It opens that mode on `#find`; with no input kind that carries an event, it puts the event's title in the mode's words box, and one sentence says so. |
 
 ## Also marked
 

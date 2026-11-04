@@ -580,6 +580,51 @@ strong.nb-book-title { text-decoration: none; }
 
 .nb-button:disabled { opacity: 0.55; cursor: not-allowed; }
 
+/* ---- The events screen ---------------------------------------------------------------------- */
+
+.nb-event-snapshot {
+  margin: 8px 0 4px;
+  padding: 8px 12px;
+  border-left: 4px solid var(--nb-accent);
+  background: var(--nb-soft);
+  border-radius: 0 8px 8px 0;
+  font-weight: 600;
+}
+
+.nb-day {
+  margin: 1.4rem 0 0.2rem;
+  padding-bottom: 4px;
+  border-bottom: 1px solid var(--nb-line);
+  font-size: 1.05rem;
+}
+
+.nb-events {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.nb-event {
+  padding: 12px 14px;
+  border: 1px solid var(--nb-line);
+  border-radius: 10px;
+  background: var(--nb-soft);
+}
+
+.nb-event-title {
+  margin: 0 0 2px;
+  font-size: 1.05rem;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.nb-event-when { color: var(--nb-muted); font-variant-numeric: tabular-nums; }
+.nb-event-virtual { color: var(--nb-accent); font-weight: 600; }
+.nb-event-summary { margin-top: 6px; }
+.nb-event-actions { margin-top: 8px; }
+
 /* ---- Focus and small screens --------------------------------------------------------------- */
 
 a:focus-visible,

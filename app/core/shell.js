@@ -99,7 +99,10 @@
   function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
 
   // ---- The hash router -----------------------------------------------------------------------
-  var ROUTES = ['find', 'shelf', 'selftest'];
+  // `events` is in the list even in a copy with no snapshot: a link to #events then reaches a
+  // plain sentence instead of quietly landing on #find. The tab itself is drawn only when the
+  // snapshot is there (see navBar).
+  var ROUTES = ['find', 'shelf', 'events', 'selftest'];
 
   function routeName() {
     var raw = '';
@@ -1930,6 +1933,241 @@
     return sec;
   }
 
+  // ---- The events screen (T3.6) ----------------------------------------------------------------
+  // The snapshot in data/events.json, shown as it is: the library's events grouped by day, the
+  // library's own words about each one (as text, never markup), a link to the event's own page,
+  // and the date the snapshot was taken. Nothing is fetched here; the snapshot is the only
+  // source, and the page never calls it live (ARCHITECTURE.md, "events.json").
+  //
+  // Times are the library's own wall clock as the snapshot wrote them ("2026-11-03T18:00:00"),
+  // so the parts are read as written, with no offset arithmetic: the page prints the hours the
+  // event's page prints, for a person in any city.
+
+  var EVENT_SUMMARY_MAX = 300;   // the snapshot's limit for the library's words (DATA.md)
+
+  var MONTH_KEYS = [
+    'monthJanuary', 'monthFebruary', 'monthMarch', 'monthApril', 'monthMay', 'monthJune',
+    'monthJuly', 'monthAugust', 'monthSeptember', 'monthOctober', 'monthNovember', 'monthDecember'
+  ];
+  // index 0 is Sunday, as weekdayIndex returns it.
+  var WEEKDAY_KEYS = ['weekdaySunday', 'weekdayMonday', 'weekdayTuesday', 'weekdayWednesday',
+    'weekdayThursday', 'weekdayFriday', 'weekdaySaturday'];
+
+  function pad2(n) { return n < 10 ? '0' + n : String(n); }
+
+  function timeParts(value) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2}))?/.exec(typeof value === 'string' ? value : '');
+    if (!m) return null;
+    return {
+      y: Number(m[1]), m: Number(m[2]), d: Number(m[3]),
+      h: m[4] === undefined ? null : Number(m[4]),
+      mi: m[5] === undefined ? null : Number(m[5])
+    };
+  }
+
+  // Day of the week from a date alone (Sakamoto's method): no Date object, so no timezone can
+  // move a heading to the day before or after.
+  function weekdayIndex(y, m, d) {
+    var t = [0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4];
+    var yy = m < 3 ? y - 1 : y;
+    var raw = (yy + Math.floor(yy / 4) - Math.floor(yy / 100) + Math.floor(yy / 400) + t[m - 1] + d) % 7;
+    return raw < 0 ? raw + 7 : raw;
+  }
+
+  function clockWords(p) {
+    var h = p.h % 12;
+    if (h === 0) h = 12;
+    return t('eventClock', { h: h, mm: pad2(p.mi), half: t(p.h < 12 ? 'clockAm' : 'clockPm') });
+  }
+
+  // "6:00 pm to 7:30 pm", or the start alone when the snapshot has no end.
+  function eventWhenWords(event) {
+    var start = timeParts(event.start);
+    if (!start || start.h === null) return '';
+    var end = timeParts(event.end);
+    if (end && end.h !== null) return t('eventTimeRange', { start: clockWords(start), end: clockWords(end) });
+    return clockWords(start);
+  }
+
+  function dayHeadingWords(parts) {
+    if (!parts) return t('eventDayUnknown');
+    return t('eventDayHeading', {
+      weekday: t(WEEKDAY_KEYS[weekdayIndex(parts.y, parts.m, parts.d)]),
+      month: t(MONTH_KEYS[parts.m - 1]),
+      day: parts.d
+    });
+  }
+
+  function eventSnapshot() {
+    var data = null;
+    try { data = Nextbook.data.get('events'); } catch (e) { data = null; }
+    return isObj(data) && Array.isArray(data.events) ? data : null;
+  }
+
+  function eventList() {
+    var data = eventSnapshot();
+    var out = [];
+    if (!data) return out;
+    data.events.forEach(function (e) { if (isObj(e)) out.push(e); });
+    return out;
+  }
+
+  function hasEvents() { return eventList().length > 0; }
+
+  // The mode the "Books for this event" button opens. It must be loaded *and* named in the
+  // mode list: the button goes to #find, and the find screen can only draw a mode the list
+  // names, so a loaded file the list forgot would give a button that goes nowhere.
+  function eventHookDef() {
+    var defs = Nextbook.modeDefs;
+    if (!defs || !Object.prototype.hasOwnProperty.call(defs, 'event-hook')) return null;
+    if (Array.isArray(Nextbook.modes) && Nextbook.modes.indexOf('event-hook') === -1) return null;
+    return isObj(defs['event-hook']) ? defs['event-hook'] : null;
+  }
+
+  // One group per day, earliest first, and the events inside a day in start order (then by
+  // title, so two events at the same minute keep a stable place). An event with no readable
+  // date is kept, under a heading of its own at the end, rather than dropped.
+  function eventDays(events) {
+    var days = [], byKey = {};
+    events.forEach(function (e) {
+      var p = timeParts(e.start);
+      var key = p ? p.y + '-' + pad2(p.m) + '-' + pad2(p.d) : '';
+      if (!Object.prototype.hasOwnProperty.call(byKey, key)) {
+        byKey[key] = { key: key, parts: p, events: [] };
+        days.push(byKey[key]);
+      }
+      byKey[key].events.push(e);
+    });
+    days.sort(function (a, b) {
+      if (!a.key) return b.key ? 1 : 0;
+      if (!b.key) return -1;
+      return a.key < b.key ? -1 : a.key > b.key ? 1 : 0;
+    });
+    days.forEach(function (day) {
+      day.events.sort(function (a, b) {
+        var sa = String(a.start || ''), sb = String(b.start || '');
+        if (sa !== sb) return sa < sb ? -1 : 1;
+        var ta = String(a.title || ''), tb = String(b.title || '');
+        return ta < tb ? -1 : ta > tb ? 1 : 0;
+      });
+    });
+    return days;
+  }
+
+  // The event's title is the link to its page: one target, named once. The "Open the library's
+  // page" line under the words is the same address for anyone who reads the summary first.
+  function eventNode(event, index) {
+    var li = h('li', { class: 'nb-event', 'data-event': String(event.id || ''), 'data-test': 'event-' + index });
+    var url = typeof event.url === 'string' ? event.url : '';
+    var title = typeof event.title === 'string' && event.title ? event.title : t('eventUntitled');
+    var head = h('h4', { class: 'nb-event-title' },
+      url
+        ? h('a', { href: url, 'data-test': 'event-link-' + index }, title)
+        : h('strong', null, title));
+    li.appendChild(head);
+
+    var when = eventWhenWords(event);
+    if (when) li.appendChild(p(when, 'nb-event-when', { 'data-test': 'event-time-' + index }));
+
+    // A virtual event says so, in its own line, before the words.
+    if (event.virtual === true) {
+      li.appendChild(p(t('eventVirtual'), 'nb-event-virtual', { 'data-test': 'event-virtual-' + index }));
+    }
+
+    var summary = typeof event.summary === 'string' ? event.summary.trim() : '';
+    if (summary.length > EVENT_SUMMARY_MAX) {
+      // The snapshot promises the library's words at 300 characters at most. A longer one is
+      // not cut here: cutting is the snapshot's job, and doing it silently would pass a
+      // shortened sentence off as the library's. The page says what it found and points at the
+      // page that has the whole of it.
+      li.appendChild(p(t('eventSummaryLong'), 'nb-note', { 'data-test': 'event-summary-long-' + index }));
+    } else if (summary) {
+      li.appendChild(p(summary, 'nb-event-summary', { 'data-test': 'event-summary-' + index }));
+    }
+
+    if (url) {
+      li.appendChild(h('a', { class: 'nb-link-line', href: url, 'data-test': 'event-open-' + index },
+        t('modelLibraryLink')));
+    }
+
+    // Only when a mode with the id 'event-hook' is loaded (none ships today).
+    if (eventHookDef()) {
+      li.appendChild(h('div', { class: 'nb-event-actions' },
+        button('event-books-' + index, t('eventBooks'), function (chosen) {
+          return function () { openEventHook(chosen); };
+        }(event))));
+    }
+    return li;
+  }
+
+  // Today's input kinds carry a shelf book, a book, a subject, subjects, words, a number or a
+  // choice; none of them carries an event. So the button cannot hand the event to `choose`.
+  // What it does instead: it opens the mode on #find and, when the mode has a `text` input,
+  // puts the event's title there, which is the one kind that can hold words about the event.
+  // Either way the page says so in one sentence, with the reason.
+  function openEventHook(event) {
+    var def = eventHookDef();
+    if (!def) return;
+    var words = typeof event.title === 'string' ? event.title.trim() : '';
+    var textSpec = null;
+    (Array.isArray(def.inputs) ? def.inputs : []).forEach(function (spec) {
+      if (!textSpec && isObj(spec) && spec.id && String(spec.kind || '') === 'text') textSpec = spec;
+    });
+    chooseMode('event-hook');
+    if (textSpec) setInputValue('event-hook', textSpec.id, words);
+    go('find');
+    // Set after the move: a note belongs to the screen that made it, and the route change
+    // would clear one set before it.
+    state.message = textSpec
+      ? t('eventHookWords', { words: words })
+      : t('eventHookNoInput');
+    render();
+  }
+
+  function eventsView() {
+    var sec = h('section', {
+      class: 'nb-screen', id: 'nb-events', 'data-screen': 'events', 'data-test': 'events-section'
+    });
+    sec.appendChild(h('h2', t('eventsHeading')));
+
+    var events = eventList();
+    if (!events.length) {
+      sec.appendChild(p(t('eventsNone'), 'nb-empty', { 'data-test': 'events-empty' }));
+      return sec;
+    }
+
+    var branch = '';
+    for (var i = 0; i < events.length && !branch; i++) {
+      if (typeof events[i].branch === 'string' && events[i].branch) branch = events[i].branch;
+    }
+    if (branch) sec.appendChild(p(t('eventsIntro', { branch: branch }), 'nb-hint'));
+
+    // The sentence the snapshot owes the person, near the top, before any event.
+    var data = eventSnapshot();
+    var taken = data ? timeParts(data.fetched) : null;
+    sec.appendChild(p(taken
+      ? t('eventSnapshot', {
+        date: t('eventDateLong', {
+          month: t(MONTH_KEYS[taken.m - 1]), day: taken.d, year: taken.y
+        })
+      })
+      : t('eventSnapshotNoDate'), 'nb-event-snapshot', { 'data-test': 'events-snapshot' }));
+
+    var dayNo = 0, index = 0;
+    eventDays(events).forEach(function (day) {
+      dayNo += 1;
+      sec.appendChild(h('h3', { class: 'nb-day', 'data-test': 'event-day-' + dayNo },
+        dayHeadingWords(day.parts)));
+      var list = h('ul', { class: 'nb-events', 'data-test': 'event-day-list-' + dayNo });
+      day.events.forEach(function (e) {
+        index += 1;
+        list.appendChild(eventNode(e, index));
+      });
+      sec.appendChild(list);
+    });
+    return sec;
+  }
+
   // ---- Drawing --------------------------------------------------------------------------------
   // The screen is rebuilt from its data on every change, so the element that had the keyboard
   // focus is thrown away with it. Note its data-test before the rebuild and put the focus back
@@ -1960,7 +2198,12 @@
 
   function navBar(route) {
     var nav = h('nav', { class: 'nb-nav', 'aria-label': t('navLabel') });
-    [['find', 'navFind', 'nav-find'], ['shelf', 'navShelf', 'nav-shelf'], ['selftest', 'navSelftest', 'nav-selftest']]
+    var items = [['find', 'navFind', 'nav-find'], ['shelf', 'navShelf', 'nav-shelf']];
+    // The events tab is drawn only when the snapshot is there; a copy without one has no tab,
+    // and #events still answers with a plain sentence.
+    if (hasEvents()) items.push(['events', 'navEvents', 'nav-events']);
+    items.push(['selftest', 'navSelftest', 'nav-selftest']);
+    items
       .forEach(function (item) {
         nav.appendChild(h('button', {
           type: 'button',
@@ -1999,6 +2242,7 @@
     }
 
     if (route === 'shelf') root.appendChild(shelfView());
+    else if (route === 'events') root.appendChild(eventsView());
     else if (route === 'selftest') root.appendChild(selfTestView());
     else root.appendChild(findView());
     refocus(keepFocus);
@@ -2309,7 +2553,46 @@
     allPassed: 'All checks passed.',
     someFailed: '{n} checks failed.',
     someFailedOne: '1 check failed.',
-    checkCrashed: 'The checks stopped with an error: {msg}'
+    checkCrashed: 'The checks stopped with an error: {msg}',
+    // the events screen (T3.6)
+    navEvents: 'Events',
+    eventsHeading: 'Events at the library',
+    eventsIntro: "These are the library's events at {branch}, in date order.",
+    eventSnapshot: "Snapshot taken {date}. Check the library's page before you go.",
+    eventSnapshotNoDate: "This snapshot has no date, so check the library's page before you go.",
+    eventsNone: 'This copy has no library events, so there is nothing to show here.',
+    eventDayHeading: '{weekday}, {month} {day}',
+    eventDayUnknown: 'Date to be announced',
+    eventDateLong: '{month} {day}, {year}',
+    eventTimeRange: '{start} to {end}',
+    eventClock: '{h}:{mm} {half}',
+    clockAm: 'am',
+    clockPm: 'pm',
+    eventVirtual: 'This event is online.',
+    eventSummaryLong: "The library's words about this event are longer than 300 characters, so they are not shown here. Read them on the library's page.",
+    eventUntitled: 'An event with no title',
+    eventBooks: 'Books for this event',
+    eventHookWords: "This page cannot hand an event to a way of choosing books yet, so the event's title went into the words box.",
+    eventHookNoInput: 'This page cannot hand an event to a way of choosing books yet, and this one asks for no words, so it opens with nothing chosen.',
+    monthJanuary: 'January',
+    monthFebruary: 'February',
+    monthMarch: 'March',
+    monthApril: 'April',
+    monthMay: 'May',
+    monthJune: 'June',
+    monthJuly: 'July',
+    monthAugust: 'August',
+    monthSeptember: 'September',
+    monthOctober: 'October',
+    monthNovember: 'November',
+    monthDecember: 'December',
+    weekdaySunday: 'Sunday',
+    weekdayMonday: 'Monday',
+    weekdayTuesday: 'Tuesday',
+    weekdayWednesday: 'Wednesday',
+    weekdayThursday: 'Thursday',
+    weekdayFriday: 'Friday',
+    weekdaySaturday: 'Saturday'
   });
 
   // The shell is last in the page, but a build may load it earlier.
