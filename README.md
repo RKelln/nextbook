@@ -103,7 +103,7 @@ These come from the app's job, not from taste. `docs/DECISIONS.md` records what 
 
 ## Status
 
-The foundation is built and checked: 207 Node tests, 319 Python tests, the three reference modes and the example mode
+The foundation is built and checked: 222 Node tests, 335 Python tests, the three reference modes and the example mode
 passing, and a one-file build with no network requests. A reading list can be imported from Goodreads or StoryGraph,
 merged with the library's shelves, and matched to the catalogue a book at a time. The ten mode briefs in `docs/modes/` are deliberately
 unbuilt — that is the work the app leaves to its reader. `docs/BUILD.md` is the plan and the record of how it was made.

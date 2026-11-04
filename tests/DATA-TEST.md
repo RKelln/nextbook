@@ -71,6 +71,20 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | `found-notice` | The box "Your helper found N books for …" (not pressed) | Drawn only when `app/data/found.js` has books. |
 | `found-clear` | Button "Clear" | Hides the notice on this page for the rest of the visit. It does not delete the file or the books. |
 
+## The helper's note
+
+Drawn at the top of the shelf screen when `app/data/inbox.js` was read at boot and its books
+came in. A reload with the same note draws nothing: its name is remembered in this browser.
+
+| Name | What it is | What pressing it does |
+|---|---|---|
+| `inbox-note` | The box (not pressed) | — |
+| `inbox-said` | "Brought in 4 changes from your helper." (not pressed) | — |
+| `inbox-kept` | "1 of them was newer on your shelf, so it was left as it is." (not pressed) | Drawn only when the shelf had a newer entry than the note's. |
+| `inbox-undo` | Button "Undo these changes" | Puts the shelf in use back exactly as it was before the note was applied. |
+| `inbox-refused-N` | One book the note offered and the page left out, named (not pressed) | — |
+| `inbox-not-saved` | The not-saving sentence (not pressed) | Drawn only when the browser would not keep the change. |
+
 ## The self-test
 
 | Name | What it is | What pressing it does |

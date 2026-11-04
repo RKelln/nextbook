@@ -447,7 +447,7 @@ After everything above. Not for a workshop (the import is off in a workshop copy
 opens the hosted copy and already keeps shelves at the library. The hand-made test page follows the shape in
 `DATA.md`, "A person's own shelf page", with a made-up user.
 
-- [ ] **T8.9d The inbox: an agent writes to the app (D36).** `app/data/inbox.js` (gitignored) holding
+- [x] **T8.9d The inbox: an agent writes to the app (D36).** `app/data/inbox.js` (gitignored) holding
   `window.NEXTBOOK_INBOX = {schema: "nextbook/inbox-1", records, source: "ai", updated}`. On load the shell merges it
   once through the store's existing import, shows "Brought in 4 changes from your helper" with one Undo, and marks it
   applied in storage (keyed by the inbox's own `id`) so a reload does nothing. A record with an `updated` more than a

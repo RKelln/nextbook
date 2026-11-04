@@ -17,6 +17,8 @@ How the one file is made
   shim keeps the shell from asking the folder for them (see `modes_shim`).
   `data/workshop.js` is never packed: it is the flag a workshop *folder* carries so the practice
   shelf is the only shelf on a shared machine, and a take-home file is the person's own copy.
+  `data/inbox.js` is never packed either: it is one machine's message from a helper, not data
+  for the copy it is built in.
 
 Nothing here fetches anything and nothing here runs the app: it only reads files and writes
 `dist/`, which git ignores. Standard library only.
@@ -37,6 +39,7 @@ DIST = ROOT / "dist"
 
 EXAMPLE_MODE = "more-by"            # T4.1: the one mode the workshop folder ships
 WORKSHOP_DATA = "data/workshop.js"  # the folder's workshop flag; never packed (see above)
+INBOX_DATA = "data/inbox.js"        # one machine's message from a helper; never packed
 # Built from two pieces on purpose: this file is copied into dist/starter/, and the starter must
 # not name, or hold, the folder of finished demo modes (BUILD.md T5.2's grep).
 DEMO_MODES = ROOT / ("re" "ference") / "modes"
@@ -299,6 +302,9 @@ def assemble(template, read, demo_modes=None):
         if src == WORKSHOP_DATA:
             notes.append("data/workshop.js is the workshop folder's flag, so it is not packed")
             return ""
+        if src == INBOX_DATA:
+            notes.append("data/inbox.js is one machine's message from a helper, so it is not packed")
+            return ""
         path = check_local(src, APP, "<script> src")
         if src.startswith("data/") and src.endswith(".js"):
             if not path.is_file():
@@ -498,6 +504,7 @@ STARTER_FILES = (
     "tools/check.sh",
     "tools/gen_data.py",
     "tools/find.py",
+    "tools/inbox.py",
     "adapters/__init__.py",
     "adapters/bibliocommons/__init__.py",
     "adapters/bibliocommons/config.json",

@@ -1,11 +1,12 @@
 'use strict';
-// The shelf: kept in this browser only, in four keys that are never mixed.
+// The shelf: kept in this browser only, in its own keys that are never mixed.
 //
 //   nextbook-own-v1       the person's own shelf
 //   nextbook-practice-v1  the practice shelf, filled from data/practice.js on first use
 //   nextbook-others-v1    friends' shelves, each an exported file added under a name
 //   nextbook-mode-v1:<id> one per mode: its last inputs and its shuffle seed
 //   nextbook-which-v1     the shelf last in use: 'own' or 'practice', one plain value
+//   nextbook-inbox-applied-v1  the names of the helper notes already brought in, oldest first
 //
 // A friend's shelf is never merged into the person's own; importing a file merges into the
 // shelf in use. On a key clash the newer `updated` wins and a tie keeps ours (the rule in
@@ -41,6 +42,9 @@
 //   store.seed(modeId)      -> number or null
 //   store.setSeed(modeId, n)
 //   store.lastMode()        -> the mode id chosen last, or '' ; store.setLastMode(id)
+//   store.inboxApplied()    -> the helper notes already brought in, oldest first
+//   store.inboxMark(id)     -> true when the name is remembered. The list keeps the last 20,
+//                              so a page used for years does not grow a key without a bound
 //
 // A storage object that is missing or throws on every call still works, in memory, with
 // persistent false, so the page can say "This browser is not saving. Export before you
@@ -55,6 +59,8 @@
   var WHICH = 'nextbook-which-v1';
   var MODE_PREFIX = 'nextbook-mode-v1:';
   var MODE_LAST = 'nextbook-mode-last-v1';
+  var INBOX_APPLIED = 'nextbook-inbox-applied-v1';
+  var INBOX_KEEP = 20;
 
   var SHELF_SCHEMA = 'nextbook/shelf-1';
   var OTHERS_SCHEMA = 'nextbook/others-1';
@@ -535,6 +541,31 @@
       return value;
     }
 
+    // The helper notes already brought in, as a list of their own ids, oldest first. A record
+    // that is not a list, or holds anything but strings, is treated as no record at all, the
+    // way a hand-edited shelf key is: the page must still open.
+    function inboxApplied() {
+      var value = readRaw(INBOX_APPLIED);
+      var out = [];
+      if (!Array.isArray(value)) return out;
+      for (var i = 0; i < value.length; i++) {
+        if (typeof value[i] === 'string' && value[i]) out.push(value[i]);
+      }
+      return out;
+    }
+
+    // Remember one note so a reload does nothing at all. The oldest name is dropped past 20:
+    // a notes file from months ago cannot come back for ever.
+    function inboxMark(id) {
+      var value = String(id === null || id === undefined ? '' : id);
+      if (!value) return false;
+      var list = inboxApplied();
+      if (list.indexOf(value) !== -1) return true;
+      list.push(value);
+      while (list.length > INBOX_KEEP) list.shift();
+      return writeRaw(INBOX_APPLIED, list);
+    }
+
     var api = {
       which: which,
       use: use,
@@ -557,7 +588,9 @@
       seed: seed,
       setSeed: setSeed,
       lastMode: lastMode,
-      setLastMode: setLastMode
+      setLastMode: setLastMode,
+      inboxApplied: inboxApplied,
+      inboxMark: inboxMark
     };
 
     // `persistent` is a property, not a call: the page reads it after any operation, and a

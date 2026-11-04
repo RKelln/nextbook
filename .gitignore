@@ -8,6 +8,10 @@ data/raw/
 data/found.json
 app/data/found.js
 
+# The helper's note, written by tools/inbox.py or tools/find.py. One machine's message to the
+# page, not data: never committed, and never packed into a build.
+app/data/inbox.js
+
 # Built copies are made by tools/build.py, never edited, never committed.
 dist/
 

@@ -28,6 +28,10 @@
     // it. Both live in memory for this visit only, never in storage and never in an export.
     listReport: null,
     listUndo: null,
+    // the helper's note, brought in once at boot, and the shelf as it was before it. In memory
+    // for this visit; the note's own name is the only thing written down (D36).
+    inboxReport: null,
+    inboxUndo: null,
     // the find screen
     modeId: '',
     modeReady: false,
@@ -2663,6 +2667,8 @@
       sec.appendChild(p(t('shelfBroken'), 'nb-message nb-message-warn'));
       return sec;
     }
+    var inbox = inboxBox();
+    if (inbox) sec.appendChild(inbox);
     var banner = practiceBanner();
     if (banner) sec.appendChild(banner);
     var found = foundPanel();
@@ -2680,6 +2686,125 @@
     sec.appendChild(importPanel());
     sec.appendChild(friendsPanel());
     return sec;
+  }
+
+  // ---- The helper's note (T8.9d, D36) ---------------------------------------------------------
+  // One file, read once at boot, applied with store.add so its own newer-wins rule decides each
+  // book. The note is in memory for this visit; only its name is kept, in storage, so a reload
+  // does nothing at all. Off nowhere: a workshop copy's shelf is made up, and a helper writing
+  // to it is the demonstration.
+
+  function undoInbox() {
+    var held = state.inboxUndo;
+    if (!isObj(held) || !Array.isArray(held.entries)) return;
+    var saved = false;
+    try { saved = state.store.replace(held.entries) === true; } catch (e) { saved = false; }
+    state.inboxUndo = null;
+    state.inboxReport = null;
+    state.message = saved ? t('inboxUndone') : t('inboxUndone') + ' ' + t('inboxNotSaved');
+    render();
+  }
+
+  // The note on the shelf screen: how many came in, the one Undo, the books left out, named.
+  // A note belongs to the shelf it was applied to, so switching shelves puts it away; a file
+  // this page could not read is said on either shelf, because it changed neither.
+  function inboxBox() {
+    var report = state.inboxReport;
+    if (!isObj(report)) return null;
+    var which = '';
+    try { which = state.store ? state.store.which() : ''; } catch (e) { which = ''; }
+    if (!report.error && report.which !== which) return null;
+
+    var box = h('div', { class: 'nb-inbox', 'data-test': 'inbox-note' });
+    if (report.error) {
+      box.appendChild(p(report.error, 'nb-message nb-message-warn', { role: 'status', 'data-test': 'inbox-said' }));
+      return box;
+    }
+
+    var said = report.count
+      ? countLine(report.count, 'inboxNoteOne', 'inboxNote', { n: report.count })
+      : t('inboxNothing');
+    box.appendChild(p(said, 'nb-text', { role: 'status', 'data-test': 'inbox-said' }));
+
+    if (report.kept) {
+      box.appendChild(p(countLine(report.kept, 'inboxKeptOne', 'inboxKept', { n: report.kept }),
+        'nb-note', { 'data-test': 'inbox-kept' }));
+    }
+    if (state.inboxUndo && state.inboxUndo.which === report.which) {
+      box.appendChild(button('inbox-undo', t('inboxUndo'), undoInbox, 'nb-button nb-button-quiet'));
+    }
+    (report.reasons || []).forEach(function (sentence, i) {
+      box.appendChild(p(sentence, 'nb-note', { 'data-test': 'inbox-refused-' + (i + 1) }));
+    });
+    if (report.saved === false) {
+      box.appendChild(p(t('inboxNotSaved'), 'nb-message nb-message-warn', { 'data-test': 'inbox-not-saved' }));
+    }
+    return box;
+  }
+
+  // Reading the file and applying it, once. Returns the report, or null when there is no file
+  // or this note has already been in. A file whose schema is not ours is said, and nothing is
+  // written: not the shelf, and not the name, so fixing the file is enough.
+  function applyInbox() {
+    if (!state.store) return null;
+    var doc = null;
+    try { doc = Nextbook.data && typeof Nextbook.data.get === 'function' ? Nextbook.data.get('inbox') : null; } catch (e) { doc = null; }
+    if (doc === null || doc === undefined) return null;
+
+    var seen = null;
+    try { seen = Nextbook.inbox.check(doc, { now: nowText() }); } catch (e) { seen = null; }
+    if (!seen || !seen.ok) {
+      state.inboxReport = { error: (seen && seen.error) || t('inboxMissing'), which: '' };
+      state.inboxUndo = null;
+      return state.inboxReport;
+    }
+
+    var applied = [];
+    try { applied = state.store.inboxApplied(); } catch (e) { applied = []; }
+    if (applied.indexOf(seen.id) !== -1) return null; // this one is in: no note, no write
+
+    var which = 'practice';
+    try { which = state.store.which(); } catch (e) { which = 'practice'; }
+    var previous = [];
+    try { previous = state.store.shelf(); } catch (e) { previous = []; }
+
+    var counts = { added: 0, changed: 0, kept: 0 };
+    var saved = true;
+    for (var i = 0; i < seen.accepted.length; i++) {
+      var one = null;
+      try { one = state.store.add(seen.accepted[i]); } catch (e) { one = null; }
+      if (!isObj(one)) { saved = false; continue; }
+      counts.added += one.added || 0;
+      counts.changed += one.changed || 0;
+      counts.kept += one.kept || 0;
+    }
+
+    // Nothing usable: the note is read again next time, so a record dated a day early is read
+    // tomorrow and a bad file can be fixed without clearing a marker by hand. A note with no
+    // records at all has nothing to say, so it says nothing.
+    if (!seen.accepted.length) {
+      if (!seen.reasons.length) return null;
+      state.inboxReport = { error: '', count: 0, kept: 0, reasons: seen.reasons, which: which, saved: saved };
+      state.inboxUndo = null;
+      return state.inboxReport;
+    }
+
+    if (counts.added + counts.changed + counts.kept > 0) {
+      try { if (state.store.inboxMark(seen.id) !== true) saved = false; } catch (e) { saved = false; }
+    } else {
+      saved = false;
+    }
+
+    state.inboxReport = {
+      id: seen.id,
+      count: seen.accepted.length,
+      kept: counts.kept,
+      reasons: seen.reasons,
+      which: which,
+      saved: saved
+    };
+    state.inboxUndo = { which: which, entries: previous };
+    return state.inboxReport;
   }
 
   // ---- Loading the modes ----------------------------------------------------------------------
@@ -2748,6 +2873,9 @@
 
     try { state.store = Nextbook.store.open(); } catch (e) { state.store = null; }
     poolResult();
+    // After the shelf is open, before the first draw: the helper's note lands in that one write
+    // and the shelf screen says what came in.
+    applyInbox();
 
     try {
       if (typeof window.addEventListener === 'function') {
@@ -2874,6 +3002,15 @@
     shelfForLater: 'For Later',
     shelfInProgress: 'In Progress',
     shelfCompleted: 'Completed',
+    // the helper's note (T8.9d)
+    inboxNote: 'Brought in {n} changes from your helper.',
+    inboxNoteOne: 'Brought in 1 change from your helper.',
+    inboxKept: '{n} of them were newer on your shelf, so they were left as they are.',
+    inboxKeptOne: '1 of them was newer on your shelf, so it was left as it is.',
+    inboxNothing: 'Your helper sent changes, but none of them could be used.',
+    inboxUndo: 'Undo these changes',
+    inboxUndone: 'The shelf is back as it was before your helper changed it.',
+    inboxNotSaved: 'This browser is not saving, so these changes are here for now only. Download a copy before you close it.',
     // friends' shelves
     friendsHeading: "Add a friend's shelf",
     friendsHelp: "A friend's shelf is kept apart. It never changes your own shelf.",

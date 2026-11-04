@@ -18,6 +18,12 @@ in `data/found.json` is skipped, so a second run carries on where the last one
 stopped. Each book's page and merge are the same ones a single search uses:
 `collect()` is that one loop.
 
+With `--write-inbox`, the books this run matched are also written to
+`app/data/inbox.js` (through `tools/inbox.py`, the one writer), each with its
+new record id and the run's own time. The page reads that note once at load and
+updates the shelf entry in place, so the person does not import their file
+again to get the record ids.
+
 It says what it is about to send, and the address, *before* it sends anything.
 Then it reads the pages through `adapters/bibliocommons/` (parse and normalise,
 the same rules the slice was built with), merges the works into
@@ -55,8 +61,12 @@ from pathlib import Path
 REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
+TOOLS_DIR = Path(__file__).resolve().parent
+if str(TOOLS_DIR) not in sys.path:
+    sys.path.insert(0, str(TOOLS_DIR))
 
 from adapters.bibliocommons import fetch, normalise, parse  # noqa: E402
+import inbox as inbox_file  # noqa: E402  the one writer for the page's inbox
 
 DATA_DIR = REPO_ROOT / "data"
 OUT_DIR = REPO_ROOT / "app" / "data"
@@ -572,7 +582,7 @@ def _record_search(doc: dict, outcome: dict, query: str, now, found_path: Path) 
 
 def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
                out_dir=OUT_DIR, getter=None, cached=None, begin_search=None,
-               now=None) -> dict:
+               now=None, write_inbox: bool = False) -> dict:
     """Match the books a person imported, one search each, at their own pace.
 
     Only books with no record id and no group key are asked about: a book the
@@ -580,6 +590,11 @@ def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
     keyword search of its title and author, read through `collect()` -- the
     same loop a single search uses -- so hits land in `data/found.json` and
     `app/data/found.js` exactly as a single search's do.
+
+    With `write_inbox`, the books this run matched are also handed back to the
+    page as `app/data/inbox.js` (tools/inbox.py is the one writer): each takes
+    its new record id and the time of this run, so the shelf entry is the same
+    book the library found without the person importing their file again.
 
     The cap counts requests, not cache reads: a page already in the cache is
     said as `cached`, costs no request and no wait, and does not use up a book
@@ -635,6 +650,7 @@ def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
     run_total = min(limit, waiting_total)
     searched = found = nothing = done = served = 0
     wrote = False
+    matched: dict = {}
     for entry in waiting:
         if searched >= limit:
             break
@@ -666,6 +682,7 @@ def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
                 found_title = norm_title(work.get("title"))
                 if found_title:
                     present.add(found_title)
+                    matched[found_title] = work
         elif not hit:
             nothing += 1
         if outcome["fatal"]:
@@ -674,11 +691,69 @@ def from_shelf(path, limit: int = DEFAULT_LIMIT, *, data_dir=DATA_DIR,
     if wrote:
         regenerate(data_dir, out_dir)
 
+    handed = []
+    note_line = ""
+    if write_inbox:
+        handed = _inbox_records(entries, matched)
+        if handed:
+            try:
+                note_path, _note = inbox_file.write_inbox(handed, out_dir=out_dir, now=now)
+            except (OSError, ValueError) as err:
+                note_path = None
+                say(f"The note for the page was not written: {err}")
+            if note_path is not None:
+                note_line = (f"Wrote {_shown(note_path)} for "
+                             f"{_matched_books(len(handed))}.")
+
     left = max(0, waiting_total - done)
     say(f"Searched {searched}, found {found}, {nothing} had nothing, {left} to go. "
         f"Run it again for the next {limit}.")
+    if note_line:
+        say(note_line)
     return {"ok": served > 0, "searched": searched, "found": found,
-            "nothing": nothing, "left": left}
+            "nothing": nothing, "left": left, "matched": len(handed)}
+
+
+def _shown(path) -> str:
+    """A path as a command's line shows it: relative to the repo when it is inside it."""
+    try:
+        return str(Path(path).resolve().relative_to(REPO_ROOT))
+    except ValueError:
+        return str(path)
+
+
+def _matched_books(count: int) -> str:
+    return f"{count} matched book" if count == 1 else f"{count} matched books"
+
+
+def _inbox_records(entries, matched: dict) -> list:
+    """The shelf entries this run matched, with the record the library gave them.
+
+    The key an entry already carries is kept: the page merges on the key, so the book it
+    imported is updated in place instead of arriving a second time under `w:`.
+    """
+    out = []
+    seen: set = set()
+    for entry in entries:
+        if not isinstance(entry, dict):
+            continue
+        work = matched.get(norm_title(_shelf_title(entry)))
+        if not isinstance(work, dict):
+            continue
+        if not (work.get("id") or work.get("groupKey")):
+            continue
+        key = str(entry.get("key") or "")
+        if key and key in seen:
+            continue
+        if key:
+            seen.add(key)
+        record = dict(entry)
+        if work.get("id"):
+            record["id"] = work["id"]
+        if work.get("groupKey"):
+            record["groupKey"] = work["groupKey"]
+        out.append(record)
+    return out
 
 
 def _parse(argv):
@@ -694,6 +769,10 @@ def _parse(argv):
                         help="match the books in an exported shelf file, one search each")
     parser.add_argument("--limit", type=int, default=None,
                         help=f"with --from-shelf, how many books to search (default {DEFAULT_LIMIT})")
+    parser.add_argument("--write-inbox", action="store_true",
+                        help=("with --from-shelf, also write app/data/inbox.js for the books "
+                              "this run matched, so the page takes their new record ids "
+                              "without another import"))
     parser.add_argument("--clear", action="store_true", help="empty data/found.json and stop")
     parser.add_argument("--data-dir", default=str(DATA_DIR),
                         help="where found.json lives (default: data/)")
@@ -704,8 +783,10 @@ def _parse(argv):
 
 def main(argv=None) -> int:
     parser, args = _parse(argv)
+    if args.write_inbox and not args.from_shelf:
+        parser.error("--write-inbox only works with --from-shelf")
     if args.clear:
-        if args.words or args.title or args.author or args.from_shelf:
+        if args.words or args.title or args.author or args.from_shelf or args.write_inbox:
             parser.error("--clear takes no words, no --title, no --author and no --from-shelf")
         try:
             return clear(args.data_dir, args.out_dir)
@@ -723,7 +804,8 @@ def main(argv=None) -> int:
         try:
             result = from_shelf(args.from_shelf,
                                 limit=DEFAULT_LIMIT if args.limit is None else args.limit,
-                                data_dir=args.data_dir, out_dir=args.out_dir)
+                                data_dir=args.data_dir, out_dir=args.out_dir,
+                                write_inbox=args.write_inbox)
         except (OSError, ValueError, FindError) as err:
             print(f"find: {err}", file=sys.stderr)
             return 2
