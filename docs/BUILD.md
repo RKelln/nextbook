@@ -469,6 +469,9 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
 - [ ] **T8.11 The batch catalogue slice** (D28, deferred). The original slice builder: `fetch_all.py` over a query
   list at batch pace, `build_slice.py` from the cache, the report in `DATA.md`, real record ids and sections for a few
   hundred works. Needs a decision on whether a public repo carries it (`DATA.md`, "What we may and may not do").
+  What it is for: a starting catalogue broad enough that a mode has something to choose from on a subject the pack
+  does not carry. What it is **not** for: matching a person's imported books, which is T8.9c — a slice is built once
+  from a fixed query list at the crawl delay, while a person's list is their own request and runs at a person's pace.
 - [ ] **T8.10 Look further, with Open Library** (D26). For the hosted copy, where there is no agent: a "Look further"
   button under any result searches Open Library (CORS `*`, measured) by the profile's top subject words, never shelf
   titles; maps its subjects to ours by `norm()`; results join the pool as found works with library search links. Off
@@ -478,6 +481,21 @@ guarantees", above. The original plan's rows K1 to K5 were that work, and they b
 - [x] **T8.7 Measure a saved shelf page.** Done 2026-11-03; the answer is in `DATA.md`, "A person's own shelf page".
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
   unmatched rows become typed books with search links. Same merge as T8.8b.
+  - **T8.9a The readers** (B, M, S): `app/core/import.js`, pure: a CSV in, `{entries, works, complete, problems}` out,
+    in the shape `Nextbook.merge.plan` takes. Quoted fields with commas, quotes and newlines; Goodreads wraps ISBNs as
+    `="0439023483"`; StoryGraph's `did-not-finish` is our `stopped`; a star rating maps to our bucket and 0 is unrated.
+    Every row that cannot be read is named, never dropped silently. Tests: one fixture per site, six rows each,
+    including an unrated row, a did-not-finish row and a review with a newline in it.
+  - **T8.9b The screen** (C, M, S): one button on the shelf screen, the report in words with one Undo, "Not at the
+    library yet" for the rows with no match, and the practice-shelf refusal it inherits from the merge. Off in a
+    workshop copy, with a sentence saying why.
+  - **T8.9c Matching the imported books at the library** (A, M, S). **Not T8.11.** T8.11 builds breadth for the modes;
+    this matches *a person's own list*, which is a different request with a different pace. Reuse `tools/find.py`:
+    `--from-shelf` takes the imported rows with no record id, turns each into one keyword search (title and author, an
+    ISBN when the file has one), and stops after a cap per run (40 books: about three and a half minutes at the
+    on-demand pace of 5 s, `DATA.md` "Pacing"), writing back into the same cache by record id so a second run resumes.
+    It prints the query before it sends it, names the titles it could not match, and never searches a title it already
+    has a record for. A person asks for this; nothing runs it on a timer.
 
 ## Known limits, accepted
 
