@@ -397,3 +397,24 @@ not a rebuild.
 
 The library pages carry one extra sentence the others do not need: the page keeps the books, not the file, so delete the
 saved pages afterwards. That is the one path where a file on the person's disk holds more than a book list.
+## D39. The shelf's count comes from the page's own words, not from a tick (2026-11-03, Ryan)
+
+The state carries no totals, so the first answer was to keep quiet about completeness. Ryan's answer is better: the
+saved page still *says* how many books the shelf holds, in its own header and footer.
+
+Measured on the two saved pages (2026-11-04, text only):
+
+- A **shelf** page carries `1 to 2 of 2 items`, twice — once at the top, once at the bottom.
+- A **search** page carries `1 to 20 of 1,744 results`.
+
+So the number is there, the word distinguishes the two page types, and both are worth reading:
+
+- Parse `X to Y of N items` from the page's text (tags and scripts stripped, entities unescaped). `N` is the shelf's
+  size, `Y` says whether this page reaches the end, and `X..Y` is the range this page covers.
+- Attribute the line to the shelf its items name (a shelf page shows one shelf). If a page carries no such line, or
+  the word is not `items`, the shelf stays **unknown** — a French or changed page must not make the app guess.
+- Complete across saved pages by covering `1..N` with the ranges, not by counting page numbers (the file never says
+  which page it is). Pages 1 and 3 saved, with 2 missing, is a gap, and nothing is marked gone.
+
+Rejected: a tick asking the person to promise they saved every page. It shifts a fact the file already states onto the
+person, and it is the kind of promise someone mis-remembers.
