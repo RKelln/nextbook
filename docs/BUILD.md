@@ -392,7 +392,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   `${var,,}`, `sed -i ''`, no `grep -P`, no `timeout`, `shasum -a 256`.
   *Done when:* `bash tools/check.sh more-by` passes on the Mac mini in a standard user (T7.1).
 
-- [ ] **T5.5b The commands** (D, S, H). Port: `searchdesk/tools/commands/new-feature.md` and `check.md` as
+- [x] **T5.5b The commands** (D, S, H). Port: `searchdesk/tools/commands/new-feature.md` and `check.md` as
   `tools/commands/new-mode.md` and `check.md`, plus `find-books.md`, copied into `.claude/commands/`.
   - `new-mode` reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in `docs/modes/`; writes or updates
     `app/PLAN.md` first; builds `app/modes/<id>.js` and its check; adds the line to `list.js`; ends with the check run,
