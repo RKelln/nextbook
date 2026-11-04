@@ -1176,6 +1176,55 @@
     event: 'inputLabelEvent'
   };
 
+  // D37: an input may be optional. Its empty option says what leaving it blank means: the
+  // spec's own `any` words, or these per-kind defaults. Only an input with a dropdown or a
+  // hint shows them; `optional: true` alone is enough for `choose` and for the check.
+  var ANY_LABELS = {
+    'shelf-book': 'inputAnyBook',
+    book: 'inputAnyBook',
+    facet: 'inputAnySubject',
+    facets: 'inputAnySubject',
+    text: 'inputAnything',
+    number: 'inputAny',
+    choice: 'inputAny',
+    event: 'inputAny'
+  };
+
+  function isOptional(spec) {
+    return !!(spec && typeof spec === 'object' && spec.optional === true);
+  }
+
+  // The words for an input left blank. A required input keeps the app's generic "Pick one";
+  // an optional one reads `any`, or the default for its kind.
+  function emptyOptionWords(spec, kind) {
+    if (!isOptional(spec)) return t('pickOne');
+    var said = typeof spec.any === 'string' ? spec.any.trim() : '';
+    if (said) return said;
+    return t(ANY_LABELS[kind] || 'inputAny');
+  }
+
+  function inputSpecOf(modeId, id) {
+    var defs = Nextbook.modeDefs || {};
+    var def = Object.prototype.hasOwnProperty.call(defs, modeId) ? defs[modeId] : null;
+    var specs = def && Array.isArray(def.inputs) ? def.inputs : [];
+    for (var i = 0; i < specs.length; i++) {
+      if (specs[i] && specs[i].id === id) return specs[i];
+    }
+    return null;
+  }
+
+  // D37: drawing the control is what makes a person "asked". A null in state.inputs records
+  // that: asked, and left blank. A key that is absent still means "never asked", and
+  // inputsFor() keeps that one missing even on an optional input. A control the page cannot
+  // draw (an event input with no snapshot, a shelf book with an empty shelf) is never marked,
+  // so the person is never asked and `choose` is not called.
+  function markAsked(modeId, spec) {
+    if (!isOptional(spec)) return;
+    if (Object.prototype.hasOwnProperty.call(state.inputs, spec.id)) return;
+    state.inputs[spec.id] = null;
+    saveInputs(modeId);
+  }
+
   // validate()'s drop code -> the words for it. The id is always named beside these.
   var DROP_WORDS = {
     unknown: 'dropUnknown',
@@ -1231,8 +1280,13 @@
   }
 
   function setInputValue(modeId, id, value) {
-    if (value === undefined || value === null || value === '') delete state.inputs[id];
-    else state.inputs[id] = value;
+    if (value === undefined || value === null || value === '') {
+      // D37: an optional input keeps an explicit null. "Asked and left blank" is a value of
+      // its own, and `choose` receives null for it; a required input forgets the key, which
+      // is what makes it missing.
+      if (isOptional(inputSpecOf(modeId, id))) state.inputs[id] = null;
+      else delete state.inputs[id];
+    } else state.inputs[id] = value;
     saveInputs(modeId);
   }
 
@@ -1504,11 +1558,12 @@
         wrap.appendChild(p(t('inputNoShelf'), 'nb-note'));
         return wrap;
       }
-      var options = [{ value: '', label: t('pickOne') }];
+      var options = [{ value: '', label: emptyOptionWords(spec, kind) }];
       entries.forEach(function (e) {
         var title = (e && e.title) || t('untitledBook');
         options.push({ value: String((e && e.key) || ''), label: e && e.author ? title + ' ' + t('byLine', { author: e.author }) : title });
       });
+      markAsked(modeId, spec);
       wrap.appendChild(h('label', { class: 'nb-field' },
         h('span', { class: 'nb-label' }, label),
         selectField(base, options, modeInputValue(spec), label, function (chosen) {
@@ -1519,6 +1574,7 @@
     }
 
     if (kind === 'book') {
+      markAsked(modeId, spec);
       var chosenId = modeInputValue(spec);
       var chosenWork = chosenId ? (poolResult().byId || {})[chosenId] : null;
       var resultsBox = h('div', { class: 'nb-picksearch', 'data-test': base + '-results' });
@@ -1539,6 +1595,10 @@
       });
       wrap.appendChild(h('label', { class: 'nb-field' },
         h('span', { class: 'nb-label' }, label), search));
+      if (isOptional(spec)) {
+        wrap.appendChild(p(t('inputOptionalHint', { any: emptyOptionWords(spec, kind) }), 'nb-hint',
+          { 'data-test': base + '-any' }));
+      }
       wrap.appendChild(resultsBox);
       bookResults(resultsBox, spec, modeId, state.bookQuery[spec.id] || '');
       if (chosenWork) {
@@ -1549,7 +1609,8 @@
     }
 
     if (kind === 'facet') {
-      var facetOptions = [{ value: '', label: t('pickOne') }].concat(facetKeys().map(function (key) {
+      markAsked(modeId, spec);
+      var facetOptions = [{ value: '', label: emptyOptionWords(spec, kind) }].concat(facetKeys().map(function (key) {
         return { value: key, label: facetWords(key) };
       }));
       wrap.appendChild(h('label', { class: 'nb-field' },
@@ -1562,6 +1623,7 @@
     }
 
     if (kind === 'facets') {
+      markAsked(modeId, spec);
       var picked = modeInputValue(spec);
       var keys = facetKeys();
       var field = h('fieldset', { class: 'nb-facets-field' },
@@ -1598,6 +1660,10 @@
         grid.appendChild(h('label', { class: 'nb-facet-choice' }, checkbox, h('span', null, facetWords(key))));
       });
       field.appendChild(grid);
+      if (isOptional(spec)) {
+        field.appendChild(p(t('inputOptionalHint', { any: emptyOptionWords(spec, kind) }), 'nb-hint',
+          { 'data-test': base + '-any' }));
+      }
       // T3.3b: "From some words" belongs to a facets input, and only when the list has subjects
       // to keep. A mode with no facets input never draws it.
       if (keys.length) field.appendChild(wordsPanel(spec, modeId, base, poolResult().facets));
@@ -1614,7 +1680,8 @@
         wrap.appendChild(p(t('inputNoEvents'), 'nb-note'));
         return wrap;
       }
-      var eventOptions = [{ value: '', label: t('pickOne') }];
+      var eventOptions = [{ value: '', label: emptyOptionWords(spec, kind) }];
+      markAsked(modeId, spec);
       eventDays(allEvents).forEach(function (day) {
         var dayWords = dayHeadingWords(day.parts);
         day.events.forEach(function (ev) {
@@ -1636,6 +1703,7 @@
     }
 
     if (kind === 'text') {
+      markAsked(modeId, spec);
       var textBox = h('input', {
         class: 'nb-input',
         type: 'text',
@@ -1652,10 +1720,15 @@
       });
       wrap.appendChild(h('label', { class: 'nb-field' },
         h('span', { class: 'nb-label' }, label), textBox));
+      if (isOptional(spec)) {
+        wrap.appendChild(p(t('inputOptionalHint', { any: emptyOptionWords(spec, kind) }), 'nb-hint',
+          { 'data-test': base + '-any' }));
+      }
       return wrap;
     }
 
     if (kind === 'number') {
+      markAsked(modeId, spec);
       var numberAttrs = {
         class: 'nb-input nb-input-number',
         type: 'number',
@@ -1682,6 +1755,7 @@
     }
 
     if (kind === 'choice') {
+      markAsked(modeId, spec);
       var chosen = modeInputValue(spec);
       var group = h('div', { class: 'nb-choices', role: 'group', 'aria-label': label });
       (Array.isArray(spec.options) ? spec.options : []).forEach(function (option, i) {
@@ -1724,13 +1798,22 @@
   }
 
   // Each input, resolved to what `choose` expects: an entry for a shelf book, a work for a book,
-  // facet keys for a facet, the text, the number, the chosen value. `missing` is the first input
-  // with no value: choose() is not called until every one has one.
+  // facet keys for a facet, the text, the number, the chosen value. `missing` is the first
+  // required input with no value: choose() is not called until every one has a value.
+  //
+  // D37: an input may be optional, and empty and absent are two different things:
+  //   - absent: no key in the remembered inputs, so the page never drew a control for it. That
+  //     is still missing, even on an optional input, because the person was never asked.
+  //   - empty: a key holding null, '' or [] — asked, and left blank. On an optional input it
+  //     reaches `choose` as null; on a required one it is missing, and the app asks for it.
+  // The key is always in `input` when the input is optional, holding null: a mode reads
+  // `input.subject === null` to mean "no subject", never `undefined`.
   function inputsFor(def, ctx) {
-    var input = {}, missing = null;
+    var input = {}, missing = null, asked = state.inputs || {};
     (Array.isArray(def.inputs) ? def.inputs : []).forEach(function (spec) {
       if (!spec || typeof spec !== 'object' || !spec.id) return;
       var kind = String(spec.kind || '');
+      var wasAsked = Object.prototype.hasOwnProperty.call(asked, spec.id);
       var value = modeInputValue(spec);
       var clean = value;
       if (kind === 'shelf-book') {
@@ -1756,6 +1839,7 @@
         clean = value && String(value).trim() ? value : null;
       }
       if (clean === null || clean === undefined || clean === '') {
+        if (isOptional(spec) && wasAsked) { input[spec.id] = null; return; }
         if (!missing) missing = spec;
         return;
       }
@@ -3036,7 +3120,13 @@
     modeShowing: 'Showing now',
     inputHeading: 'This way of choosing books needs a few things first:',
     inputNeeded: 'Pick something for "{label}" first.',
-    pickOne: 'Choose one',
+    pickOne: 'Pick one',
+    // D37: what an optional input says when it is left empty, per kind
+    inputAnySubject: 'Any subject',
+    inputAnything: 'Anything',
+    inputAnyBook: 'No book',
+    inputAny: 'Any',
+    inputOptionalHint: 'Leave this empty for "{any}".',
     inputLabelShelfBook: 'Pick a book from your shelf',
     inputLabelBook: 'Find a book in the list',
     inputLabelFacet: 'Pick a subject',

@@ -1,8 +1,9 @@
 // Ported from searchdesk/core/contract.js (MIT, same author).
 'use strict';
 // The mode contract, docs/CONTRACT.md: the words a mode may not use, the check API,
-// the result check, `ctx`, the seven standard shelves and runModeChecks. Pure: no page,
-// no clock, no network. The app and tools/check-mode.js both call this file.
+// the result check, `ctx`, the seven standard shelves (plus one run per optional input with
+// that input empty) and runModeChecks. Pure: no page, no clock, no network. The app and
+// tools/check-mode.js both call this file.
 //
 //   Nextbook.check(id, fn)             a check file registers fn(t, mode)
 //   Nextbook.runCheck(fn, mode)        -> { pass, fail, results: [{ ok, msg }] }
@@ -562,6 +563,8 @@
   // An `event` input needs something to hand over in the checks. The snapshot's first event is
   // the real default; when the standard shelves carry no events (they carry none), a two-event
   // fixture stands in, so a mode can be checked with the shape the contract promises.
+  // An optional input gets a real value here on purpose: the seven shelves show what a mode
+  // does with a chosen value, and runModeChecks adds one more run with it empty (D37).
   var DEFAULT_EVENTS = [
     {
       id: 'sample-event-1', title: 'An evening talk at the library',
@@ -634,7 +637,8 @@
   }
 
   // ---- runModeChecks -------------------------------------------------------------------------
-  // Runs, for one mode: the scan, the mode's own check, and the seven standard shelves. A
+  // Runs, for one mode: the scan, the mode's own check, and the seven standard shelves, plus
+  // one more run for each optional input the mode lists, with that input empty (null). A
   // missing practice shelf is a named failure (and shelves 5 to 7 are not run), never three
   // empty shelves that pass. A mode that answers shelves 5 and 6 differently fails too.
   // A mode that needs inputs gets defaultInput() above. Returns the flat `results` list the
@@ -687,16 +691,18 @@
       add(false, 'There is no practice shelf, so this mode was not checked against a real shelf.');
     }
     var practiceAnswerA = null, practiceAnswerB = null;
-    standardShelves(pool, practice).forEach(function (s, index) {
-      if (!hasPractice && index >= 4) return;   // the three practice shelves cannot run
+    var shelves = standardShelves(pool, practice);
+
+    // One shelf, one answer. `label` is the shelf's name, or the words for a run of the same
+    // shelf with one input left empty, and it opens every message.
+    function runShelf(label, shelf, inputOf) {
       var one = {
-        name: s.name, ok: true, error: null, picks: [], dropped: [], note: '',
+        name: label, ok: true, error: null, picks: [], dropped: [], note: '',
         answer: null, message: ''
       };
       try {
-        var ctx = makeCtx({ pool: pool, shelf: s.shelf, others: s.others, events: s.events, seed: s.seed, def: def });
-        var input = defaultInput(def, ctx);
-        var answer = def.choose.call(def, ctx, input);
+        var ctx = makeCtx({ pool: pool, shelf: shelf.shelf, others: shelf.others, events: shelf.events, seed: shelf.seed, def: def });
+        var answer = def.choose.call(def, ctx, inputOf(ctx));
         var v = validate(answer, ctx, def);
         one.picks = v.picks;
         one.dropped = v.dropped;
@@ -705,26 +711,57 @@
         one.answer = { picks: v.picks, note: one.note };
         if (v.error) {
           one.ok = false;
-          one.message = s.name + ': ' + v.error;
+          one.message = label + ': ' + v.error;
         } else if (v.dropped.length) {
           one.ok = false;
-          one.message = s.name + ': dropped ' + v.dropped.map(function (d) {
+          one.message = label + ': dropped ' + v.dropped.map(function (d) {
             return (d.id || 'a pick') + ' (' + d.why + ')';
           }).join(', ');
         } else {
-          one.message = s.name + ': ' + (v.picks.length
+          one.message = label + ': ' + (v.picks.length
             ? v.picks.length + (v.picks.length === 1 ? ' book.' : ' books.')
             : 'no books, and it said why.');
         }
       } catch (e) {
         one.ok = false;
-        one.message = s.name + ': this mode stopped with an error: ' + (e && e.message ? e.message : String(e));
+        one.message = label + ': this mode stopped with an error: ' + (e && e.message ? e.message : String(e));
       }
+      return one;
+    }
+
+    shelves.forEach(function (s, index) {
+      if (!hasPractice && index >= 4) return;   // the three practice shelves cannot run
+      var one = runShelf(s.name, s, function (ctx) { return defaultInput(def, ctx); });
       if (index === 4) practiceAnswerA = one;
       if (index === 5) practiceAnswerB = one;
       out.shelves.push(one);
       add(one.ok, one.message);
     });
+
+    // D37: the eighth standard run, once for each optional input a mode lists: the practice
+    // shelf with that input empty (null) and every other input at its default. The seven above
+    // only ever hand a mode a real value, so without this one a mode that crashes on null, or
+    // treats it as a subject, would pass its own check. The words name the input, because the
+    // fix belongs in the mode.
+    var optionalSpecs = (Array.isArray(def.inputs) ? def.inputs : []).filter(function (spec) {
+      return spec && typeof spec === 'object' && spec.id && spec.optional === true;
+    });
+    if (hasPractice && optionalSpecs.length) {
+      optionalSpecs.forEach(function (spec) {
+        var label = 'the practice shelf, with "' + spec.id + '" left empty';
+        var one = runShelf(label, shelves[4], function (ctx) {
+          var input = defaultInput(def, ctx);
+          input[spec.id] = null;
+          return input;
+        });
+        one.optional = spec.id;
+        if (!one.ok) {
+          one.message += ' A mode must work with "' + spec.id + '" empty, because it says the input is optional.';
+        }
+        out.shelves.push(one);
+        add(one.ok, one.message);
+      });
+    }
 
     // Shelves 5 and 6 are the same shelf with the same seed. If the answers differ, the mode
     // depends on something other than the shelf: same picks, same reasons, same note, twice.

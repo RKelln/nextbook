@@ -369,7 +369,7 @@ test('D35: an event input is a picker of the snapshot, and choose receives the e
   // Grouped by day, in the snapshot's own order: the 3rd, then the 4th.
   const labels = picker.options.map((o) => o.textContent);
   assert.deepStrictEqual(plain(labels), [
-    'Choose one',
+    nb.t('pickOne'),
     'Tuesday, November 3: Introduction to Serger Sewing',
     'Wednesday, November 4: Evening Talk',
   ]);

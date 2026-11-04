@@ -52,8 +52,9 @@ sizes come down; the block does not go up.
 
 Each brief has the same parts: what it is, the rule, done when, the logic to write and check, what usually goes
 wrong, what is out of scope, and ideas for a second step (the workshop's "grow" block: a second step of the same
-mode, not a second mode). The size in a brief's title line is the same as its row above; if the two ever disagree,
-the row was set later.
+mode, not a second mode). A filter added as a second step can be optional: give the input `optional: true` and the
+check runs the mode with it empty, so the mode must work with no filter as well as with one. The size in a brief's
+title line is the same as its row above; if the two ever disagree, the row was set later.
 
 The contract every mode follows is `docs/CONTRACT.md`. The worked example is `more-by`, which is not on this menu on
 purpose: an example of a mode someone had been asked to build would hand them the answer.

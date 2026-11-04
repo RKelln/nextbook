@@ -146,7 +146,23 @@ An `event` input is always one of the library's events as the snapshot holds the
 typed into a box and never a model's words. The app groups the picker by day. In a copy with no
 event snapshot the control says so and `choose` is not called.
 
-Until every input has a value, `choose` is not called and the app asks for it.
+An input is **required** unless its spec says `optional: true`. On an optional input the person may
+leave the control empty, and `choose` receives `null` for it: the key is in the input, holding `null`,
+never missing, so `input.subject === null` means "they chose no subject" and a mode can treat that as
+"no filter". The empty choice can say its own words with `any`; without one it reads "Any subject" for
+a subject, "Anything" for text, "No book" for a book, and "Any" for the other kinds.
+
+```js
+inputs: [{ id: 'subject', kind: 'facet', label: 'A subject', optional: true, any: 'Any subject' }],
+choose(ctx, input) {
+  const subject = input.subject;   // a facet key, or null for any subject
+  // ...
+}
+```
+
+Until every required input has a value, `choose` is not called and the app asks for it. A required
+input left empty, and an optional input the page never offered (an `event` input in a copy with no
+snapshot, a `shelf-book` input on an empty shelf), are both missing.
 
 ## 5. The rules, word for word
 
@@ -199,12 +215,18 @@ Every mode is also run, with no check file needed, against these shelves built f
 4. only books typed in, none of them in the list;
 5. the practice shelf;
 6. the practice shelf again, which must give the same answer as 5;
-7. the practice shelf with one friend's shelf added (a copy of the practice shelf with every rating flipped).
+7. the practice shelf with one friend's shelf added (a copy of the practice shelf with every rating flipped);
+8. the practice shelf with one optional input left empty (`null`) and every other input at its default,
+   once for each optional input the mode lists.
 
 For each one the mode must not crash, and its answer must pass the checks in section 3. A mode that needs inputs gets
 a sensible default for each (the first loved book, the first work not on the shelf, the most common subject, a short
 sample text, the number's `default`, the first event in the snapshot or a two-event sample when the snapshot has
 none).
+
+Run 8 is there because the other seven only ever hand a mode a real value. A mode that crashes on `null`, or treats it
+as a subject, fails this run, and the failure names the input and says the mode must work with it empty. That is the
+point of `optional: true`: a filter can be left off, so the mode has to work without it.
 
 ## 7. Running the checks
 

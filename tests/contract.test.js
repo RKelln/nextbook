@@ -549,3 +549,91 @@ test('an event input defaults to the first snapshot event, or the two-event fixt
   assert.strictEqual(run.ok, true);
   assert.strictEqual(run.shelves.length, 7);
 });
+
+// ---- D37: an optional input, and the standard run that leaves it empty ----------------------
+
+// A mode that treats a null subject as "no filter", the branch Ryan's bug made unreachable.
+function anySubjectMode(id, extraInputs) {
+  const calls = [];
+  const mode = {
+    id: id,
+    name: 'Only this subject',
+    purpose: 'For the tests.',
+    shape: 'list',
+    inputs: [{ id: 'subject', kind: 'facet', label: 'A subject', optional: true, any: 'Any subject' }]
+      .concat(extraInputs || []),
+    strings: {},
+    logic: {},
+    choose(ctx, input) {
+      calls.push(input);
+      const wanted = input.subject;
+      const works = wanted ? ctx.works.filter((w) => w.facets.indexOf(wanted) !== -1) : ctx.works;
+      const w = works.filter((x) => !ctx.onShelf(x.id))[0];
+      if (!w) return { picks: [], note: 'Nothing in the list fits today.' };
+      return { picks: [{ id: w.id, why: 'It shares a subject with the library list.' }] };
+    },
+  };
+  return { mode: mode, calls: calls };
+}
+
+test('D37: an optional input gets one more standard run, with that input empty and the rest at their defaults', () => {
+  const probe = anySubjectMode('optional-probe', [{ id: 'words', kind: 'text', label: 'Some words' }]);
+  nb.mode(probe.mode);
+  nb.check('optional-probe', (t) => { t.ok(true, 'runs'); });
+
+  const run = nb.runModeChecks('optional-probe', { pool, practice: PRACTICE });
+  const failures = plain(run.results).filter((r) => !r.ok).map((r) => r.msg);
+  assert.deepStrictEqual(failures, [], 'the mode works with no subject');
+  assert.strictEqual(run.shelves.length, 8, 'the seven shelves and one empty run');
+  assert.strictEqual(run.shelves[7].optional, 'subject', 'the eighth run is the empty input');
+  assert.match(run.shelves[7].name, /"subject" left empty/);
+
+  // The seven shelves still hand over a real subject; only the eighth run is null.
+  probe.calls.slice(0, 7).forEach((input) => assert.strictEqual(typeof input.subject, 'string', 'a real subject'));
+  const last = probe.calls[7];
+  assert.strictEqual(last.subject, null, 'the empty run passes null, not a missing key');
+  assert.ok(Object.prototype.hasOwnProperty.call(last, 'subject'), 'the key is there, holding null');
+  assert.strictEqual(last.words, 'a quiet book about the sea', 'every other input keeps its default');
+});
+
+test('D37: a mode that crashes on null fails its check, and the sentence names the input', () => {
+  const mode = {
+    id: 'null-crash', name: 'Crashes on null', purpose: 'For the tests.', shape: 'list',
+    allowShelf: true,
+    inputs: [{ id: 'subject', kind: 'facet', label: 'A subject', optional: true }],
+    strings: {}, logic: {},
+    choose(ctx, input) {
+      const wanted = input.subject.slice(0);   // a mode written before null was possible
+      const w = ctx.works[0];
+      return { picks: [{ id: w.id, why: 'It shares the ' + ctx.labelOf(wanted[0]) + ' with the library list.' }] };
+    },
+  };
+  nb.mode(mode);
+  nb.check('null-crash', (t) => { t.ok(true, 'runs'); });
+
+  const run = nb.runModeChecks('null-crash', { pool, practice: PRACTICE });
+  assert.strictEqual(run.ok, false, 'the empty run fails it');
+  const failures = plain(run.results).filter((r) => !r.ok).map((r) => r.msg);
+  assert.strictEqual(failures.length, 1, failures.join(' | '));
+  assert.match(failures[0], /"subject" left empty/);
+  assert.match(failures[0], /stopped with an error/);
+  assert.match(failures[0], /must work with "subject" empty/);
+});
+
+test('D37: a mode with no optional inputs gets no extra run', () => {
+  const mode = {
+    id: 'required-probe', name: 'Required only', purpose: 'For the tests.', shape: 'list',
+    inputs: [{ id: 'subject', kind: 'facet', label: 'A subject' }],
+    strings: {}, logic: {},
+    choose(ctx, input) {
+      const w = ctx.works.filter((x) => x.facets.indexOf(input.subject) !== -1)[0];
+      return { picks: [{ id: w.id, why: 'It shares a subject with the library list.' }] };
+    },
+  };
+  nb.mode(mode);
+  nb.check('required-probe', (t) => { t.ok(true, 'runs'); });
+
+  const run = plain(nb.runModeChecks('required-probe', { pool, practice: PRACTICE }));
+  assert.strictEqual(run.shelves.length, 7, 'seven shelves, and nothing more');
+  assert.ok(run.results.every((r) => r.msg.indexOf('left empty') === -1), 'no run mentions an empty input');
+});
