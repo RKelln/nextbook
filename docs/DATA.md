@@ -20,7 +20,8 @@ trusting: the markup and the payload keys change without notice.
 The adapter reads `robots.txt` at the start of every run and stops if `/v2/search` is disallowed or the delay has gone
 up. The events feed lives on another host, `gateway.bibliocommons.com`, whose `robots.txt` answered **404** on
 2026-11-03 (`RESEARCH.md`): it states no rules, so the feed is read at batch pace through the same fetcher and only
-the one events path is ever requested.
+the one events path is ever requested. That 404 is checked by hand when the snapshot is rebuilt, not on every run —
+the adapter does not ask that host for its rules — so `RESEARCH.md` carries the date it was last checked.
 
 ### Pacing (D27)
 

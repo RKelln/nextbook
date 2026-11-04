@@ -274,3 +274,40 @@ Folded in from `docs/HANDOFF.md` (committed as written, then removed once its po
 - **"Up to six"** everywhere the product is described; fewer with a reason is a full answer.
 - **The residency repo's starter, kit and event file are placeholders.** Port code from them, never requirements.
 - **The starter's interface to the kit is written down** (`BUILD.md`), and the kit relies on nothing else.
+
+## D33. What the build changed in the product (2026-11-03, Hermes, each reviewed)
+
+Decisions taken while building that a reader of the design would not find in it. Each was reversible, low stakes and
+clear enough to lead; each had an independent review pass, and each is named in the commit that made it.
+
+- **The model box is closed for `allowShelf` modes.** A mode that may pick books already on the shelf can put a shelf
+  book into the finalists prompt, and rule 1 says a prompt never carries a title from the person's shelf. Closing the
+  box for that shape keeps the rule absolute without filtering candidates. Reopened if D34 is accepted.
+- **The practice shelf leaves one part of the library unvisited.** Its only two books in the 300s came out and two
+  others went in (same twelve, same four-loved/three-liked spread), so survey's demo shows the widening pick its
+  brief asks for instead of six "you have N books from…" fallbacks.
+- **Each build replaces only its own output.** `python3 tools/build.py --starter` used to empty `dist/` and delete the
+  one file and the demo made a minute earlier. A stray file is now named on the output rather than shipped, and
+  `--clean` empties `dist/` for a real reset.
+- **The check runner's `--all` and `--dir` mean what they say.** `--all` alone is the manifest, and a missing or
+  non-list manifest is a STOP rather than a green run with nothing checked; `--all --dir F` is every mode file in F;
+  `--dir` must resolve inside the repo; ids are checked on both paths; the mode file's own source is scanned as well
+  as its functions, so `eval` in the call's argument is caught.
+- **`data/events.json` is committed as a dated snapshot.** The library's own event text, capped at 300 characters,
+  with the feed's host recorded as answering `robots.txt` with 404 (2026-11-03). It goes stale: rebuild before a room.
+
+## D34. The finalists prompt: placeholders, not titles (2026-11-03, proposed; Ryan's call)
+
+Proposed by Ryan: give the model placeholders and keep the mapping locally, so no title is ever in a prompt. Shape:
+each candidate becomes `p1 | 1969 | facet labels | facts`; the map `p1 → {id, title, author}` lives in the page for
+the visit, never in `localStorage` and never in an export; the answer comes back `p1: a sentence` and is checked
+against the six as now.
+
+Why: rule 1 stops depending on every future mode's honesty — no title can be in a prompt, whatever a mode does — and
+the model box reopens for journey and swap, where D33 closes it. Cost: the chat can argue about the evidence but not
+about books it has not read, so the box's promise weakens from "a second opinion on the books" to "a second opinion
+on the evidence", and its words must change with it. That is what makes this Ryan's call rather than a build call.
+
+Rejected alternative: titles for off-shelf candidates and placeholders only for shelf ones. A mixed prompt tells the
+chat which candidate is the shelf book, and doubles the parsing rules for a small gain.
+

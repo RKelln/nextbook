@@ -488,21 +488,69 @@ the kit", above.
 - [ ] **T8.9 Import a Goodreads or StoryGraph export.** Matched by ISBN first, then by normalised title and author;
   unmatched rows become typed books with search links. Same merge as T8.8b.
 
+## Known limits, accepted
+
+Found by the build's reviews, judged not worth a change now, and written down so nobody rediscovers them as a bug.
+
+- The dev server's reload token is the files' mtime and size, so a rewrite that keeps both (rsync -t, cp -p) is
+  invisible to an open tab. A false positive reloads; a false negative does not, and this is the false negative.
+- A hidden tab keeps asking for the reload token every two seconds. It is loopback traffic from a dev tool; the poll
+  stops when the tab closes.
+- An events snapshot is labelled with its date, never blocked for age. A room that opens a copy months later sees the
+  date, which is the promise `ARCHITECTURE.md` makes.
+- The events feed's host is not asked for `robots.txt` on every run; the 404 is re-checked by hand (A lane, above).
+- No shipped work carries `series:` facets and every pack work is tagged, so journey's series sentence and
+  challenge's "no mood words" count are exercised by their checks, not by the practice data.
+
 ## Open questions
 
 Write here; do not guess. Each one is Ryan's to answer.
 
 1. Product name (D11, D22). The domain is settled; `nextbook` is still a working name.
+2. No input kind carries an event, so "Books for this event" can only put the event's title into a mode's `text` box
+   (T3.6). Should `CONTRACT.md` section 4 gain an `event` kind, so event hook receives the event itself, or is a
+   title enough for that brief? Ryan's call, and it changes the brief rather than the app.
+3. The model box's placeholders (D34): send placeholders and keep the mapping in the page, or keep titles for
+   candidates that are not on the shelf? Proposed: placeholders, everywhere. Waiting on Ryan.
 
 ## Found while working
 
 ### Lane A
+
+- `author_key` folds a trailing particle, because TPL files the same person twice: `Guin, Ursula K. Le` and
+  `Le Guin, Ursula K., 1929-2018`. Without the fold, found Le Guin records did not enrich the pack's books; they
+  duplicated them. Recorded in `RESEARCH.md` with the page and the date.
+- The events feed is on another host, and that host's `robots.txt` answers 404 (2026-11-03). `DATA.md` now says the
+  adapter does not ask for it and the check is by hand when the snapshot is rebuilt.
+- A batch of 21 days at 25 events a page is five pages. A longer window cannot be covered, so the tool narrows or
+  refuses it rather than writing a snapshot labelled with a window it did not read.
 ### Lane B
+
+- `Nextbook.pool.load()` returned `{works, byId, byGroupKey, facets}` while `makeCtx` asks that object for `tagsOf`,
+  `sections` and `labelOf`, so `ctx.tagsOf` was always `null` and CONTRACT.md section 4 was wrong on paper. The
+  snapshot now carries the same functions the pool exposes.
+- The check's scan is a lint, and `CONTRACT.md` section 5 now says so: a name built from pieces, a name inside a
+  template interpolation and `fetch?.(` are not seen. The rule is for the accident, not for a file written around it.
 ### Lane C
 
 - The shelf screen showed `Subjects: true`, because a pack genre word is also its facet label. `genre:true` now
   reads "true stories", `genre:ideas` "big ideas" and `genre:speculative` "speculative fiction"; the keys are
   unchanged. Found while clicking T3.1, fixed in the data (`adapters/pack/config.json`).
+- A mode with `allowShelf` puts a shelf book into the finalists prompt; the box is closed for that shape (D33).
+- The practice shelf visited every part of the library, so survey's demo could only ever show its fallback; see D33.
 ### Lane D
+
+- Each build replaces only its own output (D33). Building the starter used to delete the one file and the demo.
+- `--all` alone means the manifest and a missing manifest is a STOP; `--all --dir F` means every mode file in F.
+  `--dir` must resolve inside the repo, and a mode id is checked on both paths.
+- The dev server's page keeps the last `.dev-go` route it drew until `/__go` returns empty, which is what makes the
+  same word work twice. The first version never reset it, so a second identical note was ignored for ever.
 ### Lane E
+
+- survey's first build was a least-visited sampler, not a survey, because the practice shelf visited all six parts.
+  With the 300s unvisited it opens on the widening pick, which is what the brief asked for.
+- challenge found `ctx.tagsOf` broken and worked around it by reading the `mood:` facets; after the fix it reads our
+  own words directly.
+- journey can honestly be two steps: from The Dispossessed to Oryx and Crake, the goal's link beats every candidate
+  at the second step, so the path stops. The brief wants a short path said plainly, not a long one invented.
 ### The walk-through
