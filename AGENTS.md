@@ -9,26 +9,28 @@ A small web app that helps one person decide what to read next from their public
 to the library's own page for the book. It runs from a folder in a browser, with no install, no server and no network.
 
 The app has a **finished foundation** (the shelf, the data, the scoring core, the reason sentences, the model seam, the
-links) and a **slot for modes**. A mode is one file that chooses up to six books and says why. The repo ships one example
-mode on purpose and leaves the menu of modes as written briefs in `docs/modes/`, so that workshop participants build
-them. The menu is documentation for people and agents, not part of the app. Reference builds live in `reference/`.
+links) and a **slot for modes**. A mode is one file that chooses up to six books and says why. The repo ships one
+example mode on purpose and leaves the menu of modes as written briefs in `docs/modes/`, so that people write them —
+a workshop is one way to do that, not a requirement. The menu is documentation for people and agents, not part of the app. Reference builds live in `reference/`.
 
 ## Rules that come from the project, not from taste
 
 When two conflict, the earlier one wins.
 
 1. **The person's shelf never leaves their browser.** No accounts, no server storage, no analytics, no telemetry. The
-   model prompt carries the candidates' own titles and facet words, never a title from the person's shelf, so it
-   is never built from a reason sentence (which may name one).
+   model prompt carries the candidates' own titles and facet words — public catalogue data — and never a title from
+   the person's shelf: a candidate that is on the shelf is left out of the prompt before it is built, and the box says
+   how many it left out. The prompt is never built from a reason sentence, which may name one.
 2. **Never read NoveList with code.** The record page's "You may also like" is licensed to the library. Link to the
    record page; never fetch, parse, cache or copy the list. The catalogue's `robots.txt` disallows
    `/item/read_alike_list/` too.
 3. **Never build a catalogue mirror.** Fetch search pages for a fixed list of queries, keep what comes back, cache by
    record id. Honour `robots.txt`: never a disallowed path; the batch slice build waits its `Crawl-delay: 120`; a
    search a person asked for is paced as in `docs/DATA.md` "Pacing". Never crawl to own a copy.
-4. **Never store publisher blurbs.** A book record's `description` is the publisher's; no file that ships, fixtures
-   included, has a field by that name. (An event's own text from the library is kept as `summary`.) The blurb
-   is seen on the library's page only.
+4. **Never store publisher blurbs.** A book record's `description` is the publisher's; no file that ships has a field
+   by that name, and no work the app builds carries one. A test fixture may hold one **to prove the reader drops it**,
+   and then its header says so (`tests/fixtures/tpl/README.md` is the example). An event's own text from the library is
+   kept as `summary`; the blurb is seen on the library's page only.
 5. **A model only ever chooses among things that exist.** Its answer is checked against the shortlist (or the facet
    list) before display. Anything it invents is dropped and named. Titles, authors, dates and links never come from a
    model.
@@ -40,17 +42,24 @@ When two conflict, the earlier one wins.
 
 ```
 app/                    the app. Open app/index.html in a browser. Nothing to install.
-  core/                 the foundation: shelf, data, scoring, reasons, links, contract, model seam, shell
+  core/                 the foundation: shelf, data, scoring, reasons, links, contract, model seam, the
+                        three-way merge, the CSV readers, the shelf-page reader, the inbox, the shell
   modes/                one file per mode, plus its check. list.js says which load. Nothing else.
-  data/                 generated .js wrappers of data/*.json. Never edit by hand.
-data/                   the canonical data: slice.json, tags.json, practice.json, and their schemas
+  data/                 generated .js wrappers of data/*.json. Never edit by hand. workshop.js and
+                        inbox.js are one machine's flag and one machine's message: gitignored, never packed
+  PLAN.md               the empty plan a mode is written against (CONTRACT.md section 8)
+data/                   the canonical data: slice.json, tags.json, practice.json, events.json, pack/books.json,
+                        and a schema for each
 adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
-                        file in libraries/ (tpl.json: subdomain, name, slice queries)
-tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py
+                        file in libraries/ (tpl.json: subdomain, name, timezone, slice queries)
+adapters/pack/          a reading pack (books, genres, mood, pace, a note) and the converter that makes the data
+tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py,
+                        packets.py (a paste packet per brief), inbox.py (hand the page one change)
 .claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
-tests/                  unit tests for core (Node) and the adapter (Python)
+tests/                  Node tests for the core and the screens, Python tests for the adapters and the tools,
+                        fixtures in tests/fixtures/ (catalogue pages, saved shelf pages, two CSV exports)
 reference/modes/        finished demo modes. Never copied into the starter.
-docs/                   design, data, contract, the build plan, the mode briefs
+docs/                   design, data, contract, the build plan, the mode briefs, what the workshop takes from here
 research/probes/        throwaway scripts that measured something. Never ship.
 ```
 
@@ -70,8 +79,13 @@ node tools/check-mode.js --all           # every loaded mode
 bash tools/check.sh <id>                 # the same, on a Mac with no Node (osascript)
 python3 tools/serve.py --workshop        # serve app/ with live reload, for a workshop or a demo
 python3 tools/find.py "birds toronto"    # fetch one catalogue search a person asked for, add the books to the app
+python3 tools/find.py --from-shelf s.json --limit 40  # match a saved shelf's books, one query at a time
 python3 tools/build.py                   # dist/nextbook.html, one file
-python3 tools/build.py --starter         # dist/starter/, the workshop folder
+python3 tools/build.py --demo            # dist/demo.html, with the reference modes loaded
+python3 tools/build.py --starter         # dist/starter/, the folder a workshop hands out
+python3 tools/packets.py                 # dist/packets/, one self-contained text per mode brief
+python3 tools/inbox.py --add "Piranesi" --state read      # one change, handed to the page
+python3 adapters/pack/pack_to_slice.py   # rebuild the data from data/pack/books.json
 ```
 
 In a browser, `app/index.html#selftest` runs the same mode checks with no tools at all.
