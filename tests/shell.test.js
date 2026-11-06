@@ -363,3 +363,18 @@ test('D42: the filter counts books on hold', () => {
   assert.strictEqual(count(), before + 1);
 });
 
+
+
+test('agent snapshot follows active shelf and cannot mutate it', () => {
+  const {nb, doc} = openPage({storage: memoryStorage()});
+  const first = nb.shell.shelfSnapshot();
+  assert.strictEqual(first.which, 'practice');
+  assert.ok(first.entries.length > 0);
+  first.entries.length = 0;
+  assert.ok(nb.shell.shelfSnapshot().entries.length > 0);
+  byTest(doc, 'shelf-use-own').click();
+  assert.strictEqual(nb.shell.shelfSnapshot().which, 'own');
+  assert.strictEqual(nb.shell.shelfSnapshot().entries.length, 0);
+  addTyped(doc, 'Piranesi', 'Susanna Clarke');
+  assert.strictEqual(nb.shell.shelfSnapshot().entries[0].title, 'Piranesi');
+});

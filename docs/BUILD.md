@@ -621,3 +621,8 @@ Write here; do not guess. Each one is Ryan's to answer.
 - journey can honestly be two steps: from The Dispossessed to Oryx and Crake, the goal's link beats every candidate
   at the second step, so the path stops. The brief wants a short path said plainly, not a long one invented.
 ### The walk-through
+
+- [x] **T8.14 Opt-in agent shelf mirror (D44).** Port Search Desk's local mirror pattern, add a
+  filtered reader and a read/write skill with the title-exposure notice. Pack the tools and skill in
+  starters, never shelf data. Check default-off, request guards, snapshot validation, browser updates,
+  and build exclusions.

@@ -344,7 +344,7 @@ Search Desk solved this and the answer is worth copying rather than reinventing.
   on load the page merges the inbox as one batch, with Undo, idempotently, and the date rule that decides whether a
   record wins.
 
-nextbook takes the second half and not the first. **No shelf mirror**: the mirror exists in Search Desk because the
+**Superseded by D44 below (2026-11-05).** Originally, nextbook took the second half and not the first. **No shelf mirror**: the mirror exists in Search Desk because the
 desk *is* the product and the agent has to see it; here the shelf is the person's reading history, and a file of it on
 disk is exactly what rule 1 refuses. The person's export is the read path, and they choose it.
 
@@ -504,3 +504,15 @@ of the same one import with one Undo.
   became For Later's count, so For Later was called whole with one book and every other For Later book was listed as
   gone. A holds page now says nothing about any shelf.
 
+
+## D44. Opt-in agent reading, with a notice for reads and writes (2026-11-05, Ryan's request)
+
+Ryan asked for Search Desk's read connection as well as its inbox, and a skill that warns that both
+reading and writing expose book titles to the AI. This supersedes D36's no-mirror restriction.
+`tools/serve.py --mirror` injects a local-only helper that mirrors the active shelf, including practice
+data, to `nextbook-live.json` outside the served folder. It is off by default; normal and built apps
+remain offline. A per-run token and exact local Origin/Host protect the write route. The file is atomic,
+owner-only, ignored by git and excluded from builds. A visible notice identifies enabled sharing.
+`tools/read-shelf.py` filters the snapshot; `.claude/skills/use-nextbook/SKILL.md` explains disclosure,
+whole-entry writes, separate browser origins, multiple tabs, and the snapshot left after stopping.
+The model box's shelf-title exclusions are unchanged.

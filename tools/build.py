@@ -505,6 +505,7 @@ STARTER_FILES = (
     "tools/gen_data.py",
     "tools/find.py",
     "tools/inbox.py",
+    "tools/read-shelf.py",
     "adapters/__init__.py",
     "adapters/bibliocommons/__init__.py",
     "adapters/bibliocommons/config.json",
@@ -590,6 +591,8 @@ def build_starter():
     else:
         notes.append(".claude/commands/ is not here yet, so the starter does not carry it")
 
+    for path in sorted((ROOT / ".claude" / "skills").glob("*/SKILL.md")):
+        copy_into(out, str(path.relative_to(ROOT)))
     write_lf(out / "README.md", README_MD)
 
     files = sorted(p for p in out.rglob("*") if p.is_file())

@@ -462,3 +462,11 @@ the slice (CORS `*`, measured), off by default, saying what it will send — and
 
 Covers, blurbs, availability counts and live search. Each is on the library's page, one click away, and each is a
 copyright or a scraping problem we do not need to have.
+
+### Optional local agent connection (D44)
+
+`serve.py --mirror` injects a polling helper; `Nextbook.shell.shelfSnapshot()` supplies a detached
+copy of the active store, including unsaved in-memory changes. The helper sends changes to a
+token-protected localhost route; the server writes `nextbook-live.json` outside `app/`. Normal
+serving and offline builds inject nothing. Agent reads and inbox writes follow the disclosure in
+`.claude/skills/use-nextbook/SKILL.md`. This is an explicit exception to browser-only shelf storage.

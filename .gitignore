@@ -20,6 +20,9 @@ dist/
 # The live-reload note tools/serve.py reads: one screen name, written for a moment, never committed.
 .dev-go
 
+nextbook-live.json
+.nextbook-mirror-*
+
 # Python
 __pycache__/
 *.pyc

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-# Ported from searchdesk/tools/serve.py (MIT, same author). Serving, reload and .dev-go only.
+# Ported from searchdesk/tools/serve.py (MIT, same author). Serving, reload, .dev-go and opt-in mirror.
 """Serve nextbook while somebody watches an agent change it.
 
     python3 tools/serve.py                # the app, reloading itself when a file changes
@@ -72,11 +72,16 @@ Options
   --host H        only 127.0.0.1 is accepted; anything else is refused with a message
   --workshop      serve the copy whose flag makes the practice shelf the only shelf
   --no-reload     serve the files exactly as they are, with no reload helper
+  --mirror        copy the active shelf to nextbook-live.json for an agent (off by default)
   --quiet         do not log each request
   --check         check the page can be sent and the port is free, print the files it watches,
                   then stop (exit 1 with a sentence when either check fails)
 """
 
+import hmac
+import os
+import secrets
+import tempfile
 import argparse
 import functools
 import hashlib
@@ -303,6 +308,66 @@ RELOAD_JS = r"""(function () {
 """
 
 
+# Adapted from searchdesk/tools/serve.py (MIT, same author): opt-in local mirror.
+MIRROR_MAX = 2 * 1024 * 1024
+MIRROR_FILE = "nextbook-live.json"
+
+
+def mirror_text(body):
+    if not body or len(body) > MIRROR_MAX:
+        return None
+    try:
+        data = json.loads(body)
+    except (UnicodeDecodeError, ValueError):
+        return None
+    if (not isinstance(data, dict) or data.get("schema") != "nextbook/shelf-1"
+            or data.get("which") not in ("own", "practice")
+            or not isinstance(data.get("entries"), list)
+            or any(not isinstance(e, dict) for e in data["entries"])):
+        return None
+    # A fixed envelope: never persist unrelated browser settings or request fields.
+    return json.dumps({"schema": data["schema"], "which": data["which"],
+                       "entries": data["entries"]}, ensure_ascii=False, indent=2) + "\n"
+
+
+def write_mirror(root, text):
+    # Atomic, owner-only file, outside the served app directory.
+    fd, name = tempfile.mkstemp(prefix=".nextbook-mirror-", dir=root)
+    try:
+        with os.fdopen(fd, "w", encoding="utf-8") as out:
+            out.write(text)
+        os.replace(name, Path(root) / MIRROR_FILE)
+    finally:
+        if os.path.exists(name):
+            os.unlink(name)
+
+
+MIRROR_JS = r"""(function () {
+  var token = %s, last = '';
+  function tick() {
+    var data, text;
+    try {
+      data = window.Nextbook && Nextbook.shell && Nextbook.shell.shelfSnapshot();
+      if (data) text = JSON.stringify(data);
+    } catch (e) {}
+    if (!text || text === last) { setTimeout(tick, 1000); return; }
+    fetch('/__shelf', {method: 'POST', headers: {
+      'Content-Type': 'application/json', 'X-Nextbook-Token': token
+    }, body: text}).then(function (response) {
+      if (response.ok) last = text;
+    })['catch'](function () {}) .then(function () { setTimeout(tick, 1000); });
+  }
+  window.addEventListener('load', function () {
+    var note = document.createElement('p');
+    note.textContent = 'AI sharing is on. Your active shelf is copied to a local file for your agent to read.';
+    note.setAttribute('role', 'status');
+    document.body.insertBefore(note, document.body.firstChild);
+    tick();
+  });
+})();
+"""
+
+
 # ---- the parts that serve and watch ---------------------------------------------------------------------
 
 class Handler(http.server.SimpleHTTPRequestHandler):
@@ -315,6 +380,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     go_root = ROOT            # .dev-go sits beside app/, not inside it: the app folder is never written to
     reload = True
     workshop = False
+    mirror_token = ""
     verbose = True
     token = ""
     lock = threading.Lock()
@@ -345,6 +411,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         return str(full)
 
     def do_GET(self):
+        if self.mirror_token and self.headers.get("Host") != "127.0.0.1:%d" % self.server.server_address[1]:
+            return self.send_error(403)
         if self.refuse_nul():
             return
         route = self.path.split("?")[0]
@@ -379,6 +447,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
     def do_POST(self):
         """The one write a page may ask for: 'I drew this screen', so the note may go."""
         route = self.path.split("?")[0]
+        if route == "/__shelf":
+            return self.receive_mirror()
         if route not in ("/__go-shown", "/__go-shown/"):
             return self.send_error(404)
         try:
@@ -392,6 +462,31 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             return self.send_error(400)
         if clear_go(self.go_root, shown):
             say("  the tab drew #%s; the note is used" % shown)
+        self.send_response(204)
+        self.end_headers()
+
+    def receive_mirror(self):
+        if not self.mirror_token:
+            return self.send_error(404)
+        host = "127.0.0.1:%d" % self.server.server_address[1]
+        if (self.headers.get("Host") != host
+                or self.headers.get("Origin") != "http://" + host
+                or not hmac.compare_digest(self.headers.get("X-Nextbook-Token", ""), self.mirror_token)):
+            return self.send_error(403)
+        try:
+            size = int(self.headers.get("Content-Length", "0"))
+        except ValueError:
+            size = 0
+        if not 0 < size <= MIRROR_MAX:
+            return self.send_error(413)
+        text = mirror_text(self.rfile.read(size))
+        if text is None:
+            return self.send_error(400)
+        try:
+            with self.lock:
+                write_mirror(self.go_root, text)
+        except OSError:
+            return self.send_error(500, "Could not save shelf mirror")
         self.send_response(204)
         self.end_headers()
 
@@ -420,7 +515,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         file_token = token_for(self.root, watched_files(self.root))
         with self.lock:
             self.token = file_token
-        page = add_scripts(html, dev_script(file_token, go, self.reload))
+        scripts = dev_script(file_token, go, self.reload)
+        if self.mirror_token:
+            scripts += "<script>" + (MIRROR_JS % json.dumps(self.mirror_token)) + "</script>"
+        page = add_scripts(html, scripts)
         if page is None:
             self.send_error(500, "this page has no </head> for the dev script to go in")
             return
@@ -432,12 +530,13 @@ def say(text):
     sys.stderr.flush()
 
 
-def make_server(root=APP, port=8000, workshop=False, reload=True, verbose=True, go_root=None):
+def make_server(root=APP, port=8000, workshop=False, reload=True, verbose=True, go_root=None, mirror=False):
     """A server for one folder, bound to 127.0.0.1 and nothing else. Its settings live on its own handler class,
     so two servers in one process (a test, say) never share them."""
     root = Path(root).resolve()
     go_root = Path(go_root).resolve() if go_root else root.parent
     cls = type("NextbookDevHandler", (Handler,), {
+        "mirror_token": secrets.token_urlsafe(24) if mirror else "",
         "root": root,
         "go_root": go_root,
         "workshop": bool(workshop),
@@ -464,6 +563,9 @@ def intro(args, port):
         lines.append("  (used once a page says it drew it, so writing the same word twice works twice)")
     else:
         lines.append("  Auto-reload is off. Reload the page by hand to see a change.")
+    if getattr(args, "mirror", False):
+        lines.append("  AI sharing ON: the active shelf is saved to nextbook-live.json. An AI reading it sees its titles and ratings.")
+        lines.append("  Stop this server to stop sharing; the last snapshot stays on disk until you delete it.")
     lines.append("  This computer only: it listens on 127.0.0.1, so nobody else on the network can open it.")
     lines += ["", ""]
     return "\n".join(lines)
@@ -504,6 +606,7 @@ def main(argv=None):
                     help="serve the copy whose flag makes the practice shelf the only shelf")
     ap.add_argument("--no-reload", dest="reload", action="store_false", default=True,
                     help="serve the files exactly as they are, with no reload helper")
+    ap.add_argument("--mirror", action="store_true", help="share the active shelf with a local agent via nextbook-live.json")
     ap.add_argument("--quiet", action="store_true", help="do not log each request")
     ap.add_argument("--check", action="store_true",
                     help="check the page can be sent and the port is free, print what it watches, then stop")
@@ -533,7 +636,7 @@ def main(argv=None):
         return
 
     try:
-        httpd = make_server(APP, args.port, workshop=args.workshop, reload=args.reload, verbose=not args.quiet)
+        httpd = make_server(APP, args.port, workshop=args.workshop, reload=args.reload, verbose=not args.quiet, mirror=args.mirror)
     except OSError as e:
         sys.exit("serve: cannot listen on %s:%d (%s). Try another --port." % (HOST, args.port, e.strerror or e))
     sys.stderr.write(intro(args, httpd.server_address[1]) + "\n")

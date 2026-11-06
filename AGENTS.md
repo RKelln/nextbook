@@ -17,7 +17,10 @@ a workshop is one way to do that, not a requirement. The menu is documentation f
 
 When two conflict, the earlier one wins.
 
-1. **The person's shelf never leaves their browser.** No accounts, no server storage, no analytics, no telemetry. The
+1. **The person's shelf stays in their browser by default.** Explicitly requested agent shelf work may use
+   `tools/serve.py --mirror` after the notice in `.claude/skills/use-nextbook/SKILL.md`; this is an opt-in local
+   copy, and reading it exposes the contents to the AI. Give the same notice before inbox writes.
+   The ordinary app and its copy/paste prompt keep the protections below. No accounts, no server storage, no analytics, no telemetry. The
    model prompt carries the candidates' own titles and facet words — public catalogue data — and never a title from
    the person's shelf: a candidate that is on the shelf is left out of the prompt before it is built, and the box says
    how many it left out. The prompt is never built from a reason sentence, which may name one.

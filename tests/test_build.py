@@ -205,6 +205,19 @@ class DistCleanTest(unittest.TestCase):
         build.DIST = self.dist
         self.addCleanup(lambda: setattr(build, "DIST", self.old))
 
+    def test_agent_tools_ship_without_live_data(self):
+        import contextlib
+        import io
+        with contextlib.redirect_stdout(io.StringIO()):
+            build.build_starter()
+        out = self.dist / "starter"
+        for name in ["tools/read-shelf.py", "tools/serve.py", ".claude/skills/use-nextbook/SKILL.md",
+                     ".claude/commands/use-nextbook.md"]:
+            self.assertTrue((out / name).is_file(), name)
+        self.assertFalse((out / "nextbook-live.json").exists())
+        self.assertFalse((out / "app/data/inbox.js").exists())
+        self.assertNotIn("X-Nextbook-Token", (build.write_page("nextbook.html")["out"]).read_text())
+
     def test_a_rebuild_replaces_its_own_file(self):
         self.dist.mkdir()
         (self.dist / "nextbook.html").write_text("old\n", encoding="utf-8")

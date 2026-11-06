@@ -4,7 +4,7 @@ A small app that helps one person decide what to read next from their **public l
 to the library's own page to borrow it.
 
 It runs from a folder in a browser. No install, no server, no account, no network, no tracking. A person's reading
-history stays in their browser, and the app says so.
+history stays in their browser by default. An optional local agent connection is described below.
 
 Built as the starter for a workshop session at Toronto Public Library's AI residency — the [residency
 page](https://www.ryankelln.com/tpl_2026/) describes it. Nothing here needs that workshop: the app, the mode contract
@@ -88,7 +88,7 @@ Never a crawl. The app asks for what a person asked for, keeps what came back, a
 
 ## Boundaries that are not negotiable
 
-- **No tracking, no accounts, no server-side shelf.** A person's reading history stays in their browser. Export is a
+- **No tracking, no accounts, no server-side shelf.** A person's reading history stays in their browser by default. Export is a
   file they hold.
 - **A book on the person's shelf never goes into a model prompt.** Candidate titles are public catalogue data; a shelf
   title is the reading list. The prompt leaves shelf books out and says how many.
@@ -118,3 +118,13 @@ can be re-checked rather than believed; where it is a survey of sources it says 
 MIT. See `LICENSE`. Ported patterns from [searchdesk](https://github.com/RKelln/searchdesk) are the same author and the
 same licence; each ported file says so at the top. Book metadata belongs to the library catalogue; the facet words and
 notes in `data/tags.json` are ours.
+
+## Working with an AI agent
+
+For an agent to read the active shelf without manual exports, use `python3 tools/serve.py --mirror`
+and open its printed address. Add `--workshop` for practice data. `/use-nextbook` follows
+[the shelf skill](.claude/skills/use-nextbook/SKILL.md), including the notice that both reading and
+writing expose titles and related details to the AI. The local file itself is not sent to an AI service.
+Use `python3 tools/read-shelf.py --find 'Piranesi'` to read selected entries; writes use `tools/inbox.py`.
+The mirror is off by default, copies only the active shelf, and stays out of builds. Stopping the
+server stops updates but leaves the last `nextbook-live.json` snapshot on disk.

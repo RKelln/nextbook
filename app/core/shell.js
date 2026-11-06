@@ -3815,6 +3815,13 @@
   }
 
   Nextbook.shell = {
+    // Read by the optional local helper injected by serve.py --mirror. No network here.
+    shelfSnapshot: function () {
+      if (!state.store || !Nextbook.shell.ready) return null;
+      var copy = JSON.parse(state.store.exportShelf());
+      copy.which = state.store.which();
+      return copy;
+    },
     ready: false,
     boot: boot,
     loadModes: loadModes,
