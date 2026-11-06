@@ -498,9 +498,18 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         if self.command != "HEAD":
             self.wfile.write(body)
 
+    def reload_token(self):
+        """The files' token, plus a short fingerprint of the mirror token when sharing is on. A server restarted
+        with sharing on or off has a different fingerprint, so an open tab reloads once by itself and picks up
+        (or drops) the sharing script. Only a hash is sent, never the mirror token."""
+        token = token_for(self.root, watched_files(self.root))
+        if self.mirror_token:
+            token += "." + hashlib.sha256(self.mirror_token.encode("ascii")).hexdigest()[:8]
+        return token
+
     def serve_token(self):
         """The token for right now. Reading it is also what notices a change."""
-        token = token_for(self.root, watched_files(self.root))
+        token = self.reload_token()
         with self.lock:
             self.token = token
         self.send_bytes(token.encode("ascii"), "text/plain; charset=utf-8")
@@ -512,7 +521,7 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self.send_error(500, "no index.html in this folder")
             return
         go = read_go(self.go_root) if self.reload else ""
-        file_token = token_for(self.root, watched_files(self.root))
+        file_token = self.reload_token()
         with self.lock:
             self.token = file_token
         scripts = dev_script(file_token, go, self.reload)

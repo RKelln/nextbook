@@ -319,6 +319,31 @@ class TestGo(ServeCase):
         self.assertFalse(self.go_exists())
         self.assertEqual(self.get("/__dev")[1].decode("ascii"), first)
 
+    def test_a_restart_with_sharing_on_changes_the_reload_token(self):
+        """An open tab loaded from a sharing-off server must reload by itself when the server comes back with sharing
+        on (and the other way round), or it never receives the sharing script. The mirror token itself is not sent."""
+        plain = self.get("/__dev")[1].decode("ascii")
+        shared = serve.make_server(self.root, 0, verbose=False, mirror=True)
+        thread = threading.Thread(target=shared.serve_forever, daemon=True)
+        thread.start()
+        try:
+            conn = http.client.HTTPConnection("127.0.0.1", shared.server_address[1], timeout=5)
+            conn.request("GET", "/__dev")
+            token = conn.getresponse().read().decode("ascii")
+            conn.close()
+            conn = http.client.HTTPConnection("127.0.0.1", shared.server_address[1], timeout=5)
+            conn.request("GET", "/")
+            page = conn.getresponse().read().decode("utf-8")
+            conn.close()
+        finally:
+            shared.shutdown()
+            shared.server_close()
+            thread.join(timeout=5)
+        self.assertNotEqual(token, plain)
+        self.assertTrue(token.startswith(plain))
+        self.assertIn('var token = %s;' % json.dumps(token), page, "the page starts out with its own server's token")
+        self.assertNotIn(shared.RequestHandlerClass.func.mirror_token, token)
+
     def test_the_page_forgets_what_it_last_showed_when_the_note_is_gone(self):
         """Otherwise the second note with the same word looks like the one already on screen."""
         text = self.get("/")[1].decode("utf-8")
