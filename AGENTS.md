@@ -20,7 +20,7 @@ When two conflict, the earlier one wins.
 1. **The person's shelf stays in their browser by default.** Explicitly requested agent shelf work may use
    `tools/serve.py --mirror` after the notice in `.claude/skills/use-nextbook/SKILL.md`; this is an opt-in local
    copy, and reading it exposes the contents to the AI. Give the same notice before inbox writes.
-   The ordinary app and its copy/paste prompt keep the protections below. No accounts, no server storage, no analytics, no telemetry. The
+   The ordinary app and its copy/paste prompt keep the protections below. No accounts, no remote shelf storage, no analytics, no telemetry. The
    model prompt carries the candidates' own titles and facet words — public catalogue data — and never a title from
    the person's shelf: a candidate that is on the shelf is left out of the prompt before it is built, and the box says
    how many it left out. The prompt is never built from a reason sentence, which may name one.
@@ -88,6 +88,8 @@ python3 tools/build.py                   # dist/nextbook.html, one file
 python3 tools/build.py --demo            # dist/demo.html, with the reference modes loaded
 python3 tools/build.py --starter         # dist/starter/, the folder a workshop hands out
 python3 tools/packets.py                 # dist/packets/, one self-contained text per mode brief
+python3 tools/serve.py --mirror                         # opt-in agent read connection; disclose first
+python3 tools/read-shelf.py --find "Piranesi"             # read selected entries from the active shelf
 python3 tools/inbox.py --add "Piranesi" --state read      # one change, handed to the page
 python3 adapters/pack/pack_to_slice.py   # rebuild the data from data/pack/books.json
 uv run tools/screens.py                  # every screen, every size, light and dark: screens/index.html
@@ -131,7 +133,8 @@ Most of this repo is built by models working one task at a time. These rules are
 ## Words on the page
 
 User-facing words are about grade 6: short sentences, no jargon. Say "the library's page", not "record". Say "saved in
-this browser only", which is the truth about `localStorage`. Never say the app "knows you", "learns" or "recommends";
+this browser" for `localStorage`; when the optional mirror is on, also say that the active shelf is copied
+to a local file for the agent. Never say the app "knows you", "learns" or "recommends";
 it has a list, a rule and a reason. All user-facing strings live in a `strings` table (core or the mode's own) — except
 the three lines of shell copy in `app/index.html`, which are static so the page still says what it is with no
 JavaScript at all.

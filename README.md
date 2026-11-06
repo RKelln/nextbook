@@ -62,7 +62,7 @@ nothing at all about a pick, or reaches for the network, a clock or the DOM.
 | `app/` | the app. `core/` is the foundation (shelf, data, scoring, reasons, links, contract, model seam, shell); `modes/` is where one file per mode goes |
 | `data/` | the data: `slice.json` (works), `tags.json` (facets and a note in our own words), `practice.json`, `events.json`, and their schemas |
 | `adapters/` | the only code that knows the library's platform, plus the pack converter. Which library is one file, `adapters/bibliocommons/libraries/` |
-| `tools/` | `build.py` (one file, demo, starter), `serve.py`, `find.py`, `check-mode.js` + `check.sh`, `gen_data.py`, `packets.py`, `inbox.py` |
+| `tools/` | `build.py` (one file, demo, starter), `serve.py`, `find.py`, `check-mode.js` + `check.sh`, `gen_data.py`, `packets.py`, `inbox.py`, `read-shelf.py` |
 | `tests/` | Node tests for the core and the screens, Python tests for the adapters and the tools, fixtures, and `DATA-TEST.md` (the `data-test` names) |
 | `reference/modes/` | three finished modes with their checks, for a projector or a reading |
 | `docs/` | design, architecture, data, contract, decisions, the build plan, the mode briefs |
@@ -88,7 +88,7 @@ Never a crawl. The app asks for what a person asked for, keeps what came back, a
 
 ## Boundaries that are not negotiable
 
-- **No tracking, no accounts, no server-side shelf.** A person's reading history stays in their browser by default. Export is a
+- **No tracking, no accounts, no remote shelf storage.** A person's reading history stays in their browser by default. Export is a
   file they hold.
 - **A book on the person's shelf never goes into a model prompt.** Candidate titles are public catalogue data; a shelf
   title is the reading list. The prompt leaves shelf books out and says how many.
@@ -128,3 +128,9 @@ writing expose titles and related details to the AI. The local file itself is no
 Use `python3 tools/read-shelf.py --find 'Piranesi'` to read selected entries; writes use `tools/inbox.py`.
 The mirror is off by default, copies only the active shelf, and stays out of builds. Stopping the
 server stops updates but leaves the last `nextbook-live.json` snapshot on disk.
+
+Keep one app tab open while sharing: multiple tabs can replace the snapshot with different active shelves.
+Use the same local address and port each time; browser storage at `file://` or another port is separate.
+Stop the mirror server to stop sharing, then delete `nextbook-live.json` if you want to remove the local copy.
+The snapshot can be stale after the tab closes. Writing uses whole shelf entries, so an agent should read the
+current entry before changing just one field. The app offers Undo after applying inbox changes.

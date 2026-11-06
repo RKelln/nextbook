@@ -489,7 +489,23 @@ A mode is `app/modes/<id>.js`, its check `app/modes/<id>.check.js`, one line in
     python3 tools/find.py "birds toronto"
 
 It shows the search it is about to send before it sends it, then adds the books to the list.
-It is the only thing here that uses the network, and only when you ask.
+It contacts the library only when you ask. The optional agent connection below uses localhost.
+
+## Optional agent access
+
+Use `/use-nextbook`, or read `.claude/skills/use-nextbook/SKILL.md`. Before reading or writing, the
+agent warns that the book titles and details it handles become part of the AI conversation.
+
+    python3 tools/serve.py --workshop --mirror
+    python3 tools/read-shelf.py --find "Piranesi"
+
+Open the printed address and keep one app tab open. The active practice shelf is copied to
+`nextbook-live.json`; no export is needed. The agent writes changes with `tools/inbox.py`, and the
+app applies them on reload with Undo. Sharing is off by default and the one-file app has no mirror.
+A different port or a file opened directly has separate browser storage.
+
+Stop the server to stop updates. The last snapshot remains until you delete `nextbook-live.json`.
+Do not include it, inbox data, or temporary shelf files when sharing your project folder.
 
 ## Licence
 

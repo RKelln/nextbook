@@ -14,6 +14,13 @@ but not you.
 What neither has is the person's own shelf: what they finished, what they abandoned, what they rated, what they have
 time for.
 
+## Optional agent access (D44)
+
+The app works offline without AI. A person can separately enable `serve.py --mirror` so an agent reads
+the active shelf without an export, and use the inbox for writes. The agent warns before either operation
+that the titles and related details it handles become part of the AI conversation. This explicit choice
+replaces D36's export-only read rule; it does not change the copy/paste prompt's shelf-title exclusions.
+
 ## Three jobs, in order
 
 **Narrow.** Arithmetic over the person's shelf against the library's own subject terms. Cheap, offline, explainable.

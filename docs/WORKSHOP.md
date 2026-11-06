@@ -21,6 +21,9 @@ happened.
 
 - `python3 tools/build.py --starter` → `dist/starter/`: the app, the practice shelf, the contract, the mode briefs and
   the check tool, in a folder a beginner can open on a library machine with nothing installed.
+- An optional **agent connection**: `python3 tools/serve.py --workshop --mirror`,
+  `tools/read-shelf.py`, and `/use-nextbook`. The included skill gives the privacy notice before reads
+  or writes; both expose the titles and details the agent handles to the AI. Sharing is off by default.
 - A **practice shelf** that fills with example books and clears in one click, so a shared machine can be tested and
   wiped without touching anything real.
 - A **contract** a person's agent can follow: one page, one loop, and the rule that anything a model picks is checked
@@ -40,3 +43,9 @@ a real reading history is off in a starter.
 Nothing above is required. The app opens from a folder, the contract is one page, `tools/check-mode.js` checks a mode
 you write, and `docs/modes/` is there if you want a brief to build from. The only things a workshop adds are people in
 a room and a deadline.
+
+## Ending an agent-sharing session
+
+Stop the mirror server, remove `nextbook-live.json` and any temporary shelf files, and clear the practice
+shelf using the host workshop's cleanup process. The mirror stays on disk after the server stops.
+Never distribute live mirror or inbox files. Builds exclude them; workshop packaging should do the same.

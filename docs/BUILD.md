@@ -626,3 +626,6 @@ Write here; do not guess. Each one is Ryan's to answer.
   filtered reader and a read/write skill with the title-exposure notice. Pack the tools and skill in
   starters, never shelf data. Check default-off, request guards, snapshot validation, browser updates,
   and build exclusions.
+
+- [x] **T8.14 documentation follow-up.** Align starter README, agent rules, design, and workshop
+  integration guidance with opt-in sharing, title disclosure, separate origins, and snapshot cleanup.
