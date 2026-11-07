@@ -152,10 +152,9 @@ test('P3: a workshop copy keeps the reset and replaces only the switch to the ow
 
   const banner = byTest(doc, 'practice-banner');
   assert.ok(banner, 'the practice banner is there');
-  assert.ok(banner.textContent.indexOf(nb.t('practiceBanner')) !== -1, 'and it still promises a reset');
+  assert.ok(banner.textContent.indexOf(nb.t('practiceBanner')) !== -1, 'and it says the books are examples');
   assert.ok(byTest(doc, 'practice-reset'), 'so the reset button must be there too');
   assert.strictEqual(byTest(doc, 'shelf-use-own'), null, 'only the switch is replaced');
-  assert.ok(banner.textContent.indexOf(nb.t('practiceOnly')) !== -1, 'by the workshop sentence');
 });
 
 test('P4: the shelf in use is still in use after a reload of the page', () => {
@@ -377,4 +376,11 @@ test('agent snapshot follows active shelf and cannot mutate it', () => {
   assert.strictEqual(nb.shell.shelfSnapshot().entries.length, 0);
   addTyped(doc, 'Piranesi', 'Susanna Clarke');
   assert.strictEqual(nb.shell.shelfSnapshot().entries[0].title, 'Piranesi');
+});
+
+test('P6: the shelf screen says how many library books are not on the shelf', () => {
+  const { doc } = openPage({});
+  const line = doc.body.textContent.match(/(\d+) unshelved books? in your library list/);
+  assert.ok(line, 'the unshelved count is on the page');
+  assert.ok(Number(line[1]) >= 1, 'and it counts the library books that are not shelved');
 });

@@ -20,6 +20,7 @@ Find books for the person, using the words they gave: $ARGUMENTS
 5. Tell the person, in plain words and short sentences:
    - the search line you ran;
    - how many books were added, and the strongest subjects the library's records carried, if any;
+   - where they went: "They are in your library list as unshelved books, not on your shelf. Run a mode to see them in your picks."
    - this sentence: "The page will show these books the next time it is opened or reloaded."
    - if nothing was added, why: they were already in the list, or the library would not answer.
 6. If the page is being served by `python3 tools/serve.py`, it reloads itself when `app/data/found.js` changes, so

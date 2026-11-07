@@ -421,6 +421,8 @@
   .nb-banner > p { flex: 1 1 20rem; margin: 0; }
   .nb-banner-text { font-weight: 600; }
   .nb-banner-note { color: var(--nb-muted); }
+  .nb-banner-inline { justify-content: flex-start; padding-block: var(--nb-s2); }
+  .nb-banner-inline > p { flex: 0 1 auto; }
 
   .nb-message {
     margin-block: 0 var(--nb-s3);

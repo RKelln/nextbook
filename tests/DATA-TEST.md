@@ -82,7 +82,7 @@ The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows
 | Name | What it is | What pressing it does |
 |---|---|---|
 | `found-notice` | The box "Your helper found N books for …" (not pressed) | Drawn only when `app/data/found.js` has books. |
-| `found-clear` | Button "Clear" | Hides the notice on this page for the rest of the visit. It does not delete the file or the books. |
+| `found-clear` | Button "OK" | Hides the notice on this page for the rest of the visit. It does not delete the file or the books. |
 
 ## The helper's note
 

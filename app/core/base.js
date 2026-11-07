@@ -22,7 +22,7 @@
     notSaving: 'This browser is not saving. Download a copy of your shelf before you close it.',
     libraryPage: "the library's page",
     libraryLine: "Holds, copies, your library shelves and the library's own suggestions are on the library's page.",
-    practiceBanner: 'Practice shelf. Try anything. Reset puts it back.',
+    practiceBanner: 'Example books for demonstration purposes.',
     practiceOnly: 'On this computer, use the practice shelf. Your own books go in at home, on your own computer.',
     booksFound: 'Your helper found {n} books for "{words}"',
     booksFoundOne: 'Your helper found 1 book for "{words}"',

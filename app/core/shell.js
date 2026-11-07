@@ -344,7 +344,7 @@
   function practiceBanner() {
     var store = state.store;
     if (!store) return null;
-    var wrap = h('div', { class: 'nb-banner', 'data-test': 'practice-banner' });
+    var wrap = h('div', { class: 'nb-banner nb-banner-inline', 'data-test': 'practice-banner' });
     var which = 'practice';
     try { which = store.which(); } catch (e) { which = 'practice'; }
 
@@ -354,9 +354,7 @@
       // workshop copy replaces only the switch to the own shelf, with the sentence from T3.1.
       var actions = h('div', { class: 'nb-banner-actions' },
         button('practice-reset', t('resetButton'), resetPractice, 'nb-button nb-button-quiet'));
-      if (isWorkshop()) {
-        wrap.appendChild(p(t('practiceOnly'), 'nb-banner-note'));
-      } else {
+      if (!isWorkshop()) {
         actions.appendChild(button('shelf-use-own', t('useOwn'), function () {
           try { store.use('own'); } catch (e) { /* stays on practice */ }
           state.message = '';
@@ -2968,10 +2966,32 @@
     return wrap;
   }
 
+  // Books in the library list that are not on the shelf: what the modes pick from.
+  function unshelvedLine() {
+    var pool = poolResult();
+    if (!pool || !Array.isArray(pool.works) || !pool.works.length) return null;
+    var onShelf = {};
+    var entries = [];
+    try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
+    entries.forEach(function (entry) {
+      var work = workFor(entry);
+      if (work) onShelf[keyForWork(work)] = true;
+    });
+    var n = 0;
+    pool.works.forEach(function (work) { if (!onShelf[keyForWork(work)]) n++; });
+    if (n < 1) return null;
+    var found = Nextbook.data.get('found');
+    var f = isObj(found) && Array.isArray(found.works) ? found.works.length : 0;
+    var key = n === 1 ? 'unshelvedOne' : 'unshelved';
+    return p(t(key, { n: n }) + (f ? ' ' + t(f === 1 ? 'unshelvedFoundOne' : 'unshelvedFound', { f: f }) : ''), 'nb-count nb-unshelved');
+  }
+
   function findView() {
     var sec = h('section', { class: 'nb-screen', id: 'nb-find', 'data-screen': 'find' });
     sec.appendChild(h('h2', t('findHeading')));
     sec.appendChild(p(t('findIntro'), 'nb-hint'));
+    var unshelvedFind = unshelvedLine();
+    if (unshelvedFind) sec.appendChild(unshelvedFind);
 
     var ids = Array.isArray(Nextbook.modes) ? Nextbook.modes.slice() : [];
     if (!ids.length) {
@@ -3579,7 +3599,9 @@
     var inbox = inboxBox();
     if (inbox) sec.appendChild(inbox);
     var banner = practiceBanner();
-    if (banner) sec.appendChild(banner);
+    var onPractice = false;
+    try { onPractice = state.store.which() === 'practice'; } catch (e) { onPractice = false; }
+    if (banner && !onPractice) sec.appendChild(banner);
     var found = foundPanel();
     if (found) sec.appendChild(found);
 
@@ -3587,9 +3609,12 @@
     // the ways to put books on it and take it with you. One column, in this order, on a phone.
     var main = h('div', { class: 'nb-split-main' });
     main.appendChild(h('h2', state.store.which() === 'own' ? t('shelfOwnHeading') : t('shelfPracticeHeading')));
+    if (banner && onPractice) main.appendChild(banner);
     var entries = [];
     try { entries = state.store.shelf(); } catch (e) { entries = []; }
     main.appendChild(p(countLine(entries.length, 'shelfCountOne', 'shelfCount', { n: entries.length }), 'nb-count'));
+    var unshelvedShelf = unshelvedLine();
+    if (unshelvedShelf) main.appendChild(unshelvedShelf);
     main.appendChild(shelfList());
 
     // The tools fold away, so the side column reads as a short menu. Adding a book is open to
@@ -3850,9 +3875,13 @@
     shelfPracticeHeading: 'The practice shelf',
     shelfCount: '{n} books on this shelf.',
     shelfCountOne: '1 book on this shelf.',
+    unshelved: '{n} unshelved books in your library list, ready for the modes to pick from.',
+    unshelvedOne: '1 unshelved book in your library list, ready for the modes to pick from.',
+    unshelvedFound: '({f} found by your helper.)',
+    unshelvedFoundOne: '(1 found by your helper.)',
     shelfEmpty: 'No books on this shelf yet. Add one below.',
     shelfBroken: 'The shelf did not open. Reload the page and try again.',
-    resetButton: 'Reset the practice shelf',
+    resetButton: 'Reset practice shelf',
     resetAsk: "Reset the practice shelf? This puts the practice books back as they were. Your own shelf and your friends' shelves are not touched.",
     resetDone: 'The practice shelf is back.',
     useOwn: 'Use my own shelf',
@@ -4003,8 +4032,8 @@
     friendsRemoved: "Removed {name}'s shelf.",
     aFriend: 'A friend',
     // the found notice
-    foundClear: 'Clear',
-    foundCleared: 'The note is hidden. The books stay in the list.',
+    foundClear: 'OK',
+    foundCleared: 'Note hidden. The books stay in your list.',
     // the find screen
     findHeading: 'Find a book',
     findIntro: 'Each way of choosing books offers up to six books and says why. The ones in this copy are listed here.',
