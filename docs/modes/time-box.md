@@ -7,9 +7,11 @@ cannot take that constraint.
 
 ## The rule
 
-1. Input: `how`, a `choice` of `listen` or `read`, default `listen`.
-2. **Listen:** keep works whose `formats` include `EAUDIOBOOK`. The library really has this field.
-3. **Read:** keep works whose tags say `pace: fast`. Only works we tagged by hand have a pace, so this keeps few.
+1. Input: `how`, a `choice` of `listen` or `read`, default `read`.
+2. **Listen:** keep works whose `formats` include `EAUDIOBOOK`. The library's own records carry this field; the
+   starting pack's hand-made books do not. Check with `python3 tools/coverage.py` how many books have it. If none, say
+   so in a sentence ("None of these books are marked as audiobooks yet"), not an empty panel.
+3. **Read:** keep works whose tags say `pace: fast`. Only the starting pack's books have a pace, because we tagged them by hand. Library records have none, so this keeps few.
 4. Score what is left against the shelf and take the top six.
 5. The note says what was dropped and why: "Kept 41 of 612 books: the ones the library has as an audiobook."
 

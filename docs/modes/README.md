@@ -11,7 +11,7 @@ than an M one, and a small brief is not a warm-up for a large one.
 |---|---|---|---|---|
 | [survey](survey.md) | one book from each part of the library your shelf never visits | S | sections (call numbers); one judgement: which parts are unvisited, then the best door into each | yes |
 | [blind-date](blind-date.md) | three parts of the library you never go to, one book each, no scores | S | sections, `ctx.random()`; the same unvisited parts, then random picks | yes |
-| [time-box](time-box.md) | something you can finish, or listen to, on the commute | S | formats, pace words (few books); one filter, and a note that says what it kept | yes |
+| [time-box](time-box.md) | something you can finish, or listen to, on the commute | S | formats (the library's records carry them; the starting pack does not), pace words (hand tags, starting pack only); one filter, and a note that says what it kept | yes |
 | [challenge](challenge.md) | same subject, from the other side: books that would argue with you | M | subjects, fiction/non-fiction, moods; two kinds of "other side", up to three of each | yes |
 | [journey](journey.md) | a path from a book you loved to one you have been avoiding | M | subjects; a walk that must move toward the goal, and a real shared facet at each step | yes |
 | [ladder](ladder.md) | from beginner to deep on one subject | S | subjects, audience; one order (audience, then how many subjects), spread across it | yes |

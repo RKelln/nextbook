@@ -518,6 +518,7 @@ STARTER_FILES = (
     "docs/CONTRACT.md",
     "tools/check-mode.js",
     "tools/check.sh",
+    "tools/coverage.py",
     "tools/gen_data.py",
     "tools/find.py",
     "tools/inbox.py",

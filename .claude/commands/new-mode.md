@@ -10,6 +10,10 @@ Build one mode for this app. The words you were given are $ARGUMENTS. Work in th
    - `docs/CONTRACT.md`
    - the one brief in `docs/modes/` whose name matches the words you were given. For "ladder" that is
      `docs/modes/ladder.md`. Run `ls docs/modes` if the name is not obvious, then read that one file only.
+   Then run `python3 tools/coverage.py`. It says how many books carry each thing a mode can lean on. Some
+   come from the library's own records (sections, subjects, formats, audience); mood, pace and notes are our own
+   hand tags and exist only for the starting pack. If the brief needs a field few books have, say the number in
+   `app/PLAN.md` and in the mode's `note`; do not promise a mode the data cannot fill.
 2. The id is the brief's file name without `.md`: lowercase letters and hyphens (the brief's first line says it too).
 3. Write `app/PLAN.md` before any code. If it is already there, replace it: it is the plan for one mode at a time.
    Use exactly these headings, in this order, one or two short lines under each, taken from the brief:
