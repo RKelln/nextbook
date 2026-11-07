@@ -384,3 +384,12 @@ test('P6: the shelf screen says how many library books are not on the shelf', ()
   assert.ok(line, 'the unshelved count is on the page');
   assert.ok(Number(line[1]) >= 1, 'and it counts the library books that are not shelved');
 });
+
+test('P7: books that came with the copy are not announced as found by the helper', () => {
+  const found = { schema: 'nextbook/found-1', searches: [{ query: 'horror novels', fetched: '2026-11-07T00:00:00Z', works: 1, starter: true }],
+    facets: {}, works: [{ id: 'S1AAA', groupKey: 'x', title: 'Some Book', subtitle: null, author: 'A Writer', authorKey: 'writer, a',
+      year: 2001, formats: ['BK'], contentType: 'FICTION', audience: 'ADULT', language: 'eng', callNumber: 'FIC WRI', series: [],
+      facets: [], found: { query: 'horror novels', starter: true } }] };
+  const { doc } = openPage({ found });
+  assert.strictEqual(byTest(doc, 'found-notice'), null, 'no "your helper found" for books that shipped with the copy');
+});

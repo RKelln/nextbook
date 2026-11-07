@@ -1884,8 +1884,15 @@
 
   function foundPanel() {
     if (state.foundCleared) return null;
-    var found = Nextbook.data.get('found');
-    if (!isObj(found) || !Array.isArray(found.works) || !found.works.length) return null;
+    var all = Nextbook.data.get('found');
+    if (!isObj(all) || !Array.isArray(all.works)) return null;
+    // Books that came with the copy (found.starter) are part of the list, not something this person's
+    // helper found, so the notice leaves them out and says nothing when they are all there is.
+    var asked = all.works.filter(function (w) { return !(isObj(w) && isObj(w.found) && w.found.starter === true); });
+    if (!asked.length) return null;
+    var found = { searches: Array.isArray(all.searches) ? all.searches.filter(function (s) {
+      return !(isObj(s) && s.starter === true);
+    }) : all.searches, works: asked };
 
     var wrap = h('div', { class: 'nb-found', 'data-test': 'found-notice' });
     var said = false;
