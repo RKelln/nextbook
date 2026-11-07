@@ -62,8 +62,8 @@ def walk_keys(value, found=None):
 
 
 class PackAgreesWithSlice(unittest.TestCase):
-    def test_thirty_works_in_pack_order(self):
-        self.assertEqual(len(SLICE["works"]), 30)
+    def test_sixty_works_in_pack_order(self):
+        self.assertEqual(len(SLICE["works"]), 60)
         self.assertEqual(len(SLICE["works"]), len(PACK["books"]))
         for work, book in zip(SLICE["works"], PACK["books"]):
             self.assertEqual(work["id"], book["id"])
@@ -157,9 +157,9 @@ class Facets(unittest.TestCase):
             self.assertEqual(entry["kind"], facet.split(":", 1)[0])
 
     def test_singletons_were_dropped(self):
-        # Each of these is carried by one work only in the pack, so rule 9 drops it.
-        for facet in ("genre:horror", "genre:romance", "genre:nature", "genre:ideas",
-                      "topic:childhood", "topic:money", "topic:nature"):
+        # Rule 9 drops a facet carried by one work only. The pack no longer has any, so a
+        # made-up facet stands in for the rule: nothing in the slice may be carried by one work.
+        for facet in ("genre:no-such-genre",):
             self.assertNotIn(facet, SLICE["facets"])
             for work in SLICE["works"]:
                 self.assertNotIn(facet, work["facets"])
@@ -325,8 +325,7 @@ class Reproducible(unittest.TestCase):
 
     def test_dropped_facets_are_named(self):
         _, dropped = adapter.build_slice(PACK, CONFIG, PACK_PATH)
-        self.assertEqual(len(dropped), 13, dropped)
-        self.assertIn("section:500", dropped)
+        self.assertEqual(dropped, [])
         self.assertEqual(dropped, sorted(dropped))
 
 

@@ -256,6 +256,276 @@
       ],
       "pace": "fast",
       "note": "A dead photographer has seven moons to find out who killed him."
+    },
+    "pack:hill-house": {
+      "mood": [
+        "dark",
+        "tense",
+        "strange"
+      ],
+      "pace": "steady",
+      "note": "Four strangers spend a summer in a house that seems to have picked one of them."
+    },
+    "pack:only-good-indians": {
+      "mood": [
+        "dark",
+        "tense",
+        "sad"
+      ],
+      "pace": "fast",
+      "note": "Four friends once did something on a hunt, and ten years later it comes looking for them."
+    },
+    "pack:dracula": {
+      "mood": [
+        "dark",
+        "tense",
+        "strange"
+      ],
+      "pace": "steady",
+      "note": "A lawyer travels to a castle, and a count follows his letters home to England."
+    },
+    "pack:pet-sematary": {
+      "mood": [
+        "dark",
+        "sad",
+        "tense"
+      ],
+      "pace": "fast",
+      "note": "A family moves next to a burial ground where whatever is buried comes back wrong."
+    },
+    "pack:bunny": {
+      "mood": [
+        "dark",
+        "funny",
+        "strange"
+      ],
+      "pace": "steady",
+      "note": "A loner at a writing programme is pulled into a clique of women who call each other Bunny."
+    },
+    "pack:pride-prejudice": {
+      "mood": [
+        "funny",
+        "warm",
+        "hopeful"
+      ],
+      "pace": "steady",
+      "note": "Elizabeth Bennet has opinions about a proud man, and so does everyone else in the village."
+    },
+    "pack:hating-game": {
+      "mood": [
+        "funny",
+        "warm",
+        "tense"
+      ],
+      "pace": "fast",
+      "note": "Two assistants at a publishing house have been enemies for a year, and the game is about to change."
+    },
+    "pack:red-white-royal-blue": {
+      "mood": [
+        "funny",
+        "hopeful",
+        "warm"
+      ],
+      "pace": "fast",
+      "note": "The president's son and a British prince are forced into a fake friendship for the press."
+    },
+    "pack:beach-read": {
+      "mood": [
+        "funny",
+        "warm",
+        "sad"
+      ],
+      "pace": "steady",
+      "note": "Two writers with writer's block swap genres for a summer, one romance and one literary tragedy."
+    },
+    "pack:kiss-quotient": {
+      "mood": [
+        "warm",
+        "funny",
+        "hopeful"
+      ],
+      "pace": "steady",
+      "note": "A gifted data analyst hires an escort to teach her about relationships and gets more than a lesson."
+    },
+    "pack:silent-spring": {
+      "mood": [
+        "quiet",
+        "dark",
+        "tense"
+      ],
+      "pace": "slow",
+      "note": "A scientist shows what pesticides were doing to birds, rivers and the people downstream."
+    },
+    "pack:hidden-life-trees": {
+      "mood": [
+        "quiet",
+        "warm",
+        "strange"
+      ],
+      "pace": "slow",
+      "note": "A German forester explains how trees share food and warnings under the ground."
+    },
+    "pack:h-is-for-hawk": {
+      "mood": [
+        "sad",
+        "quiet",
+        "strange"
+      ],
+      "pace": "slow",
+      "note": "After her father dies, the author trains a goshawk, and writes about grief and the writer T. H. White."
+    },
+    "pack:immense-world": {
+      "mood": [
+        "warm",
+        "strange",
+        "hopeful"
+      ],
+      "pace": "steady",
+      "note": "What the world is like to a bat, a bee, a fish and a tick, each with senses we lack."
+    },
+    "pack:cosmos": {
+      "mood": [
+        "hopeful",
+        "quiet",
+        "warm"
+      ],
+      "pace": "steady",
+      "note": "A tour of the universe, from ancient libraries to the edge of the galaxy, by a scientist who loved to explain."
+    },
+    "pack:meditations": {
+      "mood": [
+        "quiet",
+        "sad",
+        "hopeful"
+      ],
+      "pace": "slow",
+      "note": "Private notes from a Roman emperor to himself about doing the day's work and staying calm."
+    },
+    "pack:mans-search": {
+      "mood": [
+        "sad",
+        "hopeful",
+        "quiet"
+      ],
+      "pace": "steady",
+      "note": "A psychiatrist who survived the camps argues that people can live through almost anything if they have a reason."
+    },
+    "pack:thinking-fast-slow": {
+      "mood": [
+        "tense",
+        "strange",
+        "funny"
+      ],
+      "pace": "slow",
+      "note": "Two ways the mind makes decisions, and the predictable mistakes each one makes."
+    },
+    "pack:myth-sisyphus": {
+      "mood": [
+        "dark",
+        "quiet",
+        "strange"
+      ],
+      "pace": "slow",
+      "note": "A short essay asking why not give up, and answering with a man pushing a rock uphill."
+    },
+    "pack:how-to-live": {
+      "mood": [
+        "warm",
+        "funny",
+        "quiet"
+      ],
+      "pace": "steady",
+      "note": "A life of the essayist Montaigne in twenty attempts at answering how to live."
+    },
+    "pack:ways-of-seeing": {
+      "mood": [
+        "strange",
+        "tense",
+        "quiet"
+      ],
+      "pace": "steady",
+      "note": "Seven short essays on how looking at paintings, and at adverts, is never neutral."
+    },
+    "pack:steal-like-artist": {
+      "mood": [
+        "funny",
+        "hopeful",
+        "warm"
+      ],
+      "pace": "fast",
+      "note": "Ten short, illustrated rules for making things from what you love."
+    },
+    "pack:just-kids": {
+      "mood": [
+        "sad",
+        "warm",
+        "quiet"
+      ],
+      "pace": "steady",
+      "note": "A memoir of two young artists in 1970s New York, and the friend who changed her life."
+    },
+    "pack:creative-act": {
+      "mood": [
+        "quiet",
+        "hopeful",
+        "strange"
+      ],
+      "pace": "slow",
+      "note": "A record producer's short chapters on where ideas come from and how to let them in."
+    },
+    "pack:understanding-comics": {
+      "mood": [
+        "funny",
+        "strange",
+        "hopeful"
+      ],
+      "pace": "fast",
+      "note": "A book about comics, drawn as a comic, on how pictures in a row become a story."
+    },
+    "pack:salt-fat-acid-heat": {
+      "mood": [
+        "warm",
+        "funny",
+        "hopeful"
+      ],
+      "pace": "steady",
+      "note": "Four ideas that make any dish taste better, taught with recipes and illustrations."
+    },
+    "pack:kitchen-confidential": {
+      "mood": [
+        "funny",
+        "dark",
+        "tense"
+      ],
+      "pace": "fast",
+      "note": "A New York chef tells what really goes on behind the dining room door."
+    },
+    "pack:jerusalem": {
+      "mood": [
+        "warm",
+        "hopeful",
+        "quiet"
+      ],
+      "pace": "steady",
+      "note": "Recipes and stories from a city where two cooks grew up on opposite sides."
+    },
+    "pack:cooked": {
+      "mood": [
+        "warm",
+        "funny",
+        "strange"
+      ],
+      "pace": "steady",
+      "note": "The author learns four ways of cooking, fire, water, air and earth, from people who do them well."
+    },
+    "pack:food-lab": {
+      "mood": [
+        "funny",
+        "warm",
+        "tense"
+      ],
+      "pace": "steady",
+      "note": "Why recipes work, tested by a cook who ran the experiments so you do not have to."
     }
   }
 }

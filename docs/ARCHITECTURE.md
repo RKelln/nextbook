@@ -31,7 +31,7 @@ then shows a plain sentence ("The book list did not load. The rest of the app st
 
 ### `slice.json`, the starting list
 
-**For now (D28) it is made from the 30-book pack** by `adapters/pack/pack_to_slice.py`: 30 real books with our own facets,
+**For now (D28) it is made from the 60-book pack** by `adapters/pack/pack_to_slice.py`: 60 real books with our own facets,
 search links instead of record links (`library.recordUrl` is `null`), `section:` and `contentType` derived from the
 pack's genres through one table, and `formats: []`. Every mode on the menu runs on it. Real catalogue records join it
 when a person's helper finds books (`found.json`, below), and a found record of a pack book enriches that book (its

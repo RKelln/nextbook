@@ -87,7 +87,7 @@ class OneFileTest(unittest.TestCase):
     def test_the_data_is_unchanged(self):
         slice_json = json.loads((REPO / "data" / "slice.json").read_text(encoding="utf-8"))
         self.assertEqual(block_json(self.html, "slice"), slice_json)
-        self.assertEqual(len(block_json(self.html, "slice")["works"]), 30)
+        self.assertEqual(len(block_json(self.html, "slice")["works"]), 60)
 
     def test_the_modes_are_inline_and_the_shell_is_not_asked_for_them(self):
         self.assertIn("id: 'more-by'", self.html)

@@ -22,18 +22,38 @@
       "name": "books.json",
       "version": 2,
       "fetched": "2026-11-03",
-      "books": 30,
-      "works": 30
+      "books": 60,
+      "works": 60
     }
   ],
   "facets": {
+    "genre:art": {
+      "label": "the arts",
+      "kind": "genre",
+      "works": 5
+    },
     "genre:fantasy": {
       "label": "fantasy",
       "kind": "genre",
       "works": 7
     },
+    "genre:food": {
+      "label": "food and cooking",
+      "kind": "genre",
+      "works": 5
+    },
     "genre:history": {
       "label": "history",
+      "kind": "genre",
+      "works": 6
+    },
+    "genre:horror": {
+      "label": "horror",
+      "kind": "genre",
+      "works": 6
+    },
+    "genre:ideas": {
+      "label": "big ideas",
       "kind": "genre",
       "works": 6
     },
@@ -47,6 +67,16 @@
       "kind": "genre",
       "works": 3
     },
+    "genre:nature": {
+      "label": "nature",
+      "kind": "genre",
+      "works": 6
+    },
+    "genre:romance": {
+      "label": "romance",
+      "kind": "genre",
+      "works": 6
+    },
     "genre:speculative": {
       "label": "speculative fiction",
       "kind": "genre",
@@ -57,10 +87,30 @@
       "kind": "genre",
       "works": 4
     },
+    "section:100": {
+      "label": "the philosophy shelves (100s)",
+      "kind": "section",
+      "works": 6
+    },
     "section:300": {
       "label": "the shelves about people and society (300s)",
       "kind": "section",
       "works": 4
+    },
+    "section:500": {
+      "label": "the science shelves (500s)",
+      "kind": "section",
+      "works": 6
+    },
+    "section:600": {
+      "label": "the shelves about how things are made (600s)",
+      "kind": "section",
+      "works": 5
+    },
+    "section:700": {
+      "label": "the art shelves (700s)",
+      "kind": "section",
+      "works": 5
     },
     "section:900": {
       "label": "the history shelves (900s)",
@@ -77,10 +127,20 @@
       "kind": "section",
       "works": 9
     },
+    "section:horror": {
+      "label": "the horror shelves",
+      "kind": "section",
+      "works": 6
+    },
     "section:mystery": {
       "label": "the mystery shelves",
       "kind": "section",
       "works": 3
+    },
+    "section:romance": {
+      "label": "the romance shelves",
+      "kind": "section",
+      "works": 6
     },
     "section:science-fiction": {
       "label": "the science fiction shelves",
@@ -90,37 +150,52 @@
     "topic:art": {
       "label": "art",
       "kind": "topic",
-      "works": 3
+      "works": 10
     },
     "topic:books": {
       "label": "books",
       "kind": "topic",
-      "works": 4
+      "works": 8
+    },
+    "topic:childhood": {
+      "label": "childhood",
+      "kind": "topic",
+      "works": 2
     },
     "topic:cities": {
       "label": "cities",
       "kind": "topic",
-      "works": 3
+      "works": 6
+    },
+    "topic:class": {
+      "label": "class",
+      "kind": "topic",
+      "works": 4
     },
     "topic:faith": {
       "label": "faith",
       "kind": "topic",
-      "works": 3
+      "works": 6
     },
     "topic:family": {
       "label": "family",
       "kind": "topic",
-      "works": 8
+      "works": 17
+    },
+    "topic:fear": {
+      "label": "fear",
+      "kind": "topic",
+      "works": 5
     },
     "topic:friendship": {
       "label": "friendship",
       "kind": "topic",
-      "works": 4
+      "works": 10
     },
     "topic:identity": {
       "label": "identity",
       "kind": "topic",
-      "works": 9
+      "works": 17
     },
     "topic:justice": {
       "label": "justice",
@@ -130,37 +205,47 @@
     "topic:memory": {
       "label": "memory",
       "kind": "topic",
-      "works": 11
+      "works": 17
+    },
+    "topic:money": {
+      "label": "money",
+      "kind": "topic",
+      "works": 3
+    },
+    "topic:nature": {
+      "label": "nature",
+      "kind": "topic",
+      "works": 6
     },
     "topic:politics": {
       "label": "politics",
       "kind": "topic",
-      "works": 6
+      "works": 7
     },
     "topic:power": {
       "label": "power",
       "kind": "topic",
-      "works": 7
+      "works": 11
     },
     "topic:science": {
       "label": "science",
       "kind": "topic",
-      "works": 8
+      "works": 16
     },
     "topic:survival": {
       "label": "survival",
       "kind": "topic",
-      "works": 7
+      "works": 8
     },
     "topic:travel": {
       "label": "travel",
       "kind": "topic",
-      "works": 4
+      "works": 6
     },
     "topic:work": {
       "label": "work",
       "kind": "topic",
-      "works": 2
+      "works": 13
     }
   },
   "works": [
@@ -225,6 +310,8 @@
       "facets": [
         "genre:fantasy",
         "topic:identity",
+        "topic:childhood",
+        "topic:fear",
         "section:fantasy"
       ]
     },
@@ -452,6 +539,7 @@
         "genre:literary",
         "topic:work",
         "topic:memory",
+        "topic:class",
         "section:fiction"
       ]
     },
@@ -562,10 +650,12 @@
       "callNumber": null,
       "series": [],
       "facets": [
+        "genre:horror",
         "genre:mystery",
         "topic:family",
         "topic:power",
         "topic:memory",
+        "section:horror",
         "section:mystery"
       ]
     },
@@ -631,9 +721,12 @@
       "series": [],
       "facets": [
         "genre:fantasy",
+        "genre:romance",
         "topic:power",
         "topic:identity",
-        "section:fantasy"
+        "topic:money",
+        "section:fantasy",
+        "section:romance"
       ]
     },
     {
@@ -673,9 +766,12 @@
       "callNumber": null,
       "series": [],
       "facets": [
+        "genre:nature",
         "genre:true",
+        "topic:nature",
         "topic:identity",
         "topic:science",
+        "section:500",
         "section:300"
       ]
     },
@@ -694,10 +790,12 @@
       "callNumber": null,
       "series": [],
       "facets": [
+        "genre:ideas",
         "genre:true",
         "topic:work",
         "topic:politics",
         "topic:science",
+        "section:100",
         "section:300"
       ]
     },
@@ -837,6 +935,664 @@
         "topic:art",
         "section:fiction",
         "section:fantasy"
+      ]
+    },
+    {
+      "id": "hill-house",
+      "groupKey": "pack:hill-house",
+      "title": "The Haunting of Hill House",
+      "subtitle": null,
+      "author": "Shirley Jackson",
+      "authorKey": "jackson, s",
+      "year": 1959,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:horror",
+        "topic:fear",
+        "topic:family",
+        "topic:identity",
+        "section:horror"
+      ]
+    },
+    {
+      "id": "only-good-indians",
+      "groupKey": "pack:only-good-indians",
+      "title": "The Only Good Indians",
+      "subtitle": null,
+      "author": "Stephen Graham Jones",
+      "authorKey": "jones, s",
+      "year": 2020,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:horror",
+        "topic:fear",
+        "topic:friendship",
+        "topic:memory",
+        "section:horror"
+      ]
+    },
+    {
+      "id": "dracula",
+      "groupKey": "pack:dracula",
+      "title": "Dracula",
+      "subtitle": null,
+      "author": "Bram Stoker",
+      "authorKey": "stoker, b",
+      "year": 1897,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:horror",
+        "topic:fear",
+        "topic:travel",
+        "topic:power",
+        "section:horror"
+      ]
+    },
+    {
+      "id": "pet-sematary",
+      "groupKey": "pack:pet-sematary",
+      "title": "Pet Sematary",
+      "subtitle": null,
+      "author": "Stephen King",
+      "authorKey": "king, s",
+      "year": 1983,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:horror",
+        "topic:fear",
+        "topic:family",
+        "topic:childhood",
+        "section:horror"
+      ]
+    },
+    {
+      "id": "bunny",
+      "groupKey": "pack:bunny",
+      "title": "Bunny",
+      "subtitle": null,
+      "author": "Mona Awad",
+      "authorKey": "awad, m",
+      "year": 2019,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:horror",
+        "topic:friendship",
+        "topic:identity",
+        "topic:art",
+        "section:horror"
+      ]
+    },
+    {
+      "id": "pride-prejudice",
+      "groupKey": "pack:pride-prejudice",
+      "title": "Pride and Prejudice",
+      "subtitle": null,
+      "author": "Jane Austen",
+      "authorKey": "austen, j",
+      "year": 1813,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:romance",
+        "topic:class",
+        "topic:family",
+        "topic:money",
+        "section:romance"
+      ]
+    },
+    {
+      "id": "hating-game",
+      "groupKey": "pack:hating-game",
+      "title": "The Hating Game",
+      "subtitle": null,
+      "author": "Sally Thorne",
+      "authorKey": "thorne, s",
+      "year": 2016,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:romance",
+        "topic:work",
+        "topic:friendship",
+        "section:romance"
+      ]
+    },
+    {
+      "id": "red-white-royal-blue",
+      "groupKey": "pack:red-white-royal-blue",
+      "title": "Red, White & Royal Blue",
+      "subtitle": null,
+      "author": "Casey McQuiston",
+      "authorKey": "mcquiston, c",
+      "year": 2019,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:romance",
+        "topic:politics",
+        "topic:identity",
+        "topic:friendship",
+        "section:romance"
+      ]
+    },
+    {
+      "id": "beach-read",
+      "groupKey": "pack:beach-read",
+      "title": "Beach Read",
+      "subtitle": null,
+      "author": "Emily Henry",
+      "authorKey": "henry, e",
+      "year": 2020,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:romance",
+        "topic:books",
+        "topic:work",
+        "topic:family",
+        "section:romance"
+      ]
+    },
+    {
+      "id": "kiss-quotient",
+      "groupKey": "pack:kiss-quotient",
+      "title": "The Kiss Quotient",
+      "subtitle": null,
+      "author": "Helen Hoang",
+      "authorKey": "hoang, h",
+      "year": 2018,
+      "formats": [],
+      "contentType": "FICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:romance",
+        "topic:work",
+        "topic:identity",
+        "topic:family",
+        "section:romance"
+      ]
+    },
+    {
+      "id": "silent-spring",
+      "groupKey": "pack:silent-spring",
+      "title": "Silent Spring",
+      "subtitle": null,
+      "author": "Rachel Carson",
+      "authorKey": "carson, r",
+      "year": 1962,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:nature",
+        "topic:nature",
+        "topic:science",
+        "topic:power",
+        "section:500"
+      ]
+    },
+    {
+      "id": "hidden-life-trees",
+      "groupKey": "pack:hidden-life-trees",
+      "title": "The Hidden Life of Trees",
+      "subtitle": null,
+      "author": "Peter Wohlleben",
+      "authorKey": "wohlleben, p",
+      "year": 2015,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:nature",
+        "topic:nature",
+        "topic:science",
+        "topic:friendship",
+        "section:500"
+      ]
+    },
+    {
+      "id": "h-is-for-hawk",
+      "groupKey": "pack:h-is-for-hawk",
+      "title": "H Is for Hawk",
+      "subtitle": null,
+      "author": "Helen Macdonald",
+      "authorKey": "macdonald, h",
+      "year": 2014,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:nature",
+        "topic:nature",
+        "topic:family",
+        "topic:memory",
+        "section:500"
+      ]
+    },
+    {
+      "id": "immense-world",
+      "groupKey": "pack:immense-world",
+      "title": "An Immense World",
+      "subtitle": null,
+      "author": "Ed Yong",
+      "authorKey": "yong, e",
+      "year": 2022,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:nature",
+        "topic:nature",
+        "topic:science",
+        "section:500"
+      ]
+    },
+    {
+      "id": "cosmos",
+      "groupKey": "pack:cosmos",
+      "title": "Cosmos",
+      "subtitle": null,
+      "author": "Carl Sagan",
+      "authorKey": "sagan, c",
+      "year": 1980,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:nature",
+        "topic:science",
+        "topic:travel",
+        "topic:memory",
+        "section:500"
+      ]
+    },
+    {
+      "id": "meditations",
+      "groupKey": "pack:meditations",
+      "title": "Meditations",
+      "subtitle": null,
+      "author": "Marcus Aurelius",
+      "authorKey": "aurelius, m",
+      "year": 180,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:ideas",
+        "topic:power",
+        "topic:work",
+        "topic:faith",
+        "section:100"
+      ]
+    },
+    {
+      "id": "mans-search",
+      "groupKey": "pack:mans-search",
+      "title": "Man's Search for Meaning",
+      "subtitle": null,
+      "author": "Viktor Frankl",
+      "authorKey": "frankl, v",
+      "year": 1946,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:ideas",
+        "topic:survival",
+        "topic:faith",
+        "topic:memory",
+        "section:100"
+      ]
+    },
+    {
+      "id": "thinking-fast-slow",
+      "groupKey": "pack:thinking-fast-slow",
+      "title": "Thinking, Fast and Slow",
+      "subtitle": null,
+      "author": "Daniel Kahneman",
+      "authorKey": "kahneman, d",
+      "year": 2011,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:ideas",
+        "topic:science",
+        "topic:money",
+        "topic:work",
+        "section:100"
+      ]
+    },
+    {
+      "id": "myth-sisyphus",
+      "groupKey": "pack:myth-sisyphus",
+      "title": "The Myth of Sisyphus",
+      "subtitle": null,
+      "author": "Albert Camus",
+      "authorKey": "camus, a",
+      "year": 1942,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:ideas",
+        "topic:work",
+        "topic:identity",
+        "topic:faith",
+        "section:100"
+      ]
+    },
+    {
+      "id": "how-to-live",
+      "groupKey": "pack:how-to-live",
+      "title": "How to Live",
+      "subtitle": null,
+      "author": "Sarah Bakewell",
+      "authorKey": "bakewell, s",
+      "year": 2010,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:ideas",
+        "topic:identity",
+        "topic:books",
+        "topic:memory",
+        "section:100"
+      ]
+    },
+    {
+      "id": "ways-of-seeing",
+      "groupKey": "pack:ways-of-seeing",
+      "title": "Ways of Seeing",
+      "subtitle": null,
+      "author": "John Berger",
+      "authorKey": "berger, j",
+      "year": 1972,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:art",
+        "topic:art",
+        "topic:class",
+        "topic:power",
+        "section:700"
+      ]
+    },
+    {
+      "id": "steal-like-artist",
+      "groupKey": "pack:steal-like-artist",
+      "title": "Steal Like an Artist",
+      "subtitle": null,
+      "author": "Austin Kleon",
+      "authorKey": "kleon, a",
+      "year": 2012,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:art",
+        "topic:art",
+        "topic:work",
+        "topic:books",
+        "section:700"
+      ]
+    },
+    {
+      "id": "just-kids",
+      "groupKey": "pack:just-kids",
+      "title": "Just Kids",
+      "subtitle": null,
+      "author": "Patti Smith",
+      "authorKey": "smith, p",
+      "year": 2010,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:art",
+        "topic:art",
+        "topic:friendship",
+        "topic:cities",
+        "section:700"
+      ]
+    },
+    {
+      "id": "creative-act",
+      "groupKey": "pack:creative-act",
+      "title": "The Creative Act",
+      "subtitle": null,
+      "author": "Rick Rubin",
+      "authorKey": "rubin, r",
+      "year": 2023,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:art",
+        "topic:art",
+        "topic:work",
+        "topic:identity",
+        "section:700"
+      ]
+    },
+    {
+      "id": "understanding-comics",
+      "groupKey": "pack:understanding-comics",
+      "title": "Understanding Comics",
+      "subtitle": null,
+      "author": "Scott McCloud",
+      "authorKey": "mccloud, s",
+      "year": 1993,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:art",
+        "topic:art",
+        "topic:books",
+        "topic:identity",
+        "section:700"
+      ]
+    },
+    {
+      "id": "salt-fat-acid-heat",
+      "groupKey": "pack:salt-fat-acid-heat",
+      "title": "Salt, Fat, Acid, Heat",
+      "subtitle": null,
+      "author": "Samin Nosrat",
+      "authorKey": "nosrat, s",
+      "year": 2017,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:food",
+        "topic:family",
+        "topic:science",
+        "topic:art",
+        "section:600"
+      ]
+    },
+    {
+      "id": "kitchen-confidential",
+      "groupKey": "pack:kitchen-confidential",
+      "title": "Kitchen Confidential",
+      "subtitle": null,
+      "author": "Anthony Bourdain",
+      "authorKey": "bourdain, a",
+      "year": 2000,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:food",
+        "topic:work",
+        "topic:cities",
+        "topic:class",
+        "section:600"
+      ]
+    },
+    {
+      "id": "jerusalem",
+      "groupKey": "pack:jerusalem",
+      "title": "Jerusalem",
+      "subtitle": null,
+      "author": "Yotam Ottolenghi and Sami Tamimi",
+      "authorKey": "tamimi, y",
+      "year": 2012,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:food",
+        "topic:cities",
+        "topic:family",
+        "topic:memory",
+        "section:600"
+      ]
+    },
+    {
+      "id": "cooked",
+      "groupKey": "pack:cooked",
+      "title": "Cooked",
+      "subtitle": null,
+      "author": "Michael Pollan",
+      "authorKey": "pollan, m",
+      "year": 2013,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:food",
+        "topic:science",
+        "topic:nature",
+        "topic:work",
+        "section:600"
+      ]
+    },
+    {
+      "id": "food-lab",
+      "groupKey": "pack:food-lab",
+      "title": "The Food Lab",
+      "subtitle": null,
+      "author": "J. Kenji López-Alt",
+      "authorKey": "lópez-alt, j",
+      "year": 2015,
+      "formats": [],
+      "contentType": "NONFICTION",
+      "audience": "ADULT",
+      "language": null,
+      "callNumber": null,
+      "series": [],
+      "facets": [
+        "genre:food",
+        "topic:science",
+        "topic:work",
+        "topic:family",
+        "section:600"
       ]
     }
   ]

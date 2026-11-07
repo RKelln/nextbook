@@ -110,11 +110,12 @@ test('sections() on the real slice gives the parts of the library, with labels',
   const nb = full();
   const sections = plain(nb.pool.sections());
 
-  assert.ok(sections.length >= 6, 'at least six sections (got ' + sections.length + ')');
-  // The six the pack gives, plus section:800, which the found record of The Dispossessed
+  assert.ok(sections.length >= 12, 'at least twelve sections (got ' + sections.length + ')');
+  // The twelve the pack gives, plus section:800, which the found record of The Dispossessed
   // brought with it (one of its manifestations has a Dewey call number).
   assert.deepStrictEqual(sections.map((s) => s.facet), [
-    'section:300', 'section:800', 'section:900', 'section:fantasy', 'section:fiction', 'section:mystery',
+    'section:100', 'section:300', 'section:500', 'section:600', 'section:700', 'section:800', 'section:900',
+    'section:fantasy', 'section:fiction', 'section:horror', 'section:mystery', 'section:romance',
     'section:science-fiction',
   ]);
   sections.forEach((s) => {

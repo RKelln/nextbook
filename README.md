@@ -70,13 +70,13 @@ nothing at all about a pick, or reaches for the network, a clock or the DOM.
 
 ## Bring your own books
 
-The app starts from a snapshot, not a live catalogue: `data/slice.json` is 30 real books taken from a reading pack
+The app starts from a snapshot, not a live catalogue: `data/slice.json` is 60 real books taken from a reading pack
 (not yet matched to the catalogue, so their links are searches), and `data/tags.json` is our own facet words for them. Two ways to make it yours:
 
 - **A pack you write** (books, genres, themes, mood, pace) → `adapters/pack/pack_to_slice.py`. The pack that made
   this repo's data is `data/pack/books.json`; put yours there, or point `NEXTBOOK_PACK` at it, and run the converter.
   `python3 tools/gen_data.py` then regenerates `app/data/*.js`.
-The thirty books that ship were hand-tagged from a reading pack, so their cards open the catalogue's search for the
+The sixty books that ship were hand-tagged from a reading pack, so their cards open the catalogue's search for the
 title. The catalogue's own record pages arrive through the adapter below, or through `tools/find.py` when a person
 asks for a search.
 

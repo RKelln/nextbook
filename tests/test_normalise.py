@@ -240,7 +240,7 @@ class PackConfigAgreesWithThisConfig(unittest.TestCase):
     def test_every_label_matches_character_for_character(self):
         path = Path(__file__).resolve().parent.parent / "adapters" / "pack" / "config.json"
         table = json.loads(path.read_text(encoding="utf-8"))["genreToSection"]
-        self.assertEqual(len(table), 10, sorted(table))
+        self.assertEqual(len(table), 12, sorted(table))
         for genre, entry in table.items():
             self.assertIsInstance(entry["label"], str, genre)
             self.assertEqual(entry["label"], n.section_label("section:" + entry["key"]),
