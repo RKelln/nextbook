@@ -25,5 +25,7 @@ Find books for the person, using the words they gave: $ARGUMENTS
    - if nothing was added, why: they were already in the list, or the library would not answer.
 6. If the page is being served by `python3 tools/serve.py`, it reloads itself when `app/data/found.js` changes, so
    the books appear on their own. Say that; do not tell them to press anything.
-7. Do not do these: fetch a second page, add a book the library did not return, edit `data/found.json` or
+7. Titles the library has only on order are left out on purpose (nobody can borrow them yet). Do not add
+   `--include-on-order` unless they ask for new, not-yet-arrived books.
+8. Do not do these: fetch a second page, add a book the library did not return, edit `data/found.json` or
    `app/data/found.js` by hand, or run `--clear` unless they ask to start over.

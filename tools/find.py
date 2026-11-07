@@ -255,6 +255,15 @@ def _refuse_forbidden(value, where="found") -> None:
             _refuse_forbidden(child, where)
 
 
+# Titles the library has only on order have no call number and nobody has read them, so they are a poor
+# thing to recommend. They are left out unless the person asks for them (`--include-on-order`).
+INCLUDE_ON_ORDER = False
+
+
+def is_on_order(work: dict) -> bool:
+    return "ON ORDER" in " ".join(str(work.get("callNumber") or "").split()).upper()
+
+
 def merge(doc: dict, known: set, page_works, query: str, seen: set,
           slice_keys=None):
     """Add the works this file does not have yet.
@@ -270,6 +279,8 @@ def merge(doc: dict, known: set, page_works, query: str, seen: set,
     already = 0
     linked = 0
     for work, labels in page_works:
+        if is_on_order(work) and not INCLUDE_ON_ORDER:
+            continue  # not on the shelves yet
         keys = identities(work)
         if keys & seen:
             continue  # the same book again on a later page
@@ -773,6 +784,8 @@ def _parse(argv):
                         help=("with --from-shelf, also write app/data/inbox.js for the books "
                               "this run matched, so the page takes their new record ids "
                               "without another import"))
+    parser.add_argument("--include-on-order", action="store_true",
+                        help="also keep titles the library has only on order (left out by default)")
     parser.add_argument("--clear", action="store_true", help="empty data/found.json and stop")
     parser.add_argument("--data-dir", default=str(DATA_DIR),
                         help="where found.json lives (default: data/)")
@@ -783,6 +796,8 @@ def _parse(argv):
 
 def main(argv=None) -> int:
     parser, args = _parse(argv)
+    global INCLUDE_ON_ORDER
+    INCLUDE_ON_ORDER = bool(args.include_on_order)
     if args.write_inbox and not args.from_shelf:
         parser.error("--write-inbox only works with --from-shelf")
     if args.clear:

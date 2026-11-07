@@ -146,8 +146,8 @@ class ItAddsWorks(FindTestCase):
         result = self.run_find(words="le guin")
         doc = self.found()
         self.assertEqual(doc["schema"], "nextbook/found-1")
-        self.assertEqual(len(doc["works"]), 12)
-        self.assertEqual(result["added"], 12)
+        self.assertEqual(len(doc["works"]), 11)
+        self.assertEqual(result["added"], 11)
         for work in doc["works"]:
             self.assertTrue(work["facets"], work["title"])
             self.assertEqual(work["found"], {"query": "le guin"})
@@ -158,7 +158,7 @@ class ItAddsWorks(FindTestCase):
             self.assertTrue(entry["label"])
             self.assertGreaterEqual(entry["works"], 1)
         self.assertEqual(doc["searches"][0]["query"], "le guin")
-        self.assertEqual(doc["searches"][0]["works"], 12)
+        self.assertEqual(doc["searches"][0]["works"], 11)
         self.assertEqual(doc["searches"][0]["fetched"], "2026-11-07T11:40:00Z")
 
     def test_a_book_already_on_the_list_keeps_its_library_record(self):
@@ -185,11 +185,11 @@ class ItAddsWorks(FindTestCase):
         self.assertEqual(record["callNumber"], brief["callNumber"])
         self.assertEqual(record["found"], {"query": "le guin"})
 
-        self.assertEqual(len(self.found()["works"]), 12)
-        self.assertEqual(result["added"], 12)
+        self.assertEqual(len(self.found()["works"]), 11)
+        self.assertEqual(result["added"], 11)
         self.assertEqual(result["linked"], 3)
         self.assertEqual(result["known"], 0)
-        self.assertIn("Added 12 books. 3 were already in your list and now have "
+        self.assertIn("Added 11 books. 3 were already in your list and now have "
                       "their page at the library.", self.output)
 
     def test_the_three_strongest_subjects_are_printed(self):
@@ -197,7 +197,7 @@ class ItAddsWorks(FindTestCase):
         self.assertEqual([label for label, _ in result["subjects"]],
                          ["science fiction", "fantasy", "magic"])
         self.assertEqual(len(result["subjects"]), 3)
-        self.assertIn("Strongest subjects: science fiction (13), fantasy (6), magic (5).",
+        self.assertIn("Strongest subjects: science fiction (12), fantasy (6), magic (5).",
                       self.output)
         for label, count in result["subjects"]:
             self.assertGreater(count, 0)
@@ -223,7 +223,7 @@ class ItAddsWorks(FindTestCase):
         before = self.found_path.read_text(encoding="utf-8")
         result = self.run_find(words="le guin")
         self.assertEqual(result["added"], 0)
-        self.assertEqual(result["known"], 12)
+        self.assertEqual(result["known"], 11)
         self.assertEqual(result["linked"], 0)
         self.assertEqual(self.found_path.read_text(encoding="utf-8"), before)
         self.assertEqual(len(self.found()["searches"]), 1)
@@ -247,7 +247,7 @@ class ItAddsWorks(FindTestCase):
         self.assertNotIn(">", text)
         self.assertNotIn("&", text)
         body = text[len("Nextbook.data.put('found', "):-3]
-        self.assertEqual(len(json.loads(body)["works"]), 12)
+        self.assertEqual(len(json.loads(body)["works"]), 11)
 
 
 class ItKeepsThePersonSafe(FindTestCase):
@@ -376,6 +376,21 @@ class TheSmallPieces(unittest.TestCase):
                                 capture_output=True, text=True)
         self.assertEqual(result.returncode, 0, result.stderr)
         self.assertIn("data/found.json", result.stdout.strip())
+
+
+class OnOrderTitles(unittest.TestCase):
+    def test_a_title_on_order_is_left_out_unless_asked_for(self):
+        on_order = {"id": "S1", "title": "Not Here Yet", "author": "A Writer", "authorKey": "writer, a",
+                    "callNumber": "ON ORDER", "facets": [], "groupKey": "g1"}
+        shelved = dict(on_order, id="S2", title="On The Shelf", groupKey="g2", callNumber="FIC WRI")
+        for include, expected in ((False, ["S2"]), (True, ["S1", "S2"])):
+            find.INCLUDE_ON_ORDER = include
+            try:
+                doc = {}
+                added, _, _ = find.merge(doc, set(), [(on_order, {}), (shelved, {})], "x", set())
+            finally:
+                find.INCLUDE_ON_ORDER = False
+            self.assertEqual(sorted(w["id"] for w in added), expected)
 
 
 if __name__ == "__main__":
