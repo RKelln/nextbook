@@ -86,6 +86,12 @@ class PackAgreesWithSlice(unittest.TestCase):
                          "https://tpl.bibliocommons.com/v2/search?searchType=keyword&query={q}")
         self.assertEqual(library["idPattern"], "^[a-z0-9-]+$")
 
+    def test_library_names_its_live_events_service(self):
+        events = SLICE["library"]["events"]
+        self.assertEqual(events["service"], "togather")
+        self.assertTrue(events["apiUrl"].startswith("https://"))
+        self.assertGreaterEqual(len(events["organizerIds"]), 1)
+
     def test_formats_are_written_out_empty(self):
         for work in SLICE["works"]:
             self.assertEqual(work["formats"], [], work["id"])

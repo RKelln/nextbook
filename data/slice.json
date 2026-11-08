@@ -13,6 +13,16 @@
       "inProgress": "/collection/show/my/library/in_progress",
       "completed": "/collection/show/my/library/completed",
       "checkedOut": "/checkedout"
+    },
+    "events": {
+      "service": "togather",
+      "apiUrl": "https://staging.toronto.togather.foundation/api/v1/events",
+      "organizerIds": [
+        "01M51EX7N027Y067TVWNQKVE2H",
+        "01M51EX7S492R52H059SCZ80J7",
+        "01M51EX88CM0ZH2E878T5XBNCC"
+      ],
+      "days": 21
     }
   },
   "fetched": "2026-11-03",

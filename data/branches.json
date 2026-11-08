@@ -1,0 +1,650 @@
+{
+ "fetched": "2026-10-23",
+ "source": "https://gateway.bibliocommons.com/v2/libraries/tpl/rss/events",
+ "branches": [
+  {
+   "code": "AG",
+   "name": "Agincourt",
+   "street": "Bonis Ave",
+   "lat": 43.785235,
+   "lon": -79.2934973
+  },
+  {
+   "code": "ACD",
+   "name": "Albert Campbell",
+   "street": "Birchmount Road",
+   "lat": 43.7080744,
+   "lon": -79.2692964
+  },
+  {
+   "code": "AB",
+   "name": "Albion",
+   "street": "Albion Road",
+   "lat": 43.7399466,
+   "lon": -79.58481189999999
+  },
+  {
+   "code": "AD",
+   "name": "Alderwood",
+   "street": "Orianna Drive",
+   "lat": 43.6017737,
+   "lon": -79.5478411
+  },
+  {
+   "code": "AN",
+   "name": "Annette Street",
+   "street": "Annette Street",
+   "lat": 43.6632966,
+   "lon": -79.4663667
+  },
+  {
+   "code": "AH",
+   "name": "Armour Heights",
+   "street": "Avenue Road",
+   "lat": 43.7393349,
+   "lon": -79.4219493
+  },
+  {
+   "code": "BF",
+   "name": "Barbara Frum",
+   "street": "Covington Road",
+   "lat": 43.7207918,
+   "lon": -79.4321866
+  },
+  {
+   "code": "BE",
+   "name": "Beaches",
+   "street": "Queen Street East",
+   "lat": 43.6700817,
+   "lon": -79.2984962
+  },
+  {
+   "code": "BD",
+   "name": "Bendale",
+   "street": "Danforth Road",
+   "lat": 43.7510939,
+   "lon": -79.24404170000001
+  },
+  {
+   "code": "BC",
+   "name": "Black Creek",
+   "street": "Wilson Avenue",
+   "lat": 43.7214385,
+   "lon": -79.5115958
+  },
+  {
+   "code": "BL",
+   "name": "Bloor/Gladstone",
+   "street": "Bloor Street West",
+   "lat": 43.6598954,
+   "lon": -79.43409969999999
+  },
+  {
+   "code": "BR",
+   "name": "Brentwood",
+   "street": "Brentwood Road North",
+   "lat": 43.6473973,
+   "lon": -79.5142792
+  },
+  {
+   "code": "BRW",
+   "name": "Bridlewood",
+   "street": "Warden Avenue",
+   "lat": 43.799403054169865,
+   "lon": -79.31866331111449
+  },
+  {
+   "code": "BB",
+   "name": "Brookbanks",
+   "street": "Brookbanks Drive",
+   "lat": 43.7595604,
+   "lon": -79.3259003
+  },
+  {
+   "code": "BUR",
+   "name": "Burrows Hall",
+   "street": "Progress Ave",
+   "lat": 43.7939492,
+   "lon": -79.23422219999999
+  },
+  {
+   "code": "CH",
+   "name": "City Hall",
+   "street": "Queen Street West",
+   "lat": 43.6534249,
+   "lon": -79.3840823
+  },
+  {
+   "code": "CC",
+   "name": "Cliffcrest",
+   "street": "Kingston Road",
+   "lat": 43.7256276,
+   "lon": -79.23035639999999
+  },
+  {
+   "code": "CS",
+   "name": "College/Shaw",
+   "street": "College Street",
+   "lat": 43.6551193,
+   "lon": -79.4201454
+  },
+  {
+   "code": "DA",
+   "name": "Danforth/Coxwell",
+   "street": "Danforth Ave",
+   "lat": 43.6836192,
+   "lon": -79.32140849999999
+  },
+  {
+   "code": "DGH",
+   "name": "Daniel G. Hill",
+   "street": "Jane Street",
+   "lat": 43.6654534,
+   "lon": -79.4914357
+  },
+  {
+   "code": "DT",
+   "name": "Davenport",
+   "street": "Shaw Street",
+   "lat": 43.67455520000001,
+   "lon": -79.4284332
+  },
+  {
+   "code": "DP",
+   "name": "Deer Park",
+   "street": "St. Clair Avenue East",
+   "lat": 43.6887383,
+   "lon": -79.3925082
+  },
+  {
+   "code": "DM",
+   "name": "Don Mills",
+   "street": "Lawrence Avenue East",
+   "lat": 43.7366527,
+   "lon": -79.3473537
+  },
+  {
+   "code": "DO",
+   "name": "Downsview",
+   "street": "Keele Street",
+   "lat": 43.7288401,
+   "lon": -79.4820428
+  },
+  {
+   "code": "DU",
+   "name": "Dufferin/St.Clair",
+   "street": "Dufferin Street",
+   "lat": 43.6769841,
+   "lon": -79.4423807
+  },
+  {
+   "code": "EA",
+   "name": "Eatonville",
+   "street": "Burnhampthorpe Road",
+   "lat": 43.6462138,
+   "lon": -79.55957839999999
+  },
+  {
+   "code": "ES",
+   "name": "Eglinton Square",
+   "street": "Eglinton Square, Unit 126",
+   "lat": 43.723384399108085,
+   "lon": -79.29939116011886
+  },
+  {
+   "code": "EB",
+   "name": "Elmbrook Park",
+   "street": "Elmbrook Crescent",
+   "lat": 43.6601116,
+   "lon": -79.5839345
+  },
+  {
+   "code": "EN",
+   "name": "Ethennonnhawahstihnen'",
+   "street": "Ethennonnhawahstihnen' Lane",
+   "lat": 43.76871999999999,
+   "lon": -79.3758
+  },
+  {
+   "code": "EG",
+   "name": "Evelyn Gregory",
+   "street": "Trowell Avenue",
+   "lat": 43.68631630000001,
+   "lon": -79.4723391
+  },
+  {
+   "code": "FV",
+   "name": "Fairview",
+   "street": "Fairview Mall Drive",
+   "lat": 43.7790599,
+   "lon": -79.3468197
+  },
+  {
+   "code": "FP",
+   "name": "Flemingdon Park",
+   "street": "St. Dennis Drive",
+   "lat": 43.7179325,
+   "lon": -79.331811
+  },
+  {
+   "code": "FH",
+   "name": "Forest Hill",
+   "street": "Eglinton Avenue West",
+   "lat": 43.70234970000001,
+   "lon": -79.4207275
+  },
+  {
+   "code": "FO",
+   "name": "Fort York",
+   "street": "Fort York Boulevard",
+   "lat": 43.6393148,
+   "lon": -79.4003321
+  },
+  {
+   "code": "GE",
+   "name": "Gerrard/Ashdale",
+   "street": "Gerrard Street East",
+   "lat": 43.6725781,
+   "lon": -79.32211819999999
+  },
+  {
+   "code": "GHP",
+   "name": "Goldhawk Park",
+   "street": "Alton Towers Circle",
+   "lat": 43.82404529999999,
+   "lon": -79.27807000000001
+  },
+  {
+   "code": "GW",
+   "name": "Guildwood",
+   "street": "Guildwood Parkway",
+   "lat": 43.7470939,
+   "lon": -79.1995321
+  },
+  {
+   "code": "HP",
+   "name": "High Park",
+   "street": "Roncesvalles Avenue",
+   "lat": 43.6451162,
+   "lon": -79.44896399999999
+  },
+  {
+   "code": "HC",
+   "name": "Highland Creek",
+   "street": "Ellesmere Road",
+   "lat": 43.7900421,
+   "lon": -79.1752023
+  },
+  {
+   "code": "HIL",
+   "name": "Hillcrest",
+   "street": "Leslie Street",
+   "lat": 43.7970469,
+   "lon": -79.3690381
+  },
+  {
+   "code": "HS",
+   "name": "Humber Summit",
+   "street": "Islington Avenue",
+   "lat": 43.7590426,
+   "lon": -79.5715992
+  },
+  {
+   "code": "HW",
+   "name": "Humberwood",
+   "street": "Humberwood Boulevard",
+   "lat": 43.7288863,
+   "lon": -79.6190467
+  },
+  {
+   "code": "JS",
+   "name": "Jane/Sheppard",
+   "street": "Sheppard Avenue West",
+   "lat": 43.7399911,
+   "lon": -79.51010459999999
+  },
+  {
+   "code": "JO",
+   "name": "Jones",
+   "street": "Jones Avenue",
+   "lat": 43.6659465,
+   "lon": -79.3345198
+  },
+  {
+   "code": "JT",
+   "name": "Junction Triangle",
+   "street": "Campbell Avenue",
+   "lat": 43.6658048,
+   "lon": -79.4497289
+  },
+  {
+   "code": "KE",
+   "name": "Kennedy/Eglinton",
+   "street": "Eglinton Avenue East",
+   "lat": 43.7323055,
+   "lon": -79.27028039999999
+  },
+  {
+   "code": "LE",
+   "name": "Leaside",
+   "street": "McRae Drive",
+   "lat": 43.7062979,
+   "lon": -79.3677821
+  },
+  {
+   "code": "LS",
+   "name": "Lillian H. Smith",
+   "street": "College Street",
+   "lat": 43.6579668,
+   "lon": -79.39830189999999
+  },
+  {
+   "code": "LO",
+   "name": "Locke",
+   "street": "Yonge Street",
+   "lat": 43.7248617,
+   "lon": -79.4017205
+  },
+  {
+   "code": "LB",
+   "name": "Long Branch",
+   "street": "Lake Shore Boulevard West",
+   "lat": 43.5952487,
+   "lon": -79.531408
+  },
+  {
+   "code": "MA",
+   "name": "Main Street",
+   "street": "Main Street",
+   "lat": 43.6834513,
+   "lon": -79.2995033
+  },
+  {
+   "code": "MAL",
+   "name": "Malvern",
+   "street": "Sewells Road",
+   "lat": 43.8089406,
+   "lon": -79.2164074
+  },
+  {
+   "code": "MAS",
+   "name": "Maria A. Shchuka",
+   "street": "Eglinton Avenue West",
+   "lat": 43.6960925,
+   "lon": -79.4472591
+  },
+  {
+   "code": "MRV",
+   "name": "Maryvale",
+   "street": "Ellesmere Road, Unit 22",
+   "lat": 43.757348049125646,
+   "lon": -79.31156936354598
+  },
+  {
+   "code": "MCG",
+   "name": "McGregor Park",
+   "street": "Lawrence Avenue East",
+   "lat": 43.7479319,
+   "lon": -79.280962
+  },
+  {
+   "code": "MI",
+   "name": "Mimico Centennial",
+   "street": "Station Road",
+   "lat": 43.6147991,
+   "lon": -79.4937116
+  },
+  {
+   "code": "MS",
+   "name": "Morningside",
+   "street": "Lawrence Avenue East",
+   "lat": 43.7698486,
+   "lon": -79.1784385
+  },
+  {
+   "code": "MD",
+   "name": "Mount Dennis",
+   "street": "Weston Road",
+   "lat": 43.6866495,
+   "lon": -79.4881846
+  },
+  {
+   "code": "MP",
+   "name": "Mount Pleasant",
+   "street": "Mt. Pleasant Road",
+   "lat": 43.7039676,
+   "lon": -79.38805359999999
+  },
+  {
+   "code": "NT",
+   "name": "New Toronto",
+   "street": "Eleventh Street",
+   "lat": 43.5990523,
+   "lon": -79.5098493
+  },
+  {
+   "code": "CL",
+   "name": "North York Central Library",
+   "street": "Yonge Street",
+   "lat": 43.7681656,
+   "lon": -79.41388859999999
+  },
+  {
+   "code": "ND",
+   "name": "Northern District",
+   "street": "Orchard View Boulevard",
+   "lat": 43.7081884,
+   "lon": -79.3997234
+  },
+  {
+   "code": "NE",
+   "name": "Northern Elms",
+   "street": "Rexdale Boulevard, Unit 5",
+   "lat": 43.7108743,
+   "lon": -79.5653706
+  },
+  {
+   "code": "OV",
+   "name": "Oakwood Village Library and Arts Centre",
+   "street": "Oakwood Avenue",
+   "lat": 43.6865894,
+   "lon": -79.4380831
+  },
+  {
+   "code": "PM",
+   "name": "Palmerston",
+   "street": "Palmerston Avenue",
+   "lat": 43.6651019,
+   "lon": -79.41415740000001
+  },
+  {
+   "code": "PA",
+   "name": "Pape/Danforth",
+   "street": "Pape Avenue",
+   "lat": 43.6786237,
+   "lon": -79.34442150000001
+  },
+  {
+   "code": "PK",
+   "name": "Parkdale",
+   "street": "Queen Street West",
+   "lat": 43.6411423,
+   "lon": -79.4326474
+  },
+  {
+   "code": "PL",
+   "name": "Parliament Street",
+   "street": "Gerrard Street East",
+   "lat": 43.6618438,
+   "lon": -79.3680718
+  },
+  {
+   "code": "PU",
+   "name": "Port Union",
+   "street": "Lawrence Avenue East",
+   "lat": 43.7796722,
+   "lon": -79.14028379999999
+  },
+  {
+   "code": "QS",
+   "name": "Queen/Saulter",
+   "street": "Queen Street East",
+   "lat": 43.659131,
+   "lon": -79.3475824
+  },
+  {
+   "code": "RX",
+   "name": "Rexdale",
+   "street": "Kipling Avenue",
+   "lat": 43.7261481,
+   "lon": -79.5732175
+  },
+  {
+   "code": "RI",
+   "name": "Richview",
+   "street": "Islington Avenue",
+   "lat": 43.6834225,
+   "lon": -79.5411615
+  },
+  {
+   "code": "RD",
+   "name": "Riverdale",
+   "street": "Broadview Avenue",
+   "lat": 43.6658116,
+   "lon": -79.3531631
+  },
+  {
+   "code": "RN",
+   "name": "Runnymede",
+   "street": "Bloor Street West",
+   "lat": 43.6519739,
+   "lon": -79.47391739999999
+  },
+  {
+   "code": "SWS",
+   "name": "S. Walter Stewart",
+   "street": "Memorial Park Avenue",
+   "lat": 43.6921393,
+   "lon": -79.329711
+  },
+  {
+   "code": "SC",
+   "name": "Scarborough Civic Centre",
+   "street": "Borough Drive",
+   "lat": 43.7723665,
+   "lon": -79.2570444
+  },
+  {
+   "code": "SP",
+   "name": "Spadina Road",
+   "street": "Spadina Road",
+   "lat": 43.6676472,
+   "lon": -79.4046566
+  },
+  {
+   "code": "SI",
+   "name": "St. Clair/Silverthorn",
+   "street": "St. Clair Avenue West",
+   "lat": 43.6742898,
+   "lon": -79.4605991
+  },
+  {
+   "code": "SJ",
+   "name": "St. James Town",
+   "street": "Sherbourne Street",
+   "lat": 43.6677061,
+   "lon": -79.374601
+  },
+  {
+   "code": "SL",
+   "name": "St. Lawrence",
+   "street": "Front Street East",
+   "lat": 43.65007809999999,
+   "lon": -79.36831459999999
+  },
+  {
+   "code": "ST",
+   "name": "Steeles",
+   "street": "Bamburgh Circle",
+   "lat": 43.815527,
+   "lon": -79.3221013
+  },
+  {
+   "code": "SW",
+   "name": "Swansea Memorial",
+   "street": "Lavinia Avenue",
+   "lat": 43.6476505,
+   "lon": -79.4778144
+  },
+  {
+   "code": "TA",
+   "name": "Taylor Memorial",
+   "street": "Kingston Road",
+   "lat": 43.68783450000001,
+   "lon": -79.27132089999999
+  },
+  {
+   "code": "TH",
+   "name": "Thorncliffe",
+   "street": "Thorncliffe Park Drive",
+   "lat": 43.7029316,
+   "lon": -79.3427304
+  },
+  {
+   "code": "TRL",
+   "name": "Toronto Reference Library",
+   "street": "Yonge Street",
+   "lat": 43.6718136,
+   "lon": -79.38674379999999
+  },
+  {
+   "code": "VV",
+   "name": "Victoria Village",
+   "street": "Sloane Avenue",
+   "lat": 43.73603240000001,
+   "lon": -79.31293079999999
+  },
+  {
+   "code": "WE",
+   "name": "Weston",
+   "street": "King Street",
+   "lat": 43.7017009,
+   "lon": -79.5206752
+  },
+  {
+   "code": "WS",
+   "name": "Woodside Square",
+   "street": "Sandhurst Circle",
+   "lat": 43.808824,
+   "lon": -79.2695761
+  },
+  {
+   "code": "WP",
+   "name": "Woodview Park",
+   "street": "Bradstock Road",
+   "lat": 43.73972699999999,
+   "lon": -79.5384661
+  },
+  {
+   "code": "WY",
+   "name": "Wychwood",
+   "street": "Bathurst Street",
+   "lat": 43.68223039999999,
+   "lon": -79.4176761
+  },
+  {
+   "code": "YW",
+   "name": "York Woods",
+   "street": "Finch Avenue West",
+   "lat": 43.75889979999999,
+   "lon": -79.5073389
+  },
+  {
+   "code": "YO",
+   "name": "Yorkville",
+   "street": "Yorkville Avenue",
+   "lat": 43.6720537,
+   "lon": -79.38869129999999
+  }
+ ]
+}
