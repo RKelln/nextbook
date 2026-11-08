@@ -32,6 +32,9 @@
 <script src="core/library-shelf.js"></script>
 <!-- Reads the helper's note (data/inbox.js); core/shell.js applies it once at boot. -->
 <script src="core/inbox.js"></script>
+<!-- The only network code: it asks the library's events service for the list, and only once the
+     person has said yes on the events screen. Never in a workshop copy. -->
+<script src="core/net.js"></script>
 <script src="data/slice.js"></script>
 <script src="data/tags.js"></script>
 <script src="data/practice.js"></script>
