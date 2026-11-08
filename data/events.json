@@ -1,400 +1,12 @@
 {
- "fetched": "2026-11-03T20:06:45-05:00",
+ "fetched": "2026-11-08T18:21:11-05:00",
  "branch": "CL",
  "window": {
-  "start": "2026-11-03",
-  "end": "2026-11-24"
+  "start": "2026-11-08",
+  "end": "2026-11-29"
  },
- "source": "gateway.bibliocommons.com/v2/libraries/tpl/rss/events?locations=CL&startDate=2026-11-03&endDate=2026-11-24&page=1",
+ "source": "gateway.bibliocommons.com/v2/libraries/tpl/rss/events?locations=CL&startDate=2026-11-08&endDate=2026-11-29&page=1",
  "events": [
-  {
-   "id": "6ace67d09dbc2b002c8e4e4b",
-   "title": "Introduction to Serger Sewing",
-   "start": "2026-11-03T18:00:00",
-   "end": "2026-11-03T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Crafts & Hobbies",
-    "Fabrication Studio",
-    "Adults (18+)",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Learn the basics of operating our serger, the Juki MO-735! In this class we will go over the basic operation and key functions of a serger sewing machine. Threading the machine and safety will be discussed. Between three and five threads are routinely used to sew a seam, trim off the raw edges ...",
-   "url": "https://tpl.bibliocommons.com/events/6ace67d09dbc2b002c8e4e4b"
-  },
-  {
-   "id": "6ab29eda001a4a0e055b2a8f",
-   "title": "Democracy Fitness: Opinion",
-   "start": "2026-11-04T11:30:00",
-   "end": "2026-11-04T12:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Celebrate Democracy",
-    "Civic & Community Engagement",
-    "Adults (18+)",
-    "Younger Adults (18-24)",
-    "English"
-   ],
-   "summary": "Develop and exercise the skills you need to be an active participant in everyday democracy in this fun, interactive 30-minute session. Democracy Fitness expands traditional ideas of what democracy is by exploring the skills that help people participate in civic life, build connection, and work ...",
-   "url": "https://tpl.bibliocommons.com/events/6ab29eda001a4a0e055b2a8f"
-  },
-  {
-   "id": "6ad8defe035faf0033de1279",
-   "title": "Youth Hub: Scholarships 101",
-   "start": "2026-11-04T16:00:00",
-   "end": "2026-11-04T17:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Crafts & Hobbies",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Scholarships are accessible to more students than what is commonly believed. And here is the most important thing: scholarships can be a game changer for a student’s career, their financial well-being, and their or their family’s bank account. Scholarships, grants, and bursaries are available ...",
-   "url": "https://tpl.bibliocommons.com/events/6ad8defe035faf0033de1279"
-  },
-  {
-   "id": "6a9b519baafa61002961b295",
-   "title": "Bring Your Problem: Can AI Help?",
-   "start": "2026-11-04T18:00:00",
-   "end": "2026-11-04T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Innovator in Residence",
-    "Artificial Intelligence",
-    "Adults (18+)",
-    "Older Adults",
-    "Younger Adults (18-24)",
-    "English"
-   ],
-   "summary": "Do you have a recurring problem you think AI might help with? A thing you keep doing by hand that feels like it should be easier? Bring it. If you don't have one, come help your neighbours with theirs. In this interactive class with our Innovator-in-Residence, Ryan Kelln, you'll learn a simple ...",
-   "url": "https://tpl.bibliocommons.com/events/6a9b519baafa61002961b295"
-  },
-  {
-   "id": "6ac1469929c3d600332d6db7",
-   "title": "Kensington Market: Heart of the City -  Documentary Screening Presented by Producer and Director Stuart Clarfield",
-   "start": "2026-11-04T18:00:00",
-   "end": "2026-11-04T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Audio & Visual",
-    "Culture, Arts & Entertainment",
-    "History & Genealogy",
-    "Adults (18+)",
-    "Older Adults",
-    "Teens (13-17)",
-    "Younger Adults (18-24)",
-    "English"
-   ],
-   "summary": "Kensington Market Stuart Clarfield's feature documentary explores Kensington Market's 160-year history, from it origins as a Victorian suburb of Toronto, to its roots as a Jewish immigrant marketplace to its evolution as a cultural hub for almost every community that calls Toronto home. The ...",
-   "url": "https://tpl.bibliocommons.com/events/6ac1469929c3d600332d6db7"
-  },
-  {
-   "id": "6ac3d98f377296003a49dcb1",
-   "title": "Romance Book Club",
-   "start": "2026-11-04T18:30:00",
-   "end": "2026-11-04T19:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Book Clubs",
-    "Adults (18+)",
-    "Older Adults",
-    "Younger Adults (18-24)",
-    "English"
-   ],
-   "summary": "Welcome to the Romance Book Club, where love stories take center stage and every page promises a new adventure of the heart. Whether you're into slow burns, second chances, or enemies-to-lovers, there's something here for every kind of romantic. Come read, swoon, and share your favorite moments ...",
-   "url": "https://tpl.bibliocommons.com/events/6ac3d98f377296003a49dcb1"
-  },
-  {
-   "id": "6aaaf8b265abe8002a79c681",
-   "title": "Talk About Books: A Readers' Social",
-   "start": "2026-11-04T19:00:00",
-   "end": "2026-11-04T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Book Clubs",
-    "Adults (18+)",
-    "English"
-   ],
-   "summary": "Drop in for a bookish chat with fellow readers. No specific reading required! Librarians will share their favourite books on a theme. Then we will have a casual chat about books! Join us to find inspiration for your next read, share your favourite books, and get to know other readers. September ...",
-   "url": "https://tpl.bibliocommons.com/events/6aaaf8b265abe8002a79c681"
-  },
-  {
-   "id": "6ac3fa91c6cddb004595bb06",
-   "title": "Planting Bulbs in the Fall for Spring Glory",
-   "start": "2026-11-05T14:00:00",
-   "end": "2026-11-05T15:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Crafts & Hobbies",
-    "Adults (18+)",
-    "Older Adults",
-    "English"
-   ],
-   "summary": "Planting bulbs in the fall will bring glorious rewards in your spring garden. A Toronto Master Gardener will give advice on what to plant, how to plant them and yes, even a few pointers on squirrels! At the end of the program, bulbs will be given out to attendees, while supplies last. Suitable ...",
-   "url": "https://tpl.bibliocommons.com/events/6ac3fa91c6cddb004595bb06"
-  },
-  {
-   "id": "6a920995392e9c02993ce4a0",
-   "title": "After School Club",
-   "start": "2026-11-05T16:00:00",
-   "end": "2026-11-05T17:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "After School Clubs",
-    "Coding & Robotics",
-    "Crafts & Hobbies",
-    "Culture, Arts & Entertainment",
-    "Science & Engineering",
-    "School Age Children (6-12)",
-    "English"
-   ],
-   "summary": "Looking for something to do after school? Come out to our After School Club and learn new things, make stuff, meet other kids and have fun! For ages 6-12. Snacks are offered during the After School Club for participants. Ingredient lists will be available. Snacks are generously supported, in ...",
-   "url": "https://tpl.bibliocommons.com/events/6a920995392e9c02993ce4a0"
-  },
-  {
-   "id": "6ad8dfa39d27a00045525eea",
-   "title": "Youth Hub: Color & Relax",
-   "start": "2026-11-05T16:00:00",
-   "end": "2026-11-05T18:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Crafts & Hobbies",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Wind down and relax with some colouring. This program is part of Youth Hub service. Youth Hubs are a welcoming place for teens after school and in the summer, where helpful staff are always available. Free, nutritious snacks are offered daily. Drop by a branch with a Youth Hub or call the ...",
-   "url": "https://tpl.bibliocommons.com/events/6ad8dfa39d27a00045525eea"
-  },
-  {
-   "id": "6ac832c4295b3b0033cb0300",
-   "title": "Club de lecture de North York Central Library",
-   "start": "2026-11-05T19:00:00",
-   "end": "2026-11-05T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Book Clubs",
-    "Adults (18+)",
-    "French"
-   ],
-   "summary": "Aimez-vous lire en français? Avez-vous envie de participer à des discussions autour des livres dans une ambiance conviviale et détendue? Rejoignez notre club de lecture en français! Venez échanger vos points de vue, analyser ce qui vous a marqué avec le regard d'autres lecteurs, et faire de ...",
-   "url": "https://tpl.bibliocommons.com/events/6ac832c4295b3b0033cb0300"
-  },
-  {
-   "id": "6ace6a3196ec3a003ada497c",
-   "title": "Sewing Basics",
-   "start": "2026-11-06T10:00:00",
-   "end": "2026-11-06T12:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Fabrication Studio",
-    "Adults (18+)",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Want to learn to sew or would like a refresher on how to use a sewing machine? Our intro to sewing course will cover the basics of threading the machine, basic stitches and more. We will be creating a small pouch. All materials will be provided. Children under 13 must be accompanied by an ...",
-   "url": "https://tpl.bibliocommons.com/events/6ace6a3196ec3a003ada497c"
-  },
-  {
-   "id": "6a774ad19006f7535315d44b",
-   "title": "Tea and Entertainment",
-   "start": "2026-11-06T14:00:00",
-   "end": "2026-11-06T16:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Culture, Arts & Entertainment",
-    "Adults (18+)",
-    "Older Adults",
-    "English"
-   ],
-   "summary": "Enjoy watching DVDs in the Library Auditorium. Coffee, tea and cookies or snacks will be served after the film. Ingredient lists will be available upon request Look Who’s Driving Companies are developing self driving cars and many are already on the road. Are they safer than those driven by ...",
-   "url": "https://tpl.bibliocommons.com/events/6a774ad19006f7535315d44b"
-  },
-  {
-   "id": "6abc386be06996003a80207a",
-   "title": "Wellness Connections: Workshops for Mental Health & Emotional Wellness Part 1",
-   "start": "2026-11-06T14:00:00",
-   "end": "2026-11-06T15:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Social & Crisis Support Services",
-    "Personal Development",
-    "Adults (18+)",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Join us for a series of group workshops for anyone interested in strengthening their mental well-being, understanding their emotions and developing practical strategies for coping with life’s challenges. Part 1: Foundations of Mental Wellness (4 weeks, Every Friday, 2-3:30 pm, Oct 30 - Nov 20 ...",
-   "url": "https://tpl.bibliocommons.com/events/6abc386be06996003a80207a"
-  },
-  {
-   "id": "6ad105d1377296003a4c3259",
-   "title": "Chess Club",
-   "start": "2026-11-06T16:00:00",
-   "end": "2026-11-06T17:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Games & Sports",
-    "School Age Children (6-12)",
-    "English"
-   ],
-   "summary": "Come play Chess and other board games with your friends! This is not an instructional class. All skill levels welcome! For kids ages 6-12. Drop-in. No registration required. Limited spots available.",
-   "url": "https://tpl.bibliocommons.com/events/6ad105d1377296003a4c3259"
-  },
-  {
-   "id": "6ad8e94396ec3a003adc0193",
-   "title": "Youth Hub: Board Game Cafe",
-   "start": "2026-11-06T16:00:00",
-   "end": "2026-11-06T18:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Games & Sports",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Roll the dice and challenge your friends in some classic games! This program is part of Youth Hub service. Youth Hubs are a welcoming place for teens after school and in the summer, where helpful staff are always available. Free, nutritious snacks are offered daily. Drop by a branch with a ...",
-   "url": "https://tpl.bibliocommons.com/events/6ad8e94396ec3a003adc0193"
-  },
-  {
-   "id": "6a95d29d3b6c71003e5caee5",
-   "title": "Culture and Technology Book Club : Killed by a Traffic Engineer",
-   "start": "2026-11-06T19:00:00",
-   "end": "2026-11-06T20:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Book Clubs",
-    "Adults (18+)",
-    "English"
-   ],
-   "summary": "The Culture and Technology Book club brings readers together every two months to discuss new and classic texts that raise important questions about the way technology transforms our cultural and political lives. This meeting we'll discuss: Killed by A Traffic Engineer (also available as an ...",
-   "url": "https://tpl.bibliocommons.com/events/6a95d29d3b6c71003e5caee5"
-  },
-  {
-   "id": "6ad8d6e3f4d1423e2ce4025c",
-   "title": "Excel Basics 2: Do More with your Data",
-   "start": "2026-11-07T10:00:00",
-   "end": "2026-11-07T11:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Computer Basics & Office Software",
-    "Adults (18+)",
-    "Older Adults",
-    "English"
-   ],
-   "summary": "An introductory class on Microsoft Excel for beginners with little or no Excel experience. Build on your basic Microsoft Excel skills and learn to use Excel data effectively. In this second session, you will: Practice data entry and formatting Manipulate rows and columns Create and copy simple ...",
-   "url": "https://tpl.bibliocommons.com/events/6ad8d6e3f4d1423e2ce4025c"
-  },
-  {
-   "id": "6a9b51a1aafa61002961b297",
-   "title": "Vibe Coding: Personal Library App",
-   "start": "2026-11-07T11:00:00",
-   "end": "2026-11-07T13:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Innovator in Residence",
-    "Artificial Intelligence",
-    "Adults (18+)",
-    "Older Adults",
-    "Younger Adults (18-24)",
-    "English"
-   ],
-   "summary": "What if you could build your own personal library app, just by describing it? In this class, you'll use an AI coding assistant to build a small app for your reading life: add books you've read and books you want to read, keep your whole list in one private place, and link each book to the ...",
-   "url": "https://tpl.bibliocommons.com/events/6a9b51a1aafa61002961b297"
-  },
-  {
-   "id": "696a81f51e64afd01e54c28c",
-   "title": "Chess Club for Adults",
-   "start": "2026-11-07T14:00:00",
-   "end": "2026-11-07T15:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Games & Sports",
-    "Adults (18+)",
-    "English"
-   ],
-   "summary": "Join the Society and Recreation department weekly for a friendly game of chess. Bring your friends and family or meet fellow chess enthusiasts to socialize and improve your chess skills. Chess sets are provided onsite. Players of all levels are welcome. For adults and seniors only. There is not ...",
-   "url": "https://tpl.bibliocommons.com/events/696a81f51e64afd01e54c28c"
-  },
-  {
-   "id": "6ab6d9b108693b0f7374a4af",
-   "title": "Recharge your Mind: A Social Wellness Event for Teens and Parents",
-   "start": "2026-11-07T14:00:00",
-   "end": "2026-11-07T16:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Health & Wellness",
-    "Teens (13-17)",
-    "English"
-   ],
-   "summary": "Join us for a fun and supportive day designed to boost social wellness and connection! Teens can explore engaging workshops and activities, including mental skills preparation, art journaling, and creative crafts— meet other teens, and take a relaxing break with therapy dogs. Parents/Caregivers ...",
-   "url": "https://tpl.bibliocommons.com/events/6ab6d9b108693b0f7374a4af"
-  },
-  {
-   "id": "6aea2c11035faf0033e11f13",
-   "title": "Seniors E-Connect",
-   "start": "2026-11-07T14:00:00",
-   "end": "2026-11-07T15:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Computer Basics & Office Software",
-    "Older Adults",
-    "English"
-   ],
-   "summary": "Seniors E-Connect is an intergenerational program that pairs older adults with teen volunteers to provide one-on-one tech help, under the guidance of library staff. Learn the basics of using computers, tablets, smartphones, internet browsing, eBooks, streaming video, apps, and more. Get ...",
-   "url": "https://tpl.bibliocommons.com/events/6aea2c11035faf0033e11f13"
-  },
-  {
-   "id": "6ad1047e377296003a4c31b4",
-   "title": "Sunday Storytime",
-   "start": "2026-11-08T14:00:00",
-   "end": "2026-11-08T14:30:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Ready for Reading Storytimes",
-    "Reading Programs & Storytimes",
-    "Preschool Children (0-5)",
-    "English"
-   ],
-   "summary": "Join us for stories, songs, and rhymes in this program for children ages 5 and under and their parents or caregivers. Drop-in. No registration required.",
-   "url": "https://tpl.bibliocommons.com/events/6ad1047e377296003a4c31b4"
-  },
-  {
-   "id": "6aba74d1101eb7003f33837b",
-   "title": "Introductory Piano: Adult Learning Circles in 4 Sessions",
-   "start": "2026-11-08T15:00:00",
-   "end": "2026-11-08T16:00:00",
-   "branch": "North York Central Library",
-   "virtual": false,
-   "categories": [
-    "Culture, Arts & Entertainment",
-    "Adults (18+)",
-    "English"
-   ],
-   "summary": "Have you ever wanted to learn how to play the piano? If you are 18 years or older, no age limit, join us for four adult learning circles led by a professional pianist. You will learn the basic piano including note recognition, finger placing, and simple songs. There will be opportunities for ...",
-   "url": "https://tpl.bibliocommons.com/events/6aba74d1101eb7003f33837b"
-  },
   {
    "id": "6a748e4b4523092f003520d5",
    "title": "Knit, Crochet & Crafting Circle",
@@ -883,7 +495,7 @@
     "Older Adults",
     "English"
    ],
-   "summary": "November is Make a Will Month and TPL is delighted to host the Ontario Bar Association. Learn about the importance of having a will and powers of attorney for you and your family. Carissa DeMarinis, a member of the Ontario Bar Association who practices Will, Trusts and Estates Law will speak ...",
+   "summary": "November is Make a Will Month, and TPL is delighted to host the Ontario Bar Association. Learn about the importance of having a will and powers of attorney for you and your family. Carissa DeMarinis, a member of the Ontario Bar Association who practices Will, Trusts and Estates Law will speak ...",
    "url": "https://tpl.bibliocommons.com/events/6ade51a4901b02002cc50ea3"
   },
   {
@@ -1360,7 +972,7 @@
    "id": "6adb9934035faf0033de8933",
    "title": "Crafting for Adults: Beaded Banners",
    "start": "2026-11-21T10:00:00",
-   "end": "2026-11-21T11:30:00",
+   "end": "2026-11-21T11:00:00",
    "branch": "North York Central Library",
    "virtual": false,
    "categories": [
@@ -1660,6 +1272,313 @@
    ],
    "summary": "Noirvember is an annual, month-long celebration of film noir. Join the Languages, Literature, and Fine Arts Department for a screening of one of the defining works of the genre, Billy Wilder's Double Indemnity (1944). All are welcome. Drop-in until capacity is reached. Rating: G Release Year ...",
    "url": "https://tpl.bibliocommons.com/events/6ad7aa31901b02002cc3d073"
+  },
+  {
+   "id": "6ad104e4377296003a4c3200",
+   "title": "Baby Time",
+   "start": "2026-11-25T10:00:00",
+   "end": "2026-11-25T10:30:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Ready for Reading Storytimes",
+    "Reading Programs & Storytimes",
+    "Preschool Children (0-5)",
+    "English"
+   ],
+   "summary": "Join us for bouncing rhymes, songs and stories in this program for babies, birth to 18 months, and their parents or caregivers. Drop-in. No registration required.",
+   "url": "https://tpl.bibliocommons.com/events/6ad104e4377296003a4c3200"
+  },
+  {
+   "id": "6ad8e65a9dbc2b002c9014d4",
+   "title": "Youth Hub: Beaded Jewelry",
+   "start": "2026-11-25T16:00:00",
+   "end": "2026-11-25T18:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Crafts & Hobbies",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Create some new accessories for yourself! This program is part of Youth Hub service. Youth Hubs are a welcoming place for teens after school and in the summer, where helpful staff are always available. Free, nutritious snacks are offered daily. Drop by a branch with a Youth Hub or call the ...",
+   "url": "https://tpl.bibliocommons.com/events/6ad8e65a9dbc2b002c9014d4"
+  },
+  {
+   "id": "6ab441253dd190003e741d06",
+   "title": "Card Game Trade & Play",
+   "start": "2026-11-25T18:00:00",
+   "end": "2026-11-25T19:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Crafts & Hobbies",
+    "Games & Sports",
+    "Adults (18+)",
+    "English"
+   ],
+   "summary": "Bring your Pokemon, Magic the Gathering or other trading card game decks and find other players to challenge and exchange cards with. Participants must bring their own specialized trading card decks and are responsible for any trades that take place during the program. This program is for ...",
+   "url": "https://tpl.bibliocommons.com/events/6ab441253dd190003e741d06"
+  },
+  {
+   "id": "6a9b51b13b6c71003e5de7bf",
+   "title": "Vibe Coding: Make Your Own Interactive Story with AI",
+   "start": "2026-11-25T18:00:00",
+   "end": "2026-11-25T20:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Innovator in Residence",
+    "Artificial Intelligence",
+    "Adults (18+)",
+    "Older Adults",
+    "Younger Adults (18-24)",
+    "English"
+   ],
+   "summary": "What if you could write a story where the reader chooses what happens, like a branching adventure, a mystery, or a game, and have AI build it with you? In this class led by our Innovator-in-Residence, Ryan Kelln, you'll learn \"vibe-coding\": using an AI coding assistant to build your own ...",
+   "url": "https://tpl.bibliocommons.com/events/6a9b51b13b6c71003e5de7bf"
+  },
+  {
+   "id": "6ace6cdf035faf0033dc5cd6",
+   "title": "3D Printing: A Primer",
+   "start": "2026-11-26T14:00:00",
+   "end": "2026-11-26T16:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "3D Printing",
+    "Adults (18+)",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Get ready to dive into the exciting world of 3D printing and learn more! PLA? SLS? FDM? STL? OBJ? Are you feeling lost? Do you think a slicer is what you use for carrots? Come learn more about 3d Printing during this 1.5 hour lecture, where you can learn the basics of this widespread ...",
+   "url": "https://tpl.bibliocommons.com/events/6ace6cdf035faf0033dc5cd6"
+  },
+  {
+   "id": "6971158a992fc18a86dead95",
+   "title": "Doodling for Adults Series",
+   "start": "2026-11-26T14:00:00",
+   "end": "2026-11-26T15:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Crafts & Hobbies",
+    "Adults (18+)",
+    "Older Adults",
+    "English"
+   ],
+   "summary": "This program offers adults a space to relax and reconnect with their creativity, enjoying the process at their own pace. There is no class, formal instruction, or need for experience. Various supplies including colouring sheets will be provided. LOCATIONS: February 26 (Room 1) March 26 (Room 1) ...",
+   "url": "https://tpl.bibliocommons.com/events/6971158a992fc18a86dead95"
+  },
+  {
+   "id": "6a920995392e9c02993ce4a3",
+   "title": "After School Club",
+   "start": "2026-11-26T16:00:00",
+   "end": "2026-11-26T17:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "After School Clubs",
+    "Coding & Robotics",
+    "Crafts & Hobbies",
+    "Culture, Arts & Entertainment",
+    "Science & Engineering",
+    "School Age Children (6-12)",
+    "English"
+   ],
+   "summary": "Looking for something to do after school? Come out to our After School Club and learn new things, make stuff, meet other kids and have fun! For ages 6-12. Snacks are offered during the After School Club for participants. Ingredient lists will be available. Snacks are generously supported, in ...",
+   "url": "https://tpl.bibliocommons.com/events/6a920995392e9c02993ce4a3"
+  },
+  {
+   "id": "6ad8e90c035faf0033de14ff",
+   "title": "Youth Hub: Board Game Cafe",
+   "start": "2026-11-26T16:00:00",
+   "end": "2026-11-26T18:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Games & Sports",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Roll the dice and challenge your friends in some classic games! This program is part of Youth Hub service. Youth Hubs are a welcoming place for teens after school and in the summer, where helpful staff are always available. Free, nutritious snacks are offered daily. Drop by a branch with a ...",
+   "url": "https://tpl.bibliocommons.com/events/6ad8e90c035faf0033de14ff"
+  },
+  {
+   "id": "6a9b51b41c197d11325d7023",
+   "title": "Vibe Coding: Personal Library App",
+   "start": "2026-11-26T18:00:00",
+   "end": "2026-11-26T20:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Innovator in Residence",
+    "Artificial Intelligence",
+    "Adults (18+)",
+    "Older Adults",
+    "Younger Adults (18-24)",
+    "English"
+   ],
+   "summary": "What if you could build your own personal library app, just by describing it? In this class, you'll use an AI coding assistant to build a small app for your reading life: add books you've read and books you want to read, keep your whole list in one private place, and link each book to the ...",
+   "url": "https://tpl.bibliocommons.com/events/6a9b51b41c197d11325d7023"
+  },
+  {
+   "id": "69f603ae596674bcd583e839",
+   "title": "North York Central Library Book Club",
+   "start": "2026-11-26T19:00:00",
+   "end": "2026-11-26T20:15:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Book Clubs",
+    "Adults (18+)",
+    "Older Adults",
+    "English"
+   ],
+   "summary": "Drop-in on the last Thursday of the month for a lively book discussion led by a librarian! Regular Print copies of November's selection, The Lion Women of Tehran by Marjan Kamali, are now available for pick up from the first floor reference desk. This title is also available in Large Print, as ...",
+   "url": "https://tpl.bibliocommons.com/events/69f603ae596674bcd583e839"
+  },
+  {
+   "id": "6ace66d69d27a0004550a41a",
+   "title": "Sewing Basics",
+   "start": "2026-11-27T10:00:00",
+   "end": "2026-11-27T12:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Fabrication Studio",
+    "Adults (18+)",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Want to learn to sew or would like a refresher on how to use a sewing machine? Our intro to sewing course will cover the basics of threading the machine, basic stitches and more. We will be creating a small pouch. All materials will be provided. Children under 13 must be accompanied by an ...",
+   "url": "https://tpl.bibliocommons.com/events/6ace66d69d27a0004550a41a"
+  },
+  {
+   "id": "6a774eaf9006f7535315d482",
+   "title": "Tea and Entertainment",
+   "start": "2026-11-27T14:00:00",
+   "end": "2026-11-27T16:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Culture, Arts & Entertainment",
+    "Adults (18+)",
+    "Older Adults",
+    "English"
+   ],
+   "summary": "Enjoy watching DVDs in the Library Auditorium. Coffee, tea and cookies or snacks will be served after the film. Ingredient lists will be available upon request. Marie Antoinette: The Doomed Queen Blamed for a revolution she didn’t start, Marie Antoinette became history’s most misunderstood ...",
+   "url": "https://tpl.bibliocommons.com/events/6a774eaf9006f7535315d482"
+  },
+  {
+   "id": "6abc3851de300e0045171492",
+   "title": "Wellness Connections: Workshops for Mental Health & Emotional Wellness Part 2",
+   "start": "2026-11-27T14:00:00",
+   "end": "2026-11-27T15:30:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Social & Crisis Support Services",
+    "Personal Development",
+    "Adults (18+)",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Join us for a series of group workshops for anyone interested in strengthening their mental well-being, understanding their emotions and developing practical strategies for coping with life’s challenges. Part 2: Building Resilience ( 4 weeks, Every Friday, 2-3:30 pm, Nov 27 - Dec 18, 2026) ...",
+   "url": "https://tpl.bibliocommons.com/events/6abc3851de300e0045171492"
+  },
+  {
+   "id": "6ad105d1377296003a4c325c",
+   "title": "Chess Club",
+   "start": "2026-11-27T16:00:00",
+   "end": "2026-11-27T17:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Games & Sports",
+    "School Age Children (6-12)",
+    "English"
+   ],
+   "summary": "Come play Chess and other board games with your friends! This is not an instructional class. All skill levels welcome! For kids ages 6-12. Drop-in. No registration required. Limited spots available.",
+   "url": "https://tpl.bibliocommons.com/events/6ad105d1377296003a4c325c"
+  },
+  {
+   "id": "6ad8e77c9dbc2b002c90157d",
+   "title": "Youth Hub: Magic & Illusions",
+   "start": "2026-11-27T16:00:00",
+   "end": "2026-11-27T17:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Crafts & Hobbies",
+    "Teens (13-17)",
+    "English"
+   ],
+   "summary": "Take a journey into the mysteries of magical illusions. Local magician Ayan Deb explores the science and art of deception and illusion. In this interactive workshop, participants will enjoy and watch a series of the newest tricks in the world of magic. Participants will also get a chance to ...",
+   "url": "https://tpl.bibliocommons.com/events/6ad8e77c9dbc2b002c90157d"
+  },
+  {
+   "id": "6ad1264696ec3a003adad3f0",
+   "title": "The Myth of “Samshu”: Smell, Race, and the Making of Chinatown in North America, 1880s–1920s",
+   "start": "2026-11-27T18:30:00",
+   "end": "2026-11-27T20:00:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Asian Heritage",
+    "History & Genealogy",
+    "Adults (18+)",
+    "English"
+   ],
+   "summary": "What did Chinatown smell like to outsiders a century ago? How could an unfamiliar distilled drink become a symbol of racial and cultural difference? Between the 1880s and the 1920s, Chinese immigrant communities in North America encountered growing scrutiny of their businesses, customs, and ...",
+   "url": "https://tpl.bibliocommons.com/events/6ad1264696ec3a003adad3f0"
+  },
+  {
+   "id": "6ad102fb901b02002cc2a76d",
+   "title": "Family Time",
+   "start": "2026-11-28T10:00:00",
+   "end": "2026-11-28T10:30:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Ready for Reading Storytimes",
+    "Reading Programs & Storytimes",
+    "Preschool Children (0-5)",
+    "English"
+   ],
+   "summary": "Join us for stories, songs, and rhymes in this program for children ages 5 and under and their parents or caregivers. Drop-in. No registration required.",
+   "url": "https://tpl.bibliocommons.com/events/6ad102fb901b02002cc2a76d"
+  },
+  {
+   "id": "696a81f51e64afd01e54c28f",
+   "title": "Chess Club for Adults",
+   "start": "2026-11-28T14:00:00",
+   "end": "2026-11-28T15:30:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Games & Sports",
+    "Adults (18+)",
+    "English"
+   ],
+   "summary": "Join the Society and Recreation department weekly for a friendly game of chess. Bring your friends and family or meet fellow chess enthusiasts to socialize and improve your chess skills. Chess sets are provided onsite. Players of all levels are welcome. For adults and seniors only. There is not ...",
+   "url": "https://tpl.bibliocommons.com/events/696a81f51e64afd01e54c28f"
+  },
+  {
+   "id": "6ad1047e377296003a4c31b7",
+   "title": "Sunday Storytime",
+   "start": "2026-11-29T14:00:00",
+   "end": "2026-11-29T14:30:00",
+   "branch": "North York Central Library",
+   "virtual": false,
+   "categories": [
+    "Ready for Reading Storytimes",
+    "Reading Programs & Storytimes",
+    "Preschool Children (0-5)",
+    "English"
+   ],
+   "summary": "Join us for stories, songs, and rhymes in this program for children ages 5 and under and their parents or caregivers. Drop-in. No registration required.",
+   "url": "https://tpl.bibliocommons.com/events/6ad1047e377296003a4c31b7"
   }
  ]
 }
