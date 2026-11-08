@@ -44,6 +44,8 @@ INBOX_DATA = "data/inbox.js"        # one machine's message from a helper; never
 DISTANCE_DATA = "data/distance.js"  # one person's travel times from one start point; never packed
 # Files in data/ that belong to one person's machine and are never copied into the starter either.
 PERSONAL_DATA = ("distance-map.json", "distance-transit-cache.json", "found.json")
+# Commands and skills for tools the starter does not carry, so it never points at a missing file.
+NOT_IN_STARTER = ("distance-map",)
 # Built from two pieces on purpose: this file is copied into dist/starter/, and the starter must
 # not name, or hold, the folder of finished demo modes (BUILD.md T5.2's grep).
 DEMO_MODES = ROOT / ("re" "ference") / "modes"
@@ -611,11 +613,15 @@ def build_starter():
         notes.append("tools/serve.py is not here yet, so the starter does not carry it")
     if (ROOT / ".claude" / "commands").is_dir():
         for path in sorted((ROOT / ".claude" / "commands").glob("*.md")):
+            if path.stem in NOT_IN_STARTER:
+                continue
             copy_into(out, str(path.relative_to(ROOT)))
     else:
         notes.append(".claude/commands/ is not here yet, so the starter does not carry it")
 
     for path in sorted((ROOT / ".claude" / "skills").glob("*/SKILL.md")):
+        if path.parent.name in NOT_IN_STARTER:
+            continue
         copy_into(out, str(path.relative_to(ROOT)))
     write_lf(out / "README.md", README_MD)
 

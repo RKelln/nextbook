@@ -232,6 +232,8 @@ class TravelTimesNeverShipTest(unittest.TestCase):
                 self.assertNotIn("TRAVEL-TIMES-MARKER", info["out"].read_text(encoding="utf-8"), name)
             build.build_starter()
         starter = build.DIST / "starter"
+        self.assertFalse((starter / ".claude/commands/distance-map.md").exists())
+        self.assertFalse((starter / ".claude/skills/distance-map").exists())
         for path in starter.rglob("*"):
             if path.is_file():
                 self.assertNotIn("distance", path.name.replace("distance-map.py", ""), str(path))
