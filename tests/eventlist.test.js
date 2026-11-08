@@ -137,3 +137,22 @@ test('V4: an untrusted file is rebuilt from known fields, and junk is refused', 
   assert.strictEqual(T.read('{"branches":[{"name":""}]}').ok, false);
   assert.strictEqual(T.read('x'.repeat(T.MAX_BYTES + 1)).ok, false);
 });
+
+test('V5: the real place names the events service sent (measured 2026-11-08) against data/branches.json', () => {
+  const fs = require('node:fs');
+  const path = require('node:path');
+  const { root } = require('./_load.js');
+  const places = JSON.parse(fs.readFileSync(path.join(root, 'tests/fixtures/togather-places.json'), 'utf8')).places;
+  const branches = JSON.parse(fs.readFileSync(path.join(root, 'data/branches.json'), 'utf8')).branches;
+  const map = T.read({ branches }).map;
+  let hit = 0, total = 0;
+  const missing = [];
+  Object.keys(places).forEach((name) => {
+    total += places[name];
+    if (T.branchFor(map, name)) hit += places[name]; else missing.push(name);
+  });
+  assert.deepStrictEqual(missing.sort(), ['Amesbury Park', 'Cedarbrae', 'Cedarbrae - Closed', 'Sanderson - Closed']);
+  assert.strictEqual(Object.keys(places).length - missing.length, 92, 'all 92 branches are matched, of 96 place names');
+  assert.strictEqual(total, 2539);
+  assert.strictEqual(hit, 2469, '2469 of 2539 in-person events, 97.2%');
+});

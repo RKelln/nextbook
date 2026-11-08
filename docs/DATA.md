@@ -230,7 +230,7 @@ for an in-person event and the `VirtualLocation`'s `url` for an online one.
 
 The library appears under **three organiser ids** (duplicates that may be merged later, so one failing or empty must not
 sink the rest, and a repeat id is kept once). For 21 days from 2026-11-08 they gave 2400, 37 and 67 events: **2576 events
-after removing repeats, 97 distinct place names**, about 5 seconds in all (12 pages for the large one), and 37 of them
+after removing repeats, 96 distinct place names and no place at all for the online ones**, about 5 seconds in all (12 pages for the large one), and 37 of them
 online. Place names are mostly the plain branch name; the feed's old habits are handled anyway: a name that arrives as
 "MalvernEvent location: Malvern" keeps the part after the label, and a branch that is closed is written "<name> - Closed".
 Text can still be HTML-encoded and is decoded and shown as text. Descriptions can begin "More info: <address> ..."; that
@@ -241,8 +241,7 @@ branch name are lowercased, punctuation becomes a space, a trailing " - Closed" 
 the two must be equal (or equal to a listed `aliases` entry). Nothing is matched by similarity. Of the 2539 in-person
 events measured, **2469 (97.2%) matched**. The 70 that did not are at three places: Cedarbrae (24, and 25 more written
 "Cedarbrae - Closed"), Amesbury Park (19) and Sanderson - Closed (2); none is in the branch list (the feed the list was
-made from leaves closed branches out), so those events are kept and say they have no travel time. 93 of the 97 place names
-matched.
+made from leaves closed branches out), so those events are kept and say they have no travel time.
 
 ## A person's travel times (`data/distance-map.json`)
 
