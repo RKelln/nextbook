@@ -361,7 +361,11 @@ test('E9: the committed snapshot draws every event, under its own day', () => {
   const dayKeys = [...new Set(REAL_EVENTS.events.map((e) => e.start.slice(0, 10)))].sort();
   const headings = withPrefix(doc, 'event-day-').filter((el) => el.tagName === 'H3');
   assert.strictEqual(headings.length, dayKeys.length, 'one heading per day');
-  assert.strictEqual(headings[0].textContent, 'Tuesday, November 3', 'the first day, in the city it happens in');
+  // Worked out from the snapshot, so refreshing it does not break this test. A day key is a calendar day: noon UTC
+  // and a UTC format keep it that day on any machine.
+  const firstDay = new Date(dayKeys[0] + 'T12:00:00Z').toLocaleDateString('en-US',
+    { weekday: 'long', month: 'long', day: 'numeric', timeZone: 'UTC' });
+  assert.strictEqual(headings[0].textContent, firstDay, 'the first day, in the city it happens in');
 
   // No summary was over the limit, so every card shows the library's words and none shows the note.
   assert.strictEqual(withPrefix(doc, 'event-summary-long-').length, 0);
