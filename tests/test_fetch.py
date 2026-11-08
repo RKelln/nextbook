@@ -1,7 +1,10 @@
 """Tests for the polite fetcher. No network, no real sleeping."""
 import hashlib
+import ssl
 import tempfile
 import unittest
+import urllib.error
+from unittest import mock
 from pathlib import Path
 
 from adapters.bibliocommons import fetch
@@ -391,6 +394,50 @@ class LibraryTest(unittest.TestCase):
         self.assertEqual(library["host"], "https://tpl.bibliocommons.com")
         self.assertTrue(fetch.search_url("le guin", 2).startswith(library["host"] + "/v2/search"))
         self.assertEqual(fetch.search_url("le guin", 2).count("page=2"), 1)
+
+
+class CertFallbackTest(unittest.TestCase):
+    """Python without root certificates (python.org macOS) falls back to the system file."""
+
+    def _cert_error(self):
+        return urllib.error.URLError(ssl.SSLCertVerificationError("unable to get local issuer certificate"))
+
+    def test_retries_with_a_verifying_system_context_after_a_cert_failure(self):
+        calls = []
+
+        def fake_urlopen(request, timeout=None, context=None):
+            calls.append(context)
+            if context is None:
+                raise self._cert_error()
+            return "ok"
+
+        sentinel = object()
+        with mock.patch.object(fetch.urllib.request, "urlopen", fake_urlopen), \
+                mock.patch.object(fetch, "_fallback_contexts", lambda: iter([sentinel])):
+            self.assertEqual(fetch._default_open("req"), "ok")
+        self.assertEqual(calls, [None, sentinel])
+
+    def test_other_errors_are_not_retried(self):
+        calls = []
+
+        def fake_urlopen(request, timeout=None, context=None):
+            calls.append(context)
+            raise urllib.error.URLError("timed out")
+
+        with mock.patch.object(fetch.urllib.request, "urlopen", fake_urlopen), \
+                mock.patch.object(fetch, "_fallback_contexts", lambda: iter([object()])):
+            with self.assertRaises(urllib.error.URLError):
+                fetch._default_open("req")
+        self.assertEqual(calls, [None])
+
+    def test_still_fails_when_no_system_bundle_helps(self):
+        def fake_urlopen(request, timeout=None, context=None):
+            raise self._cert_error()
+
+        with mock.patch.object(fetch.urllib.request, "urlopen", fake_urlopen), \
+                mock.patch.object(fetch, "_fallback_contexts", lambda: iter([])):
+            with self.assertRaises(urllib.error.URLError):
+                fetch._default_open("req")
 
 
 if __name__ == "__main__":

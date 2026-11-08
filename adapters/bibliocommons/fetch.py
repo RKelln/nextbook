@@ -22,7 +22,9 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+import ssl
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
@@ -190,8 +192,42 @@ def parse_robots(text: str, agent: str = "nextbook") -> Robots:
 
 # --- the fetcher ------------------------------------------------------------
 
+# CA bundles to try when Python's own has none. A python.org build on macOS
+# ships without root certificates until "Install Certificates.command" is run,
+# so every https request fails with CERTIFICATE_VERIFY_FAILED. macOS itself
+# keeps a bundle at /etc/ssl/cert.pem.
+_FALLBACK_CA_FILES = ("/etc/ssl/cert.pem", "/private/etc/ssl/cert.pem",
+                      "/etc/ssl/certs/ca-certificates.crt")
+
+
+def _is_cert_failure(err) -> bool:
+    reason = getattr(err, "reason", err)
+    return isinstance(reason, ssl.SSLCertVerificationError)
+
+
+def _fallback_contexts():
+    """Verifying contexts built from a system CA file. Never an unverified one."""
+    for path in _FALLBACK_CA_FILES:
+        if Path(path).is_file():
+            try:
+                yield ssl.create_default_context(cafile=path)
+            except (ssl.SSLError, OSError):
+                continue
+
+
 def _default_open(request, timeout=TIMEOUT):
-    return urllib.request.urlopen(request, timeout=timeout)
+    try:
+        return urllib.request.urlopen(request, timeout=timeout)
+    except urllib.error.URLError as err:
+        if not _is_cert_failure(err):
+            raise
+        for context in _fallback_contexts():
+            try:
+                return urllib.request.urlopen(request, timeout=timeout, context=context)
+            except urllib.error.URLError as again:
+                if not _is_cert_failure(again):
+                    raise
+        raise
 
 
 _CONTROL = re.compile(r"[\x00-\x1f\x7f]")
