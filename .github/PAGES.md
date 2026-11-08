@@ -49,5 +49,9 @@ If any test fails, nothing is published: the deploy job needs the build job. `di
 so the checkout never carries an older file to publish, and `_site/` holds exactly `index.html` and
 `CNAME`.
 
-No step fetches the catalogue, holds a secret, or needs a private checkout. The pack the data is built from ships in
+No step fetches the catalogue, calls the events service, holds a secret, or needs a private checkout (the tests use a
+fake `fetch`). The published page itself may ask the library's events host for the latest list, but only after a person
+presses the button on the events screen; the page's Content-Security-Policy allows that host and no other.
+
+The pack the data is built from ships in
 `data/pack/`, so the Python tests run as they are.

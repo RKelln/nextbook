@@ -141,7 +141,37 @@ something to show in its first second. Twelve of the pack's books.
 A dated snapshot of one branch's events from the library's feed, made ahead by `adapters/bibliocommons/events.py`
 (the feed has no CORS either): `{fetched, branch, window, source, events: [{id, title, start, end, branch, virtual,
 categories, summary, url}]}`. `summary` is the library's own event text, at most 300 characters, shown with a link to
-the event page. The app always shows the snapshot's date and never calls it live.
+the event page. The app always shows the snapshot's date. It is the list a copy opens with, the offline list, and the
+fallback when the latest list cannot be had (D45). The snapshot is one branch's; events from every branch are live only.
+
+### The latest list (D45)
+
+`core/net.js` is the only network code in the app. The slice's `library.events` says where the list lives
+(`{service: "togather", apiUrl, organizerIds, days}`), so no library is named in code and another library is one
+file. The screen's button turns it on; the choice is `nextbook1:events-live` in `localStorage`, and the saved list
+(`nextbook1:events`, trimmed to the event shape, fresh for 12 hours) is read back before any request. One request chain
+per organiser id, one at a time, pages of 200 followed by `next_cursor`, repeats removed by id; one chain that fails does
+not sink the rest, and a partial result is used and re-asked next time. Each item becomes the snapshot's event shape:
+local wall-clock times, a tidied place name as `branch`, `summary` at most 300 characters with a leading "More info:"
+pointer dropped, `url` the event's own page on the service (the list carries no source link). Any failure shows the saved
+list, then the snapshot, with one plain line. `ctx.events` and the event picker read the same current list through the
+shell; a mode has no network, so it cannot ask for anything. The picker lists what the screen is looking at (its branch and
+week), at most 150 options and always the chosen event (D35), and says when it is a part.
+
+In a workshop copy `net.js` reports itself unavailable: the screen shows no button and nothing is ever requested. The
+one-file build carries a Content-Security-Policy (`tools/build.py`): each inline script by its hash, `connect-src` the
+events host from the slice (or `'none'`), no frames, no network images. A folder copy has none, because a policy for
+`file://` buys little and breaks easily.
+
+### Travel times (D45)
+
+`tools/distance-map.py` writes `data/distance-map.json` and `app/data/distance.js` for one start point, and the events
+screen reads them through `core/travel.js`: a folder copy loads `app/data/distance.js` by itself, and any copy can take the
+JSON with "Add your travel times", kept as the cleaned map in `nextbook1:travel` of that browser only. The file is read as
+untrusted input (known fields only, numbers range-checked, text shown as text, the start point dropped). Event places are
+matched to branches by normalised name or a listed alias, nothing fuzzier; an event with no match or no time is kept and
+says so. The files are gitignored, never packed into any build, never copied to the starter, and never in a shelf export or
+a mirror file, because times from one point show where the point is.
 
 ## The shelf
 
@@ -439,7 +469,8 @@ Four screens behind the address hash, so a link or a reload lands in the same pl
   second), the list with state and rating controls, export and import.
 - `#find` (the default): the loaded modes as cards, the chosen mode's inputs, its result, the model box.
 - `#selftest`: runs every loaded mode's checks and the standard shelves in the browser, and lists data load status.
-- `#events` (when the snapshot is there): the branch's events with the snapshot's date.
+- `#events` (when there is a list, or this copy may ask for the latest one): the events with the source and its date; the
+  button for the latest list from every branch; filters for branch, week and travel; a page of 50 at a time.
 
 ## Packing
 
@@ -454,9 +485,10 @@ Four screens behind the address hash, so a link or a reload lands in the same pl
 ## Hosted copy
 
 The same single file on a static host. `tools/build.py` makes it and `.github/workflows/pages.yml` publishes it;
-turning the workflow on is the maintainer's one-time step (`.github/PAGES.md`). Nothing in the app reaches the network
-to run. The only runtime call that would ever be permitted is an optional Open Library lookup for a typed book outside
-the slice (CORS `*`, measured), off by default, saying what it will send — and it is not built (T8.10).
+turning the workflow on is the maintainer's one-time step (`.github/PAGES.md`). The app needs no network to run. The one
+request it makes is the events screen's latest list, after a button press (D45). The other call that might ever be
+permitted is an optional Open Library lookup for a typed book outside the slice (CORS `*`, measured), off by default,
+saying what it will send — and it is not built (T8.10).
 
 ## What the thin build deliberately lacks
 

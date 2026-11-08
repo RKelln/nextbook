@@ -2,7 +2,7 @@
 # The repo owner's one-time steps are in .github/PAGES.md.
 #
 # Nothing here reaches the network but the setup actions: the Node tests touch no page, the Python
-# tests use fixtures and a fake urlopen, and the build only reads files and writes dist/. The pack
+# tests use fixtures and a fake urlopen or fetch (none reaches the events service), and the build only reads files and writes dist/. The pack
 # tests skip when their path is unset and this workflow never sets it, so this repo alone is enough.
 # No step takes a credential, and the only expression is GitHub's own page_url, so nothing a
 # person writes ever reaches a run: line.

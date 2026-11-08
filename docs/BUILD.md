@@ -91,13 +91,14 @@ property, `check.sh`, and "the shelf's titles never go in a prompt".
 
 Anything built on the starter — a workshop kit, another app — may rely on these, and nothing else:
 
-- `app/index.html` opens in Chrome from `file://` with nothing installed, and works with the network off.
+- `app/index.html` opens in Chrome from `file://` with nothing installed, and works with the network off. (The events screen's optional latest list, D45, is the one thing that needs it.)
 - The practice shelf is the default and the only shelf in a workshop copy; reset puts it back.
 - `node tools/check-mode.js <id>` and `bash tools/check.sh <id>` run a mode's checks; `#selftest` does the same in
   the browser.
 - A mode is `app/modes/<id>.js`, its check, one line in `app/modes/list.js`, and the person's plan in `app/PLAN.md`.
-- `python3 tools/find.py "<words>"` is the only thing that reaches the network, and only when a person asks. It
-  prints what it is about to send before it sends it.
+- `python3 tools/find.py "<words>"` and `python3 tools/distance-map.py` are the only tools that reach the network, and only when a
+  person asks; each says what it is about to send. In the app, the events screen's latest list is the one request, after a
+  button press, and never in a workshop copy (D45).
 - `python3 tools/build.py` makes a one-file take-home copy.
 - Data in `app/data/` is generated, never hand-edited.
 - `/new-mode`, `/check` and `/find-books` exist in `.claude/commands/`.
@@ -472,6 +473,13 @@ opens the hosted copy and already keeps shelves at the library. The hand-made te
 
   - [x] **T8.8c The screens** (C, M, S): the button, the report with one Undo, "Tidy up at the library", "Which is right?",
     "Leave it" remembered, the last-imported date, off on the practice shelf and in a workshop copy.
+
+- [x] **T8.15 Live events and travel times (D45).** `core/net.js` (the only network code), the events screen's button,
+  filters and page size, the event picker's scope, `data/branches.json`, `tools/distance-map.py` with its skill and command,
+  `core/travel.js` and the screen's travel controls, and a Content-Security-Policy in the one-file build.
+  *Done when:* the tests pass with a fake `fetch` and a fake `urlopen` (no test reaches a real network); the packer never packs
+  `data/distance.js` and the starter never copies a travel file (tests); and the one file, served and opened from `file://`,
+  loads the latest list after the button press, filters by branch, and shows times from a map file.
 
 ## What is not here
 

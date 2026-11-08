@@ -144,7 +144,8 @@ weights.
 - **A person's found books** (`data/found.json`) carry the words they searched for. They stay in their copy: the
   file is gitignored and the starter ships without one.
 - **Event text** is the library's own description of its own event, kept short (`summary`, at most 300 characters)
-  beside a link to the event page, with the snapshot's date.
+  beside a link to the event page, with the date the list was made. The latest list is held in the person's browser
+  only, trimmed to that shape, and never written into the repo.
 - **Covers** (Syndetics) are licensed. Not stored, not shown.
 - **NoveList** is licensed to the library. Not fetched, not copied, not cached. A link to the record page is fine.
 
@@ -214,6 +215,48 @@ nothing else.
   else, never keep the file, and tell the person to delete it.
 - A signed-in **search** page carries the same `entities` with its results in `entities.bibs` and nothing under
   `shelves`. It is refused by name rather than read as an empty shelf (seen 2026-11-04).
+
+## The latest events list (measured 2026-11-08)
+
+The events service is a Togather instance (`library.events` in the slice names it). Measured against
+`https://staging.toronto.togather.foundation/api/v1/events`: it answers `access-control-allow-origin: *`, so a browser on
+any origin, `file://` included, can read it. Parameters used: `startDate`, `endDate` (dates), `limit` (200 at most), `after`
+(the previous answer's `next_cursor`), `context=document`, `organizerId`. The answer is `{items, next_cursor, timeZone}`.
+An item has `@id` (`https://<host>/events/<ULID>`), `name`, `description`, `keywords[]`, `startDate`, `endDate` (with the
+library's offset), and `location`: a `Place` with `name`, `address{streetAddress, addressLocality}` and `geo{latitude,
+longitude}`, or a `VirtualLocation` whose `url` is the library's own page for the event. **The list has no source
+link**; the detail does, but a browser cannot afford one request per event, so `url` is the service's own page (`@id`)
+for an in-person event and the `VirtualLocation`'s `url` for an online one.
+
+The library appears under **three organiser ids** (duplicates that may be merged later, so one failing or empty must not
+sink the rest, and a repeat id is kept once). For 21 days from 2026-11-08 they gave 2400, 37 and 67 events: **2576 events
+after removing repeats, 97 distinct place names**, about 5 seconds in all (12 pages for the large one), and 37 of them
+online. Place names are mostly the plain branch name; the feed's old habits are handled anyway: a name that arrives as
+"MalvernEvent location: Malvern" keeps the part after the label, and a branch that is closed is written "<name> - Closed".
+Text can still be HTML-encoded and is decoded and shown as text. Descriptions can begin "More info: <address> ..."; that
+pointer is dropped from `summary`, and nothing else is cut from the front.
+
+**Matching places to branches** (`data/branches.json`, 92 branches with code, name, street and position): the place and the
+branch name are lowercased, punctuation becomes a space, a trailing " - Closed" and a trailing "Library" are dropped, and
+the two must be equal (or equal to a listed `aliases` entry). Nothing is matched by similarity. Of the 2539 in-person
+events measured, **2469 (97.2%) matched**. The 70 that did not are at three places: Cedarbrae (24, and 25 more written
+"Cedarbrae - Closed"), Amesbury Park (19) and Sanderson - Closed (2); none is in the branch list (the feed the list was
+made from leaves closed branches out), so those events are kept and say they have no travel time. 93 of the 97 place names
+matched.
+
+## A person's travel times (`data/distance-map.json`)
+
+Made by `tools/distance-map.py` for one start point, rounded to 3 decimals (about 100 m) before any request. Never
+committed, never packed into a build, never in a shelf export. `{origin, label, built, note, transit_slots, routers,
+branches: [{code, name, street, lat, lon, aliases?, straight_km, walk_s, bike_s, car_s, transit_weekday_s,
+transit_weekday_route, transit_weekend_s, transit_weekend_route}]}`. **Any time can be null, and null is never 0.** Reading
+rules: `transit` is the lesser of transit and walking; `any` is the least of walk, bike and transit, never the car; the
+weekend transit time is used for a Saturday or Sunday event, the weekday one otherwise. Walk, bike and car are free-flow
+times with no parking. Transit is one query at each of two times (a weekday at 18:00 and a Saturday at 13:00, from
+Transitous, `api.transitous.org`, which knows about three weeks ahead), so it is a rough guide and goes stale after about
+three weeks. The routers (checked 2026-10-23): `router.project-osrm.org` ignores its profile and answers with driving time,
+so it is used for the car only; `routing.openstreetmap.de/routed-foot` and `/routed-bike` give walking and cycling. The page
+file `app/data/distance.js` is the same without `origin`.
 
 ## Fallback sources, for books the library does not hold
 

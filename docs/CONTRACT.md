@@ -118,7 +118,7 @@ them, for journeys, ladders and seasons.
 | `tagsOf(work)` | our own words for a work, `{mood, pace, note}`, or `null`. Most works have none: say how many you skipped |
 | `sections()` | the parts of the library: `[{facet, label, works: [...]}]`, from the call numbers |
 | `others` | friends' shelves, added on the shelf screen with "Add a friend's shelf" (an exported file and a name): `[{name, entries}]`, each entry shaped like `shelf`. Empty until someone adds one: say how in `note` |
-| `events` | the library's events from the snapshot, `[{id, title, start, end, branch, categories, summary, url}]`, or `[]`. `eventsFetched` is its date |
+| `events` | the library's events, `[{id, title, start, end, branch, virtual, categories, summary, url}]`, or `[]`: the snapshot, or the latest list when the person asked for it, which can be thousands from every branch. `eventsFetched` is its date. A mode reads it and cannot ask for more |
 | `random()` | a number from 0 to 1. The same sequence every time, even after a reload, until the person presses "Shuffle" (the app keeps the seed for each mode). Never use `Math.random` |
 | `t(key, vars)` | this mode's strings, then the app's. `{name}` is filled from `vars` |
 
@@ -135,16 +135,16 @@ A mode that needs something from the person lists it in `inputs`, and the app dr
 | `text` | a short text box | the text |
 | `number` | a number, with `min`, `max`, `default` | the number |
 | `choice` | buttons, from `options: [{value, label}]`, with `default` | the chosen `value` |
-| `event` | pick one of the library's events from the snapshot, by day and title | the event object: `{id, title, start, end, branch, virtual, categories, summary, url}` |
+| `event` | pick one of the library's events, by day and title (the picker lists what the events screen is showing, a page at a time) | the event object: `{id, title, start, end, branch, virtual, categories, summary, url}` |
 
 ```js
 inputs: [{ id: 'from', kind: 'shelf-book', label: 'Start from a book you loved' }],
 choose(ctx, input) { const start = input.from; /* ... */ }
 ```
 
-An `event` input is always one of the library's events as the snapshot holds them, never a title
+An `event` input is always one of the library's events as the current list holds them, never a title
 typed into a box and never a model's words. The app groups the picker by day. In a copy with no
-event snapshot the control says so and `choose` is not called.
+events the control says so and `choose` is not called.
 
 An input is **required** unless its spec says `optional: true`. On an optional input the person may
 leave the control empty, and `choose` receives `null` for it: the key is in the input, holding `null`,
@@ -221,7 +221,7 @@ Every mode is also run, with no check file needed, against these shelves built f
 
 For each one the mode must not crash, and its answer must pass the checks in section 3. A mode that needs inputs gets
 a sensible default for each (the first loved book, the first work not on the shelf, the most common subject, a short
-sample text, the number's `default`, the first event in the snapshot or a two-event sample when the snapshot has
+sample text, the number's `default`, the first event in the list or a two-event sample when the list has
 none).
 
 Run 8 is there because the other seven only ever hand a mode a real value. A mode that crashes on `null`, or treats it

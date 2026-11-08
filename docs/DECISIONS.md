@@ -516,3 +516,36 @@ owner-only, ignored by git and excluded from builds. A visible notice identifies
 `tools/read-shelf.py` filters the snapshot; `.claude/skills/use-nextbook/SKILL.md` explains disclosure,
 whole-entry writes, separate browser origins, multiple tabs, and the snapshot left after stopping.
 The model box's shelf-title exclusions are unchanged.
+
+## D45. Live events from one service, and a person's own travel times (2026-11-08, the maintainer's request)
+
+The events snapshot covers one branch. The library's events service answers every browser (CORS `*`) with all branches
+(`DATA.md`, "The latest events list"), so the events screen can offer the latest list from every branch. This narrows
+rule 7 ("works offline from a folder") by exactly one allowed use, and no more:
+
+- `core/net.js` is the only network code in the app: GET, https, one host taken from the slice's `library.events`, no
+  cookies, no redirects, a time limit, a size cap, and nothing about the person or their books in the request.
+- It runs only after the person presses the button on the events screen. The choice is kept in their browser, there is a
+  way to turn it off (which also forgets the saved list), and the saved list is fresh for 12 hours. A workshop copy shows no
+  button and never fetches. A copy still works fully offline from a folder: the snapshot is the offline list and the
+  fallback, and every failure ends there with one plain line.
+- The library's address and organiser ids are data (`library.events`), not code (D10 holds). The one-file build carries a
+  Content-Security-Policy that allows its own scripts by hash and `connect-src` for that host only. A folder copy has none.
+- Modes still cannot touch the network. `ctx.events` is a copy of the current list (the latest, or the snapshot), and the
+  event picker is scoped to the screen's branch and week and capped at 150 options so 2,500 events stay usable (D35's
+  behaviour is kept: the chosen event is always an option).
+- The screen draws a page of 50 at a time, with filters for branch and week, so it stays light at 2,500 events.
+
+Travel times are one person's. `tools/distance-map.py` makes them from a start point that the person chooses and that goes
+to public routing servers (the skill says so first and suggests an intersection, not a home address; the tool rounds to
+about 100 m before sending). The map is gitignored, never packed into any build, never copied to the starter, never in a
+shelf export or mirror, and is read by the page as untrusted input, shown as text, from a folder file or from a file the
+person adds (kept in that browser only, removable). Places are matched to branches by normalised name or listed alias, never
+by similarity; null is never a time.
+
+**Conservative calls, so the maintainer can overrule them.** (1) The library's events settings sit in the slice's `library`
+block, set through the pack config, not in `libraries/tpl.json`, because the page reads `slice.library` and the Python
+fetchers read `tpl.json`; a second copy would drift. (2) The staging instance of the service is named, as the
+measurements were made against it; switching to production is one data line. (3) The three closed or missing places
+(Cedarbrae, Amesbury Park, Sanderson) are not added to the branch list on a guess; their events say they have no travel
+time. (4) Travel is "rough guides" everywhere on the page, and the transit times are marked stale after three weeks.

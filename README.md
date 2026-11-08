@@ -6,7 +6,7 @@ to the library's own page to borrow it.
 **Use it now:** [nextbook.ryankelln.com](https://nextbook.ryankelln.com). Nothing to sign up for. Your books are saved
 in that browser and go nowhere else.
 
-It runs from a folder in a browser. No install, no server, no account, no network, no tracking. A person's reading
+It runs from a folder in a browser. No install, no server, no account, no tracking, and it works offline. A person's reading
 history stays in their browser by default. An optional local agent connection is described below.
 
 Built as the starter for a workshop session at Toronto Public Library's AI residency — the [residency
@@ -118,10 +118,24 @@ Never a crawl. The app asks for what a person asked for, keeps what came back, a
 
 These come from the app's job, not from taste. `docs/DECISIONS.md` records what each one cost.
 
+## Events and travel times
+
+The events screen shows the library's events from a snapshot that comes with the copy. A button on that screen, "Get
+the latest events from all branches", asks the library's events service for the next three weeks, from every branch.
+That is the app's one network request: a GET to one host named in the library's settings, sending nothing about your
+books, only after you press the button, remembered in your browser with a button to stop, and never in a workshop copy.
+Filter by branch and by week; the screen shows a page at a time.
+
+`python3 tools/distance-map.py --origin LAT,LON --label "a name"` (or the `/distance-map` command in an agent tab)
+makes a file of travel times from one start point to each branch. Your start point goes to public routing servers, so
+use a nearby intersection, not a home address; it is rounded to about 100 metres first. A folder copy loads the file
+by itself; any copy can take it with "Add your travel times" on the events screen, which keeps it in that browser
+only. The files are never committed, packed into a build, exported with a shelf, or sent anywhere.
+
 ## Status
 
 The foundation is built and checked: the Node and Python tests, the three reference modes and the example mode pass
-before every publish, and the one-file build makes no network requests. A reading list can be imported from Goodreads or StoryGraph,
+before every publish. The one-file build asks for nothing until a person presses "Get the latest events" on the events screen, and then only the library's events service (a policy in the file lets the page connect to that host and no other). A reading list can be imported from Goodreads or StoryGraph,
 merged with the shelves the library already keeps, and matched to the catalogue a book at a time. A shelf page saved
 from the library's own site can be brought in too, with one Undo, a list of what the two disagree about, and nothing
 of the page's account data kept. The eleven mode briefs in `docs/modes/` are deliberately

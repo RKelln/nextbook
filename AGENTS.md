@@ -6,7 +6,8 @@ task names.
 ## What you are building
 
 A small web app that helps one person decide what to read next from their public library's catalogue, then links them
-to the library's own page for the book. It runs from a folder in a browser, with no install, no server and no network.
+to the library's own page for the book. It runs from a folder in a browser, with no install and no server, and works
+fully offline. Its one optional network use is the events screen's "latest events" button (rule 7).
 
 The app has a **finished foundation** (the shelf, the data, the scoring core, the reason sentences, the model seam, the
 links) and a **slot for modes**. A mode is one file that chooses up to six books and says why. The repo ships one
@@ -39,7 +40,15 @@ When two conflict, the earlier one wins.
    model.
 6. **Every suggestion carries a reason in words** that names the evidence. A pick with no sentence is a bug, and the
    contract check fails it.
-7. **The app works offline from a folder**, and says in a plain sentence when it cannot do something.
+7. **The app works offline from a folder**, and says in a plain sentence when it cannot do something. One network use
+   is allowed, and exactly this one: the events screen can ask the library's events service for the latest list.
+   `app/core/net.js` is the only network code in the app. It makes GET requests, over https, to the one host named in
+   the library's settings (`library.events` in the slice), with no cookies and no redirects, a time limit and a size
+   cap, and it sends nothing about the person or their books. It runs only after the person pressed the button on the
+   events screen, the choice is remembered in their browser with a way to turn it off, and a workshop copy never shows
+   the button and never fetches. Modes cannot reach it. The one-file build carries a policy that lets the page connect
+   to that host and nothing else. A different host, a POST, a second module that fetches, or a request that
+   carries shelf data is a change to this rule, and needs a decision in `docs/DECISIONS.md` first.
 
 ## How the code is laid out
 
@@ -56,7 +65,7 @@ data/                   the canonical data: slice.json, tags.json, practice.json
 adapters/bibliocommons/ the only code that knows the library's platform (BiblioCommons). Which library is one
                         file in libraries/ (tpl.json: subdomain, name, timezone, slice queries)
 adapters/pack/          a reading pack (books, genres, mood, pace, a note) and the converter that makes the data
-tools/                  build.py, serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py,
+tools/                  build.py, distance-map.py (a person's travel times), serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py,
                         packets.py (a paste packet per brief), inbox.py (hand the page one change),
                         screens.py (screenshots of every screen, for design work; dev only)
 .claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
@@ -84,6 +93,7 @@ bash tools/check.sh <id>                 # the same, on a Mac with no Node (osas
 python3 tools/serve.py --workshop        # serve app/ with live reload, for a workshop or a demo
 python3 tools/find.py "birds toronto"    # fetch one catalogue search a person asked for, add the books to the app
 python3 tools/find.py --from-shelf s.json --limit 40  # match a saved shelf's books, one query at a time
+python3 tools/distance-map.py --origin LAT,LON --label "a name"   # travel times to every branch; sends the start point to public routing servers
 python3 tools/build.py                   # dist/nextbook.html, one file
 python3 tools/build.py --demo            # dist/demo.html, with the reference modes loaded
 python3 tools/build.py --starter         # dist/starter/, the folder a workshop hands out
@@ -148,7 +158,10 @@ Text from the catalogue, a model, an imported file or a person is shown as text.
 
 ## What not to do
 
-- Do not add a dependency, a bundler, a framework or a network call to the app.
+- Do not add a dependency, a bundler, a framework or a network call to the app. The one exception is `core/net.js`'s
+  events request (rule 7); do not widen it. Library-specific addresses and ids live in data (`library.events`), never in
+  `app/` code. Travel-time files (`data/distance-map.json`, `app/data/distance.js`) are one person's: never commit them,
+  never pack them into a build, never paste them anywhere.
 - Do not edit `app/data/*.js` by hand; regenerate it from `data/*.json` with `python3 tools/gen_data.py`.
 - Do not put workshop arrangements (dates, rooms, people, the session plan) in this repo. `docs/WORKSHOP.md` states the
   boundary.
