@@ -194,6 +194,55 @@ class TolerantTagTest(unittest.TestCase):
         self.assertIn("pic.png", str(caught.exception))
 
 
+class TravelTimesNeverShipTest(unittest.TestCase):
+    """Travel times come from one start point and reveal it, and people share the one file."""
+
+    def test_the_packer_leaves_data_distance_js_out_of_the_page(self):
+        marker = "TRAVEL-TIMES-MARKER"
+        template = page_of('<script src="data/distance.js"></script>')
+
+        def read(path):
+            if str(path).endswith("distance.js"):
+                return "Nextbook.data.put('distance', {\"label\":\"" + marker + "\"});\n"
+            return (REPO / "app" / "modes" / "list.js").read_text(encoding="utf-8")
+
+        html, info = build.assemble(template, read)
+        self.assertNotIn(marker, html)
+        self.assertNotIn("nb-distance", html)
+        self.assertTrue(any("distance.js" in n for n in info["notes"]))
+
+    def test_the_real_page_and_the_starter_carry_no_travel_files(self):
+        import contextlib
+        import io
+        made = []
+        for rel in ("data/distance-map.json", "data/distance-transit-cache.json", "app/data/distance.js"):
+            path = REPO / rel
+            if not path.exists():
+                path.write_text('{"label": "TRAVEL-TIMES-MARKER", "branches": []}\n', encoding="utf-8")
+                made.append(path)
+        self.addCleanup(lambda: [p.unlink() for p in made if p.exists()])
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        old = build.DIST
+        build.DIST = Path(tmp.name) / "dist"
+        self.addCleanup(lambda: setattr(build, "DIST", old))
+        with contextlib.redirect_stdout(io.StringIO()):
+            for name, modes in (("nextbook.html", None), ("demo.html", build.DEMO_MODES)):
+                info = build.write_page(name, modes)
+                self.assertNotIn("TRAVEL-TIMES-MARKER", info["out"].read_text(encoding="utf-8"), name)
+            build.build_starter()
+        starter = build.DIST / "starter"
+        for path in starter.rglob("*"):
+            if path.is_file():
+                self.assertNotIn("distance", path.name.replace("distance-map.py", ""), str(path))
+                self.assertNotIn("TRAVEL-TIMES-MARKER", path.read_text(encoding="utf-8", errors="ignore"), str(path))
+
+    def test_git_ignores_the_travel_files(self):
+        ignore = (REPO / ".gitignore").read_text(encoding="utf-8")
+        for rel in ("data/distance-map.json", "data/distance-transit-cache.json", "app/data/distance.js"):
+            self.assertIn(rel, ignore)
+
+
 class DistCleanTest(unittest.TestCase):
     """dist/ is generated: a build replaces what it writes and leaves its siblings alone."""
 

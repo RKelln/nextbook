@@ -35,6 +35,10 @@
 <!-- The only network code: it asks the library's events service for the list, and only once the
      person has said yes on the events screen. Never in a workshop copy. -->
 <script src="core/net.js"></script>
+<script src="core/eventlist.js"></script>
+<!-- Reads a person's own travel times (data/distance.js, or a file they add on the events
+     screen). Kept in this browser only; never packed, exported or sent. -->
+<script src="core/travel.js"></script>
 <script src="data/slice.js"></script>
 <script src="data/tags.js"></script>
 <script src="data/practice.js"></script>
@@ -43,6 +47,9 @@
 <!-- A workshop copy drops in data/workshop.js, which sets the flag that makes the practice
      shelf the only shelf. A copy without it is an ordinary copy; a missing file is fine. -->
 <script src="data/workshop.js"></script>
+<!-- A person's own travel times, made by tools/distance-map.py. They come from one start point,
+     so this file is never packed into a build. A missing file is fine. -->
+<script src="data/distance.js"></script>
 <!-- A helper's changes arrive in data/inbox.js. The page reads it once at load, brings the
      books in, and remembers that it did, so a reload does nothing. A missing file is fine. -->
 <script src="data/inbox.js"></script>

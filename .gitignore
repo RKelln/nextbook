@@ -14,6 +14,12 @@ app/data/workshop.js
 # page, not data: never committed, and never packed into a build.
 app/data/inbox.js
 
+# A person's own travel times, from tools/distance-map.py. They come from one start point, so they
+# are never committed and never packed into a build. The transit cache is the same data, half done.
+data/distance-map.json
+data/distance-transit-cache.json
+app/data/distance.js
+
 # Built copies are made by tools/build.py, never edited, never committed.
 dist/
 

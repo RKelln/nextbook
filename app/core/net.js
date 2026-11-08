@@ -118,7 +118,7 @@
     return m ? m[1] + (m[2] ? 'T' + m[2] + ':' + (m[3] || '00') : '') : '';
   }
 
-  // The words the service puts first on some listings ("More info: https://... Hosted by ...")
+  // The words the service puts first on some listings ("More info:" and an address, then "Hosted by ...")
   // are a pointer, not a summary. Only the clean part is dropped: "More info:" and its address.
   function summaryOf(text) {
     var s = tidy(text, 5000).replace(/^More info:\s*https?:\/\/\S+\s*/i, '');
