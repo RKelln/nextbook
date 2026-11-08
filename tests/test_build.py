@@ -66,6 +66,9 @@ class OneFileTest(unittest.TestCase):
 
     def test_the_only_addresses_are_the_librarys(self):
         outside = build.BLOCK_RE.sub("", self.html)
+        # The one address outside a data block is the policy's connect-src, the same origin as the
+        # events service in the slice (PolicyTest proves they match).
+        outside = re.sub(r'<meta http-equiv="Content-Security-Policy"[^>]*>', "", outside)
         self.assertEqual(URL_RE.findall(outside), [],
                          "the page itself must hold no address: every one belongs in a data block")
         library = json.loads((REPO / "data" / "slice.json").read_text(encoding="utf-8"))["library"]
@@ -192,6 +195,37 @@ class TolerantTagTest(unittest.TestCase):
             build.check_no_refs_left(page_of('<img src="pic.png" alt="">'))
         self.assertIn("<img>", str(caught.exception))
         self.assertIn("pic.png", str(caught.exception))
+
+
+class PolicyTest(unittest.TestCase):
+    """The one file carries a Content-Security-Policy: its own scripts by hash, one connection."""
+
+    def policy(self, html):
+        m = re.search(r'<meta http-equiv="Content-Security-Policy" content="([^"]*)">', html)
+        self.assertIsNotNone(m, "the one file has a policy")
+        return dict(p.split(" ", 1) for p in m.group(1).split("; "))
+
+    def test_every_inline_script_is_allowed_by_hash_and_nothing_else(self):
+        html, _ = build.build_page()
+        scripts = re.findall(r"<script>(.*?)</script>", html, re.S)
+        self.assertGreater(len(scripts), 10)
+        allowed = self.policy(html)["script-src"].split(" ")
+        self.assertEqual(sorted(allowed), sorted(build.sha256_token(s) for s in scripts))
+        self.assertNotIn("unsafe-inline", self.policy(html)["script-src"])
+        self.assertNotIn("unsafe-eval", self.policy(html)["script-src"])
+        self.assertEqual(self.policy(html)["default-src"], "'none'")
+
+    def test_the_page_may_connect_to_the_events_host_and_no_other(self):
+        html, info = build.build_page()
+        slice_doc = block_json(html, "slice")
+        host = re.match(r"https://[^/]+", slice_doc["library"]["events"]["apiUrl"]).group(0)
+        self.assertEqual(self.policy(html)["connect-src"], host)
+        self.assertEqual(info["connect"], host)
+
+    def test_a_library_with_no_events_service_gets_no_connection_at_all(self):
+        self.assertEqual(build.make_csp(["'sha256-x'"], None).split("; ")[4], "connect-src 'none'")
+        self.assertIsNone(build.events_origin('{"library": {"name": "X"}}'))
+        self.assertIsNone(build.events_origin('{"library": {"events": {"apiUrl": "http://x.test/a/"}}}'))
 
 
 class TravelTimesNeverShipTest(unittest.TestCase):

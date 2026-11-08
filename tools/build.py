@@ -28,6 +28,8 @@ Nothing here fetches anything and nothing here runs the app: it only reads files
 from __future__ import annotations
 
 import argparse
+import base64
+import hashlib
 import json
 import re
 import shutil
@@ -282,12 +284,50 @@ def demo_mode_ids(demo_modes):
     return ids
 
 
+def sha256_token(text):
+    return "'sha256-" + base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii") + "'"
+
+
+def make_csp(hashes, connect_origin):
+    """The page's Content-Security-Policy. Search Desk's pattern (MIT, same author).
+
+    Every inline script is allowed by its hash and nothing else may run, so the browser itself
+    refuses any code that was not packed. The page may connect to one origin, the library's events
+    service named in the slice, and to nothing else; no events service in the data gives 'none'.
+    No frames, no images from the network, no base tag, no form that leaves the page."""
+    parts = [
+        "default-src 'none'",
+        "script-src " + " ".join(hashes),
+        "style-src 'unsafe-inline'",
+        "img-src data:",
+        "connect-src " + (connect_origin or "'none'"),
+        "base-uri 'none'",
+        "form-action 'none'",
+    ]
+    return "; ".join(parts)
+
+
+def events_origin(slice_body):
+    """https://host of the slice's `library.events.apiUrl`, or None when the library names none."""
+    try:
+        api = json.loads(slice_body)["library"]["events"]["apiUrl"]
+    except (ValueError, KeyError, TypeError):
+        return None
+    m = re.match(r"^(https://[A-Za-z0-9.-]+(?::\d+)?)/", api if isinstance(api, str) else "")
+    return m.group(1) if m else None
+
+
+def attr_escape(text):
+    return text.replace("&", "&amp;").replace('"', "&quot;").replace("<", "&lt;")
+
+
 def assemble(template, read, demo_modes=None):
     """The page text. `read(path)` reads an absolute Path. `demo_modes` is a folder to take
     finished demo modes from, or None for the plain one file. Returns (html, info)."""
     clean = normalise(strip_comments(template))
     check_refs(clean)
     scripts, blocks, notes = [], [], []
+    connect = []                      # the events origin, found in the slice's data block
     listed = parse_mode_ids(read(APP / "modes" / "list.js"))
     extra = [i for i in demo_mode_ids(demo_modes) if i not in listed] if demo_modes else []
 
@@ -323,6 +363,8 @@ def assemble(template, read, demo_modes=None):
             if name != path.stem:
                 raise BuildError(src + " holds the name '" + name + "'; it must be '" + path.stem + "'")
             blocks.append(name)
+            if name == "slice":
+                connect.append(events_origin(body))
             return json_block(name, body)
         if not path.is_file():
             raise BuildError("app/index.html loads " + src + ", which is not in app/")
@@ -354,9 +396,12 @@ def assemble(template, read, demo_modes=None):
     marker = "<!-- nextbook, one file. Built by tools/build.py: edit app/, never this file. -->"
     if "<meta charset" not in body:
         raise BuildError("app/index.html needs a <meta charset> in its head")
-    body = re.sub(r"(<meta charset[^>]*>\s*)", lambda m: m.group(1) + marker + "\n", body, count=1)
+    origin = connect[0] if connect else None
+    csp = make_csp([sha256_token(s) for s in scripts], origin)
+    meta = '<meta http-equiv="Content-Security-Policy" content="' + attr_escape(csp) + '">\n'
+    body = re.sub(r"(<meta charset[^>]*>\s*)", lambda m: m.group(1) + marker + "\n" + meta, body, count=1)
     info = {"scripts": len(scripts), "blocks": blocks, "notes": notes,
-            "modes": listed + extra}
+            "modes": listed + extra, "connect": origin or "none"}
     return body, info
 
 
@@ -444,8 +489,8 @@ def write_page(name, demo_modes=None):
 def say(info):
     for note in info["notes"]:
         print("note: " + note)
-    print("built %s  %d bytes  %d inline scripts  %d JSON blocks  modes: %s" % (
-        info["out"], info["bytes"], info["scripts"], len(info["blocks"]),
+    print("built %s  %d bytes  %d inline scripts  %d JSON blocks  connect-src %s  modes: %s" % (
+        info["out"], info["bytes"], info["scripts"], len(info["blocks"]), info["connect"],
         ", ".join(info["modes"]) or "(none)"))
 
 
