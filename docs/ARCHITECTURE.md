@@ -93,7 +93,7 @@ How raw subject headings become facets is specified in `DATA.md`, "From headings
 ### `tags.json`, our own words
 
 Hand-written, keyed by `groupKey`. This is where the things the catalogue does not carry live: mood, pace, and a
-one-line note in our own words. Seeded from the 30-book reading pack (books with mood, pace and a note, written for the
+one-line note in our own words. Seeded from the reading pack (books with mood, pace and a note, written for the
 workshop rather than copied from a publisher).
 
 ```json

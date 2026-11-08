@@ -11,7 +11,7 @@ priority order and say what was left.
 
 **Where it lives:** `github.com/RKelln/nextbook` (branch `main`), published at `nextbook.ryankelln.com` (D22).
 
-**What the app starts with (D28):** the 30-book pack, turned into the slice by T1.0. There is no batch catalogue
+**What the app starts with (D28):** the reading pack, turned into the slice by T1.0. There is no batch catalogue
 slice for now. Real catalogue records arrive when a person asks their agent to find books (T1.8).
 
 ## How to work
@@ -405,7 +405,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
 
 - [x] **T5.6 The hosted copy** (D, S, H). Port: `searchdesk/.github/workflows/pages.yml` (unit tests, mode checks,
   `python3 tools/build.py`, publish `dist/nextbook.html` as `index.html` with a `CNAME` of `nextbook.ryankelln.com`).
-  Ryan does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
+  The maintainer does the one-time steps: Pages source set to GitHub Actions, and the DNS record.
   *Done when:* a push to `main` publishes, and the network panel shows no request beyond the page itself.
 
 ## Phase 6: reference modes (lane E, never in the starter)
@@ -559,13 +559,13 @@ Found by the build's reviews, judged not worth a change now, and written down so
   holds reader's (a count line that disagrees with the state's items reads nothing) would catch some of it. Test by
   hand first: move one book, save without reloading, read the file for shape.
 
-- **How much do you want to read it?** (2026-11-04, from D40.) Ryan asked whether a book to read could say how
+- **How much do you want to read it?** (2026-11-04, from D40.) The maintainer asked whether a book to read could say how
   much. It would be a new stored field (store, merge, export, the CSV and shelf readers, the contract's standard
   shelves), BiblioCommons' For Later has no such level to line up with (D20), and `score.js` gives every "want" no
   weight today. Two shapes: a plain "next up" flag a mode can read, or a weight that makes a keen want count as a
   little evidence. Not built until decided.
 
-Write here; do not guess. Each one is Ryan's to answer.
+Write here; do not guess. Each one is the maintainer's to answer.
 
 1. Product name (D11, D22). The domain is settled; `nextbook` is still a working name.
 2. Answered 2026-11-03: `CONTRACT.md` section 4 gains an `event` input kind, and the events screen hands over the

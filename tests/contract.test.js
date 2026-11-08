@@ -552,7 +552,7 @@ test('an event input defaults to the first snapshot event, or the two-event fixt
 
 // ---- D37: an optional input, and the standard run that leaves it empty ----------------------
 
-// A mode that treats a null subject as "no filter", the branch Ryan's bug made unreachable.
+// A mode that treats a null subject as "no filter", the branch the maintainer's bug made unreachable.
 function anySubjectMode(id, extraInputs) {
   const calls = [];
   const mode = {

@@ -1,7 +1,7 @@
 'use strict';
 // D37: an input may be optional, and the page passes null for one left blank.
 //
-// Ryan found this by using the app as a participant would: a facet dropdown draws an empty
+// The maintainer found this by using the app as a participant would: a facet dropdown draws an empty
 // "Pick one", `inputsFor()` treated an empty value as missing, and the contract said choose
 // is not called until every input has a value. So every input was required, and a mode could
 // not offer "any subject". These tests drive the page through the fake DOM (tests/fakedom.js)
@@ -28,7 +28,7 @@ const CORE = [
 let seen = null;
 
 // A mode that picks one book, filtered by the subject it is given, or by no subject at all.
-// It is the mode from Ryan's bug: the hasSubject() branch that treats null as "no filter".
+// It is the mode from the maintainer's bug: the hasSubject() branch that treats null as "no filter".
 function subjectMode(id, spec) {
   return {
     id: id,

@@ -1,5 +1,5 @@
 # Publishes the built single file to GitHub Pages at nextbook.ryankelln.com (BUILD.md T5.6).
-# Ryan's one-time steps are in .github/PAGES.md.
+# The repo owner's one-time steps are in .github/PAGES.md.
 #
 # Nothing here reaches the network but the setup actions: the Node tests touch no page, the Python
 # tests use fixtures and a fake urlopen, and the build only reads files and writes dist/. The pack

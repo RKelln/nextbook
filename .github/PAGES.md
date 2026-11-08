@@ -8,7 +8,10 @@ once. Until they are done the workflow still runs, but the published site is not
 
 Repo → **Settings** → **Pages** → **Build and deployment** → **Source: GitHub Actions**.
 
-That is the whole setting. No branch, no folder: the workflow uploads the folder itself.
+No branch, no folder: the workflow uploads the folder itself.
+
+Then, on the same page, set **Custom domain** to `nextbook.ryankelln.com` and save. GitHub ignores a `CNAME` file when a
+workflow publishes the site, so this setting is what names the address; the workflow's `CNAME` file does nothing here.
 
 Then, once after the first successful run:
 

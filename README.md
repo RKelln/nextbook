@@ -3,6 +3,9 @@
 A small app that helps one person decide what to read next from their **public library's catalogue**, then sends them
 to the library's own page to borrow it.
 
+**Use it now:** [nextbook.ryankelln.com](https://nextbook.ryankelln.com). Nothing to sign up for. Your books are saved
+in that browser and go nowhere else.
+
 It runs from a folder in a browser. No install, no server, no account, no network, no tracking. A person's reading
 history stays in their browser by default. An optional local agent connection is described below.
 
@@ -26,6 +29,20 @@ and neither is required to read a book list.
 
 `dist/` is not in the repository: the build writes it. Everything the app needs at runtime is in `app/`.
 
+## Make it yours
+
+1. Get the files: [download the zip](https://github.com/RKelln/nextbook/archive/refs/heads/main.zip), or
+   `git clone https://github.com/RKelln/nextbook.git`.
+2. Open `app/index.html` in a browser to see it work.
+3. Open the folder in a coding agent (Claude Code, OpenCode and others). It reads `AGENTS.md` on its own. Then ask in
+   plain words: "Build the ladder mode from `docs/modes/`", or describe a way of choosing books that is your own.
+4. Ask it to run the checks after each change, and to show you the result in the browser.
+
+Your shelf is in the browser, not the folder. A page opened from a file, one served from your computer and the hosted
+copy each keep their own shelf, so use "Download the shelf file" on the shelf screen to move it from one to another. An agent sees what you
+paste and what you share with it, and the service behind it may keep that, so read its terms before you hand it your
+reading list.
+
 ## The shape in five lines
 
 1. The person keeps a shelf: what they have read, are reading, want, and how they rated it.
@@ -43,7 +60,7 @@ in the cloud.
 ## Write a mode
 
 A mode is one file that chooses up to six books and says why. `app/modes/more-by.js` is the worked example; the rules
-are in `docs/CONTRACT.md`; `docs/modes/` holds ten more as briefs you can build. After every change:
+are in `docs/CONTRACT.md`; `docs/modes/` holds eleven more as briefs you can build. After every change:
 
 ```sh
 node tools/check-mode.js more-by        # or --all; on macOS, bash tools/check.sh more-by when there is no Node
@@ -103,11 +120,11 @@ These come from the app's job, not from taste. `docs/DECISIONS.md` records what 
 
 ## Status
 
-The foundation is built and checked: 287 Node tests, 335 Python tests, the three reference modes and the example mode
-passing, and a one-file build with no network requests. A reading list can be imported from Goodreads or StoryGraph,
+The foundation is built and checked: the Node and Python tests, the three reference modes and the example mode pass
+before every publish, and the one-file build makes no network requests. A reading list can be imported from Goodreads or StoryGraph,
 merged with the shelves the library already keeps, and matched to the catalogue a book at a time. A shelf page saved
 from the library's own site can be brought in too, with one Undo, a list of what the two disagree about, and nothing
-of the page's account data kept. The ten mode briefs in `docs/modes/` are deliberately
+of the page's account data kept. The eleven mode briefs in `docs/modes/` are deliberately
 unbuilt — that is the work the app leaves to its reader. `docs/BUILD.md` is the plan and the record of how it was made.
 
 Where `docs/` reports a measurement of a catalogue page it carries the date it was taken, and usually the URL, so it

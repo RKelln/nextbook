@@ -3,15 +3,15 @@
 A decision log, not a plan. Each entry says what was decided, by whom, and what it forecloses. When a decision changes,
 add a new entry with the date; do not rewrite the old one.
 
-## D1. Thin router, not a catalogue (2026-11-03, Ryan)
+## D1. Thin router, not a catalogue (2026-11-03, the maintainer)
 
 The app decides and routes. It does not hold availability, formats, blurbs or covers; the library's record page does.
-Ryan: "let's start thin".
+The maintainer: "let's start thin".
 
 Forecloses: a self-contained reading record with covers and descriptions. Makes the copyright question mostly vanish,
 and makes the app fast and small.
 
-## D2. No NoveList ingestion (2026-11-03, Ryan and measured)
+## D2. No NoveList ingestion (2026-11-03, the maintainer and measured)
 
 The record page's read-alikes are licensed to the library, served as HTML with no CORS header. We link to them and
 compare against them in a demo; we never read them with code.
@@ -55,19 +55,19 @@ comes out.
 
 Forecloses: a menu of modes that produce incomparable artifacts, which is what makes an unranked choice survive a room.
 
-## D8. The mode menu is unranked and randomly ordered (2026-11-03, Ryan)
+## D8. The mode menu is unranked and randomly ordered (2026-11-03, the maintainer)
 
 Participants choose what to build, or bring their own idea. Nothing on the menu reads as the intended answer.
 
 Forecloses: a single "correct" build for a workshop, and means every mode offered needs its own working demo.
 
-## D9. Practice mode is prebuilt, not a participant exercise (2026-11-03, Ryan)
+## D9. Practice mode is prebuilt, not a participant exercise (2026-11-03, the maintainer)
 
 "The sandbox is boring to participants." Two shelves, a banner, a switch, a reset, shipped in the starter.
 
 Forecloses: the sandbox as a teaching feature. It becomes the test fixture, and the documented way to clear test data.
 
-## D10. The repo is library-generic, with a TPL adapter (2026-11-03, Ryan)
+## D10. The repo is library-generic, with a TPL adapter (2026-11-03, the maintainer)
 
 "Modular to allow for any library open backend." The catalogue adapter is the only thing a different system replaces.
 
@@ -90,7 +90,7 @@ of new titles), honours the delay, caches every page, and never fetches record p
 Forecloses: per-record enrichment at build time, and "20 pages of new titles" as the main source (unread, often on
 order). Supersedes the source list in the first `BUILD.md`.
 
-## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, accepted by Ryan)
+## D13. Source is a folder of classic scripts; one file is a build output (2026-11-03, proposed by Claude, accepted by the maintainer)
 
 The first `AGENTS.md` said "one HTML file, no build step". For a foundation that participants extend, one large file is
 the most fragile thing a beginner's agent can edit, and an earlier starter was already 119 KB. Search Desk's answer
@@ -99,7 +99,7 @@ standard-library `tools/build.py` that packs one file for carrying home and host
 
 Forecloses: editing the single file by hand. The take-home is still one file, made by the build.
 
-## D14. A mode chooses; the shell draws and checks (2026-11-03, proposed by Claude, accepted by Ryan)
+## D14. A mode chooses; the shell draws and checks (2026-11-03, proposed by Claude, accepted by the maintainer)
 
 A mode returns `{picks: [{id, why}], note}` and draws nothing. The shell renders every result the same way, builds the
 links, and enforces rules 5 and 6 (ids exist, every pick has a reason, an empty result says why) for every mode rather
@@ -108,13 +108,13 @@ than trusting each one.
 Forecloses: per-mode screens in the first release. A custom view is a new `shape` added to the shell, not drawing
 improvised in a mode, the same rule as Search Desk's "new slots are added to core".
 
-Ryan, accepting: the `why` and the `note` are what let one contract fit very different modes. Taken from Search Desk
+The maintainer, accepting: the `why` and the `note` are what let one contract fit very different modes. Taken from Search Desk
 as well, because they were tested there: missing is fine (a mode that fails to load shows a card and nothing else
 breaks), a repeat registration replaces with a warning, the banned-word scan over the mode's functions, the
 `check(id, (t, mode))` API with a runner for Node and for `osascript`, the in-browser self-test, live reload with
 `.dev-go`, the `new-mode` and `check` commands, and the rules for small models.
 
-## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, accepted by Ryan)
+## D15. The catalogue's subjects plus our own words, kept apart (2026-11-03, proposed by Claude, accepted by the maintainer)
 
 Facets come from the catalogue (topics, BISAC, genre, call-number sections, series). What the catalogue does not carry
 (mood, pace, a one-line note) lives in `data/tags.json`, keyed by `groupKey`, hand-written, seeded from the 30-book pack.
@@ -122,7 +122,7 @@ Modes that need mood or pace say how many untagged works they skipped.
 
 Forecloses: inventing mood or length for works nobody tagged.
 
-## D16. The example mode is not on the menu (2026-11-03, proposed by Claude, accepted by Ryan)
+## D16. The example mode is not on the menu (2026-11-03, proposed by Claude, accepted by the maintainer)
 
 The starter ships `more-by` (more by authors you rated well) as the contract's worked example, and no menu mode. Survey,
 journey and challenge are reference builds in `reference/modes/`, packed into the demo file only. Same reasoning as Search
@@ -136,7 +136,7 @@ Forecloses: shipping a menu mode in the starter.
 A work links to `library.recordUrl` with its id; a typed book links to `library.searchUrl` with its title and author.
 Both templates live in `slice.json`, written by the adapter, so the app never contains a library's hostname (D10).
 
-## D18. A hard date, and a fallback slice (2026-11-03, Ryan)
+## D18. A hard date, and a fallback slice (2026-11-03, the maintainer)
 
 "We want this for the first run, and there is a date." Most of the foundation is a port of Search Desk, which was built and tested in four days;
 the library layers are the new part. The safety net is a slice built from the 30-book pack (the pack's own facets,
@@ -149,7 +149,7 @@ records is the decision — make the fallback slice first, so a hard date can ne
 
 Forecloses: nothing permanent. The real slice replaces the fallback whenever it lands.
 
-## D19. The menu lives in the docs, not in the app (2026-11-03, Ryan)
+## D19. The menu lives in the docs, not in the app (2026-11-03, the maintainer)
 
 The mode menu is `docs/modes/`, for people and their agents. The app lists only modes that are built
 (`app/modes/list.js`). Search Desk showed planned features as stubs inside the app; here that would put the menu on
@@ -157,7 +157,7 @@ screen with one item marked as the answer, which D8 forbids.
 
 Forecloses: "not built yet" cards in the app.
 
-## D20. The library's own shelves: line up now, import once later, never sync (2026-11-03, Ryan and Claude)
+## D20. The library's own shelves: line up now, import once later, never sync (2026-11-03, the maintainer and Claude)
 
 BiblioCommons already keeps a signed-in person's shelves (For Later, In Progress, Completed) and 1 to 5 star ratings,
 and other library systems have the same. The library's shelf is the tracker; this app is the decision layer beside it,
@@ -172,19 +172,19 @@ network off. Never ask for a library card number or password, never sign in on a
 the library's shelves (the record page's own buttons do that, one click away), and never two-way sync. A patron-data
 API would be a separate conversation with the library, and nothing public says it is coming.
 
-Not for Nov 7. Measured nothing yet: a public search page's JSON carries empty `shelves`, `borrowingHistory` and
+Not for the first version. Measured nothing yet: a public search page's JSON carries empty `shelves`, `borrowingHistory` and
 `checkouts` entities, which suggests a signed-in page carries the person's own; T8.7 checks.
 
 Forecloses: account linking, credential handling, and any feature that needs the library's servers to know the app
 exists.
 
-## D21. No fallback to the old starter (2026-11-03, Ryan)
+## D21. No fallback to the old starter (2026-11-03, the maintainer)
 
 "I don't think we want a fallback demo." Replaces the last clause of D18: if a gate is missed, the build cuts from the
 list in `BUILD.md` and carries on; the build does not switch back to an earlier starter. The fallback slice from the
 30-book pack stays, as data every lane needs on day one.
 
-## D22. Repo and domain (2026-11-03, Ryan)
+## D22. Repo and domain (2026-11-03, the maintainer)
 
 `github.com/RKelln/nextbook`, published at `nextbook.ryankelln.com` on GitHub Pages, as Search Desk is at
 `searchdesk.ryankelln.com`. A personal subdomain implies no partnership with the library, so it answers the domain half
@@ -198,16 +198,16 @@ record id, shelf, date added and a rating out of 10, and the page carries each r
 access, no network and no help from the library's servers.
 
 The same file holds the card barcode, name, email and a live session token, so the reader is written to take only the
-shelf and the records, never to keep the file, and to tell the person to delete it. Still not for Nov 7 (T8.8).
+shelf and the records, never to keep the file, and to tell the person to delete it. Still not for the first version (T8.8).
 
-## D24. The adapter is the platform, the library is a setting (2026-11-03, Ryan)
+## D24. The adapter is the platform, the library is a setting (2026-11-03, the maintainer)
 
 The catalogue pages, the record payload, the robots rules and the signed-in shelf page are BiblioCommons', not TPL's,
 and BiblioCommons runs many other public libraries' catalogues. So the adapter is `adapters/bibliocommons/`, and TPL is
 `adapters/bibliocommons/libraries/tpl.json` (subdomain, name, slice queries). Another BiblioCommons library is one new
 file and a rerun; another platform is another adapter with the same outputs. Sharpens D10.
 
-## D25. One-way sync with a memory, discrepancies fixed at the library (2026-11-03, Ryan)
+## D25. One-way sync with a memory, discrepancies fixed at the library (2026-11-03, the maintainer)
 
 "A smart one way sync from library to app, where for things like I've read it we note discrepancies that need the
 person to resolve at the library site." Each library-origin entry remembers what the library said last time, so a
@@ -217,7 +217,7 @@ re-import can tell "changed there" (follow it), "changed here" (list it to tidy 
 Forecloses: automatic background sync (every import is the person's action, with a date and an Undo), and deleting
 anything because it is missing from a file that might be incomplete.
 
-## D26. Real requests through the agent in the workshop; Open Library later (2026-11-03, Ryan)
+## D26. Real requests through the agent in the workshop; Open Library later (2026-11-03, the maintainer)
 
 The browser cannot read the catalogue (no CORS), so a context-driven request has to be made by something else. In a
 folder copy, that is the person's agent: they ask "find me books about birds" or "find this book", the agent runs
@@ -226,7 +226,7 @@ that makes the app work before anyone asks. The hosted copy, with no agent, gets
 (T8.10). A relay server and a bookmarklet were considered and not taken: the first would be a service hitting the
 library for everyone and needs the library's agreement; the second is clumsy and fragile.
 
-## D27. Pacing: crawl-delay for the batch, a person's pace for a person's search (2026-11-03, Ryan)
+## D27. Pacing: crawl-delay for the batch, a person's pace for a person's search (2026-11-03, the maintainer)
 
 "The 120 crawl delay is for robots making indexes; searches for particular books that happen occasionally are entirely
 different, even if it's robots making them." The batch slice build still waits the full `Crawl-delay`, because it is
@@ -234,7 +234,7 @@ the one unattended, index-like job here and its slowness costs nothing. An on-de
 request at a time, at least 5 s apart, at most 3 pages per command, cached. Disallowed paths stay refused for both.
 Revises the pacing part of D12.
 
-## D28. No batch catalogue slice for now; the pack is the starting list (2026-11-03, Ryan)
+## D28. No batch catalogue slice for now; the pack is the starting list (2026-11-03, the maintainer)
 
 "I thought we decided against the slice for now?" The app starts from the 30-book pack, made into the slice's shape
 with sections and fiction/non-fiction derived from its genres, so every mode on the menu runs on it. Real catalogue
@@ -242,26 +242,26 @@ records arrive only when a person asks their helper to find books (D26), and sta
 batch-slice parts of D12 and D18; the batch builder becomes a later task (T8.11), with the open question of whether a
 public repo may carry catalogue records in bulk (`DATA.md`).
 
-## D29. The pack's books and notes are kept (2026-11-03, Ryan)
+## D29. The pack's books and notes are kept (2026-11-03, the maintainer)
 
 The earlier material is a placeholder, but the pack's 30 books and their hand-written mood, pace and one-line notes
 are the only source of words the catalogue does not carry (D15). They seed the starting list, `tags.json` and the
 practice shelf. Replacing them later changes data, not code.
 
-## D30. Events are in for Nov 7, last in priority (2026-11-03, Ryan)
+## D30. Events are in, last in priority (2026-11-03, the maintainer)
 
 "Events can be last but they are basically done" across Search Desk and an earlier events finder.
 A dated snapshot for one branch, `ctx.events` for modes, an events screen, and "Books for this event" when event hook
 is loaded. The library's own event text is kept as `summary` (short, linked, dated); rule 4 is about publisher blurbs
 on book records, and there is no field named `description` anywhere.
 
-## D31. A workshop copy uses the practice shelf only (2026-11-03, Ryan)
+## D31. A workshop copy uses the practice shelf only (2026-11-03, the maintainer)
 
 A workshop copy shows the practice shelf only and says why in its own words; the own shelf, friends' shelves from real
 people and the library import are for home. The welcome copy and the "describe it for one reader" step never invite a
 real reading history. The take-home copy's words say the own shelf goes in at home, on a computer the person owns.
 
-## D32. From Ryan's design review (2026-11-03)
+## D32. From the maintainer's design review (2026-11-03)
 
 Folded in from `docs/HANDOFF.md` (committed as written, then removed once its points were in the docs):
 
@@ -278,7 +278,7 @@ Folded in from `docs/HANDOFF.md` (committed as written, then removed once its po
 - **Material from before this design is a placeholder.** Port code from it, never requirements.
 - **The starter's interface to whatever is built on it is written down** (`BUILD.md`), and that is all it relies on.
 
-## D33. What the build changed in the product (2026-11-03, Hermes, each reviewed)
+## D33. What the build changed in the product (2026-11-03, the build agent, each reviewed)
 
 Decisions taken while building that a reader of the design would not find in it. Each was reversible, low stakes and
 clear enough to lead; each had an independent review pass, and each is named in the commit that made it.
@@ -299,9 +299,9 @@ clear enough to lead; each had an independent review pass, and each is named in 
 - **`data/events.json` is committed as a dated snapshot.** The library's own event text, capped at 300 characters,
   with the feed's host recorded as answering `robots.txt` with 404 (2026-11-03). It goes stale: rebuild before a room.
 
-## D34. The finalists prompt: titles, but never a work on the person's shelf (2026-11-03, Ryan's call)
+## D34. The finalists prompt: titles, but never a work on the person's shelf (2026-11-03, the maintainer's call)
 
-Ryan asked whether placeholders would cost the chat the titles it needs to curate, and accepted that reading lists stay
+The maintainer asked whether placeholders would cost the chat the titles it needs to curate, and accepted that reading lists stay
 private. Both halves are right, and rule 1 draws the line in the same place: **"never a title from the person's shelf"**,
 not "never a title".
 
@@ -319,9 +319,9 @@ The "from some words" prompt is unchanged: it carries no titles at all, and maps
 Placeholders remain the fallback if a later feature has to put a shelf work in front of a model; nothing in this design
 does.
 
-## D35. An `event` input kind (2026-11-03, Ryan)
+## D35. An `event` input kind (2026-11-03, the maintainer)
 
-Ryan: "event input kind seems good." Until now the contract had no kind that could carry a library event, so the
+The maintainer: "event input kind seems good." Until now the contract had no kind that could carry a library event, so the
 events screen's "Books for this event" button could only put the event's title into a mode's `text` box (T3.6, open
 question 2).
 
@@ -333,7 +333,7 @@ the mode when it has that input, and keeps the title-in-the-text-box path for a 
 
 Forecloses nothing: a mode that never lists the input is unaffected, and the event snapshot is still the only source,
 so nothing here reaches the network.
-## D36. An agent reads and writes the app through two files, not an MCP server (2026-11-03, Ryan's steer)
+## D36. An agent reads and writes the app through two files, not an MCP server (2026-11-03, the maintainer's steer)
 
 Search Desk solved this and the answer is worth copying rather than reinventing. It has two halves:
 
@@ -356,9 +356,9 @@ matched record ids back to the page without the person importing their file agai
 **Not an MCP server.** Two files do the job inside rules the repo already keeps: no dependency, no process, no second
 route to the shelf, and nothing to configure before a workshop. An MCP surface would be a third way in, and the one
 with the largest blast radius, for a capability the files already have.
-## D37. An input can be left unset, and every input state gets a standard run (2026-11-03, Ryan's bug)
+## D37. An input can be left unset, and every input state gets a standard run (2026-11-03, the maintainer's bug)
 
-Ryan found this by using the app as a participant would: a facet dropdown draws an empty "Pick one", `inputsFor()`
+The maintainer found this by using the app as a participant would: a facet dropdown draws an empty "Pick one", `inputsFor()`
 treats an empty value as missing, and the contract says `choose` is not called until every input has a value. So every
 input was required, and a mode could not offer "any subject" — the mode's own `hasSubject()` branch, written to treat
 "no subject" as "no filter", could never run. The most natural second step for a beginner (add one more input) would
@@ -397,9 +397,9 @@ not a rebuild.
 
 The library pages carry one extra sentence the others do not need: the page keeps the books, not the file, so delete the
 saved pages afterwards. That is the one path where a file on the person's disk holds more than a book list.
-## D39. The shelf's count comes from the page's own words, not from a tick (2026-11-03, Ryan)
+## D39. The shelf's count comes from the page's own words, not from a tick (2026-11-03, the maintainer)
 
-The state carries no totals, so the first answer was to keep quiet about completeness. Ryan's answer is better: the
+The state carries no totals, so the first answer was to keep quiet about completeness. The maintainer's answer is better: the
 saved page still *says* how many books the shelf holds, in its own header and footer.
 
 Measured on the two saved pages (2026-11-04, text only):
@@ -421,9 +421,9 @@ So the number is there, the word distinguishes the two page types, and both are 
 Rejected: a tick asking the person to promise they saved every page. It shifts a fact the file already states onto the
 person, and it is the kind of promise someone mis-remembers.
 
-## D40. The rating follows the state; the page is laid out in layers (2026-11-04, Ryan and Claude)
+## D40. The rating follows the state; the page is laid out in layers (2026-11-04, the maintainer and Claude)
 
-Ryan: the state and rating drop-downs were "kinda meh" and "should be aware of each other". They are now one control.
+The maintainer: the state and rating drop-downs were "kinda meh" and "should be aware of each other". They are now one control.
 The state is a radio group drawn as a segmented bar; the rating is four chips that press and unpress, and it asks
 the question the state makes: **How was it?** for read and stopped, **So far** for reading (its pressed chip is drawn
 dashed, as a guess so far), and nothing for a book to read. This matches the arithmetic already in `score.js`: a
@@ -441,9 +441,9 @@ Playwright, a dev tool that never ships, ported from Search Desk) takes every sc
 Forecloses: rating a book you have not started. Leaves open: how much you want to read a book (`BUILD.md`, Open
 questions).
 
-## D41. Changes at the library come back in one round trip (2026-11-04, Ryan and Claude)
+## D41. Changes at the library come back in one round trip (2026-11-04, the maintainer and Claude)
 
-Ryan: after a hold or a change to a list at the library, getting it back into the app should be as easy as possible.
+The maintainer: after a hold or a change to a list at the library, getting it back into the app should be as easy as possible.
 The way back stays D23's: the person saves the library's page and the app reads the file. No sign-in, no request, no
 sync (D20). What changed is the length of the trip:
 
@@ -458,9 +458,9 @@ sync (D20). What changed is the length of the trip:
 Saving a page is a computer's job; the step says so rather than pretend a phone can. Holds cannot come back yet: no
 one has measured what a saved holds page carries (`BUILD.md`, Open questions).
 
-## D42. "On hold" is a state (2026-11-04, Ryan)
+## D42. "On hold" is a state (2026-11-04, the maintainer)
 
-Ryan: "we should have a foundational hold state for books to track which are currently on hold at your library." The
+The maintainer: "we should have a foundational hold state for books to track which are currently on hold at your library." The
 states are now `want`, `hold`, `reading`, `read` and `stopped`, in that order on the shelf's control.
 
 - **It is a wish.** A book on hold weighs 0, as `want` does, and asks for no rating. It is not evidence of taste.
@@ -476,9 +476,9 @@ Holds still do not come in from the library: a saved holds page is unmeasured (`
 is, an import could set `hold` and clear it, and this decision says what it would set. (It was measured the same day:
 D43.)
 
-## D43. The holds list comes back like a shelf (2026-11-04, Ryan)
+## D43. The holds list comes back like a shelf (2026-11-04, the maintainer)
 
-Ryan saved his On Hold page (My Borrowing) and asked for the app to read it. Measured for shape only (`DATA.md`, "A
+The maintainer saved their On Hold page (My Borrowing) and asked for the app to read it. Measured for shape only (`DATA.md`, "A
 person's own On Hold page"): each hold names its record by `metadataId`, the page carries that book's `briefInfo`, and
 `borrowing.holds.pagination` says how many holds there are. So it goes in the same drop box as the shelf pages, as part
 of the same one import with one Undo.
@@ -505,9 +505,9 @@ of the same one import with one Undo.
   gone. A holds page now says nothing about any shelf.
 
 
-## D44. Opt-in agent reading, with a notice for reads and writes (2026-11-05, Ryan's request)
+## D44. Opt-in agent reading, with a notice for reads and writes (2026-11-05, the maintainer's request)
 
-Ryan asked for Search Desk's read connection as well as its inbox, and a skill that warns that both
+The maintainer asked for Search Desk's read connection as well as its inbox, and a skill that warns that both
 reading and writing expose book titles to the AI. This supersedes D36's no-mirror restriction.
 `tools/serve.py --mirror` injects a local-only helper that mirrors the active shelf, including practice
 data, to `nextbook-live.json` outside the served folder. It is off by default; normal and built apps

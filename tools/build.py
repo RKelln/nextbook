@@ -396,7 +396,7 @@ def strays(produced):
     """Files in dist/ that this build did not write and that are not its siblings' outputs.
 
     The three builds (one file, demo, starter) are meant to sit beside each other: the kit needs
-    the folder and Ryan's laptop needs the demo. Anything else is a leftover worth naming."""
+    the folder and a presenter's laptop needs the demo. Anything else is a leftover worth naming."""
     if not DIST.is_dir():
         return []
     keep = {Path(p) for p in produced} | {DIST / "nextbook.html", DIST / "demo.html", DIST / "starter"}

@@ -152,6 +152,7 @@ Text from the catalogue, a model, an imported file or a person is shown as text.
 - Do not edit `app/data/*.js` by hand; regenerate it from `data/*.json` with `python3 tools/gen_data.py`.
 - Do not put workshop arrangements (dates, rooms, people, the session plan) in this repo. `docs/WORKSHOP.md` states the
   boundary.
-- Do not build a mode from the menu (`docs/modes/`) into `app/modes/`. Those briefs are deliberately unbuilt: writing
-  one is the work the app leaves to its reader. The briefs are the spec; the reference builds in `reference/modes/`
-  are finished examples, there to be read.
+- Do not add a mode from the menu (`docs/modes/`) to `app/modes/` in this repository's own `main`. Those briefs stay
+  unbuilt there so the next reader can write them; the reference builds in `reference/modes/` are finished examples,
+  there to be read. **In a person's own copy or fork, building a mode is the point.** When they ask for one, build it
+  (`.claude/commands/new-mode.md` is the recipe), and never copy a reference build in as the answer.

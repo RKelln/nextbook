@@ -22,7 +22,7 @@ the JSON-block pattern is used only in the built single file.
 
 ## The pattern set, without the projects
 
-Four shapes came from earlier tools of the same kind, and each is small enough to describe rather than link:
+Three shapes came from earlier tools of the same kind, and each is small enough to describe rather than link:
 
 - **An events feed with traps.** A finder built for a town hall reads the library's events feed, computes travel times
   and hands a filtered list to a model. Taken: the event adapter, its traps, and the "ids only, checked against the

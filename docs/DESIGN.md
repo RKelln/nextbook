@@ -1,6 +1,6 @@
 # Design
 
-Written 2026-11-03, from a working session with Ryan. This is the settled shape; the open questions are at the bottom.
+Written 2026-11-03, from a working session with the maintainer. This is the settled shape; the open questions are at the bottom.
 
 ## The problem
 
@@ -139,7 +139,7 @@ working, and that is the residency's actual product.
 2. Whether the hosted copy fetches anything at runtime. **Proposed (2026-11-03):** not in the first release. An optional
    Open Library lookup for a typed book is a P1 task, off by default.
 3. A curated pack or an empty start. **Proposed (2026-11-03):** both, separated. The catalogue slice is the list; the
-   30-book pack becomes our own words (`data/tags.json`: mood, pace, a note) and the practice shelf. The own shelf
+   reading pack becomes our own words (`data/tags.json`: mood, pace, a note) and the practice shelf. The own shelf
    starts empty.
 4. Which modes ship first. **Proposed (2026-11-03):** none on the menu; the example `more-by` ships, and survey, journey
    and challenge are reference builds, because between them they exercise coverage, sequencing and inversion.
