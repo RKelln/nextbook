@@ -1007,6 +1007,17 @@
   .nb-event-virtual { color: var(--nb-accent); font-weight: 600; }
   .nb-event-summary { margin-block-start: 6px; }
   .nb-event-actions { margin-block-start: auto; padding-block-start: var(--nb-s2); }
+  .nb-event-place { font-weight: 600; }
+  .nb-event-travel { color: var(--nb-accent); font-weight: 600; }
+  .nb-live, .nb-travel { display: grid; gap: var(--nb-s2); margin-block-start: var(--nb-s3); }
+  .nb-live-row { display: flex; flex-wrap: wrap; align-items: center; gap: var(--nb-s2); }
+  .nb-filters { display: flex; flex-wrap: wrap; align-items: flex-end; gap: var(--nb-s3); margin-block-start: var(--nb-s3); }
+  .nb-filters .nb-field { flex: 1 1 14rem; max-width: 100%; }
+  .nb-weeks { display: flex; flex-wrap: wrap; gap: var(--nb-s1); }
+  .nb-weeks .nb-button[aria-pressed="true"] { border-color: var(--nb-accent); font-weight: 650; }
+  .nb-travel input[type="file"] { max-width: 100%; }
+  #nb-events .nb-count { margin-block-start: var(--nb-s3); }
+  #nb-events > .nb-button { margin-block-start: var(--nb-s4); }
 
   /* ---- Self-test ---- */
   .nb-status { margin-block-start: var(--nb-s2); padding-inline-start: 1.2rem; }

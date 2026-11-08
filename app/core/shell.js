@@ -9,7 +9,8 @@
 // Every element is built with Nextbook.h, so catalogue text, an imported file and a typed
 // title are only ever text (AGENTS.md, "Safe by construction"). Every user-facing word is in
 // Nextbook.strings, added at the bottom of this file; a key another file already set wins.
-// The shelf itself lives in core/store.js; nothing here reaches the network.
+// The shelf itself lives in core/store.js. Nothing here makes a request: the one network module is
+// core/net.js, and the events screen only asks it, after the person pressed its button.
 (function (window) {
   var Nextbook = window.Nextbook = window.Nextbook || {};
   var doc = window.document;
@@ -45,6 +46,11 @@
     // which of the shelf screen's folding panels are open, by name, for this visit only
     folds: {},
     shelfFilter: 'all',   // the shelf screen's filter: 'all' or one state
+    eventsBusy: false,    // the latest list is being fetched
+    eventsNote: '',       // a one-line note from the last fetch (it failed, or part of it did)
+    eventsShown: 0,       // how many events the events screen draws; 0 means one page
+    eventsFar: false,     // show the events beyond the travel limit too (this visit only)
+    travelError: '',      // why the last travel times file was refused
     libraryTrip: false,   // a library link was pressed ({hold: work} for Sign in and hold); cleared on return
     messageAction: null,  // {message, label, test, run}: one button for the toast, for that message only
     model: blankModel(),  // the pasted answer, if there is one
@@ -2440,6 +2446,9 @@
     if (kind === 'event') {
       // D35: a picker of the snapshot's events, grouped by day. The value kept is the event's
       // id, so the same machinery remembers it and `choose` never sees a typed title.
+      // With the latest list there can be thousands, so the picker lists what the events screen
+      // is looking at (its branch and week), at most a page of options, and always the event
+      // already chosen. A copy with only the snapshot has few enough to list them all.
       var allEvents = eventList();
       if (!allEvents.length) {
         wrap.appendChild(h('span', { class: 'nb-label' }, label));
@@ -2448,14 +2457,23 @@
       }
       var eventOptions = [{ value: '', label: emptyOptionWords(spec, kind) }];
       markAsked(modeId, spec);
-      eventDays(allEvents).forEach(function (day) {
+      var prefs = viewPrefs();
+      var scope = Nextbook.eventlist
+        ? Nextbook.eventlist.pickerList(allEvents, {
+          branch: prefs.branch, when: prefs.when, today: localToday(), keep: modeInputValue(spec)
+        })
+        : { events: allEvents, total: allEvents.length, capped: false };
+      var manyBranches = eventBranchCount(allEvents) > 1;
+      eventDays(scope.events).forEach(function (day) {
         var dayWords = dayHeadingWords(day.parts);
         day.events.forEach(function (ev) {
           if (!ev || ev.id === undefined || ev.id === null || ev.id === '') return;
           var eventTitle = typeof ev.title === 'string' && ev.title ? ev.title : t('eventUntitled');
           eventOptions.push({
             value: String(ev.id),
-            label: t('eventOption', { day: dayWords, title: eventTitle })
+            label: manyBranches && ev.branch
+              ? t('eventOptionAt', { day: dayWords, title: eventTitle, branch: ev.branch })
+              : t('eventOption', { day: dayWords, title: eventTitle })
           });
         });
       });
@@ -2465,6 +2483,10 @@
           setInputValue(modeId, spec.id, chosen);
           render();
         })));
+      if (scope.capped) {
+        wrap.appendChild(p(t('inputEventsCapped', { shown: scope.events.length, n: scope.total }), 'nb-hint',
+          { 'data-test': base + '-capped' }));
+      }
       return wrap;
     }
 
@@ -2552,12 +2574,13 @@
     try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
     var others = [];
     try { others = state.store ? state.store.others() : []; } catch (e) { others = []; }
-    var events = Nextbook.data.get('events');
+    var now = eventsNow();
     return Nextbook.makeCtx({
       pool: poolResult(),
       shelf: entries,
       others: others,
-      events: events,
+      events: now.events,
+      eventsFetched: now.fetched,
       seed: state.seed,
       def: def
     });
@@ -3289,15 +3312,70 @@
     return isObj(data) && Array.isArray(data.events) ? data : null;
   }
 
-  function eventList() {
+  // The list the screen, the picker and the modes all use: the latest list when the person asked
+  // for it and it is saved, and otherwise the snapshot that came with this copy.
+  function eventsNow() {
+    var now = null;
+    try { now = Nextbook.net && typeof Nextbook.net.current === 'function' ? Nextbook.net.current() : null; } catch (e) { now = null; }
+    if (now && Array.isArray(now.events)) {
+      return { events: now.events.filter(isObj), source: now.source, fetched: now.fetched || '', note: now.note || '' };
+    }
     var data = eventSnapshot();
-    var out = [];
-    if (!data) return out;
-    data.events.forEach(function (e) { if (isObj(e)) out.push(e); });
+    return {
+      events: data ? data.events.filter(isObj) : [], source: 'snapshot',
+      fetched: data && typeof data.fetched === 'string' ? data.fetched : '', note: ''
+    };
+  }
+
+  function eventList() { return eventsNow().events; }
+
+  function liveAvailable() {
+    try { return !!(Nextbook.net && Nextbook.net.available && Nextbook.net.available()); } catch (e) { return false; }
+  }
+
+  function liveOn() {
+    try { return !!(Nextbook.net && Nextbook.net.enabled && Nextbook.net.enabled()); } catch (e) { return false; }
+  }
+
+  function hasEvents() { return eventList().length > 0 || liveAvailable(); }
+
+  // ---- What the events screen remembers, in this browser only ----------------------------------
+  var VIEW_KEY = 'nextbook1:events-view';
+  var EVENTS_PAGE = 50;
+  var TRAVEL_MAXES = [15, 20, 30, 45, 60, 90, 120];
+
+  function viewPrefs() {
+    var out = { branch: '', when: 'all', mode: 'any', max: 60 };
+    try {
+      var raw = JSON.parse(window.localStorage.getItem(VIEW_KEY));
+      if (isObj(raw)) {
+        if (typeof raw.branch === 'string' && raw.branch.length < 200) out.branch = raw.branch;
+        if (raw.when === 'this' || raw.when === 'next' || raw.when === 'all') out.when = raw.when;
+        if (Nextbook.travel && Nextbook.travel.MODES && Nextbook.travel.MODES.indexOf(raw.mode) !== -1) out.mode = raw.mode;
+        if (TRAVEL_MAXES.indexOf(raw.max) !== -1) out.max = raw.max;
+      }
+    } catch (e) { /* nothing remembered, or no storage */ }
     return out;
   }
 
-  function hasEvents() { return eventList().length > 0; }
+  function setViewPref(key, value) {
+    var prefs = viewPrefs();
+    prefs[key] = value;
+    try { window.localStorage.setItem(VIEW_KEY, JSON.stringify(prefs)); } catch (e) { /* the choice lasts this visit only */ }
+    state.eventsShown = 0;
+  }
+
+  // Today as the person's own calendar says it, 'YYYY-MM-DD'. It only decides this week and next.
+  function localToday() {
+    try {
+      var d = new Date();
+      return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
+    } catch (e) { return ''; }
+  }
+
+  function eventBranchCount(events) {
+    return Nextbook.eventlist ? Nextbook.eventlist.branches(events).length : 0;
+  }
 
   // The mode the "Books for this event" button opens. It must be loaded *and* named in the
   // mode list: the button goes to #find, and the find screen can only draw a mode the list
@@ -3341,7 +3419,7 @@
 
   // The event's title is the link to its page: one target, named once. The "Open the library's
   // page" line under the words is the same address for anyone who reads the summary first.
-  function eventNode(event, index) {
+  function eventNode(event, index, extra) {
     var li = h('li', { class: 'nb-event', 'data-event': String(event.id || ''), 'data-test': 'event-' + index });
     var url = typeof event.url === 'string' ? event.url : '';
     var title = typeof event.title === 'string' && event.title ? event.title : t('eventUntitled');
@@ -3353,6 +3431,18 @@
 
     var when = eventWhenWords(event);
     if (when) li.appendChild(p(when, 'nb-event-when', { 'data-test': 'event-time-' + index }));
+
+    // With events from many branches, say which one. With a map of the person's travel times,
+    // say how long it takes to get there, or that the time is not known. A virtual event has
+    // no trip, so it gets neither line.
+    if (extra && extra.showPlace && event.branch && event.virtual !== true) {
+      li.appendChild(p(t('eventPlace', { branch: event.branch }), 'nb-event-place', { 'data-test': 'event-place-' + index }));
+    }
+    if (extra && extra.travel && extra.travel.kind !== 'virtual') {
+      li.appendChild(p(extra.travel.kind === 'known'
+        ? t('travelTime', { n: extra.travel.minutes, via: t('travelVia_' + extra.travel.via) })
+        : t('travelUnknown'), 'nb-event-travel', { 'data-test': 'event-travel-' + index }));
+    }
 
     // A virtual event says so, in its own line, before the words.
     if (event.virtual === true) {
@@ -3418,47 +3508,260 @@
     render();
   }
 
+  // The latest list: the one button, said plainly, and a way back. Nothing is asked until the
+  // button is pressed; the choice is kept in this browser; a workshop copy shows none of it.
+  function startEventsRefresh(force) {
+    if (!liveOn()) return;
+    state.eventsBusy = true;
+    state.eventsNote = '';
+    render();
+    Nextbook.net.refresh({ force: !!force }).then(function (res) {
+      state.eventsBusy = false;
+      state.eventsNote = res && res.note ? res.note : '';
+      state.eventsShown = 0;
+      render();
+    }, function () {
+      state.eventsBusy = false;
+      render();
+    });
+  }
+
+  function liveBlock(now) {
+    var box = h('div', { class: 'nb-live', 'data-test': 'events-live' });
+    if (!liveAvailable()) return null;
+    if (!liveOn()) {
+      box.appendChild(p(t('liveAsk'), 'nb-hint', { 'data-test': 'events-live-ask' }));
+      box.appendChild(button('events-live-on', t('liveOn'), function () {
+        if (Nextbook.net.setEnabled(true)) startEventsRefresh(true);
+        else { state.message = t('liveCannotKeep'); render(); }
+      }));
+      return box;
+    }
+    if (state.eventsBusy) box.appendChild(p(t('liveBusy'), 'nb-note', { role: 'status', 'data-test': 'events-live-busy' }));
+    var row = h('div', { class: 'nb-live-row' });
+    row.appendChild(button('events-live-refresh', t('liveRefresh'), function () { startEventsRefresh(true); }, 'nb-button nb-button-quiet'));
+    row.appendChild(button('events-live-off', t('liveOff'), function () {
+      Nextbook.net.setEnabled(false);
+      state.eventsNote = '';
+      state.eventsShown = 0;
+      render();
+    }, 'nb-button nb-button-quiet'));
+    box.appendChild(row);
+    return box;
+  }
+
+  // ---- Your travel times -----------------------------------------------------------------------
+  function readTravelFile(input) {
+    var file = input && input.files && input.files[0];
+    if (!file) return;
+    function done(text) {
+      var r = Nextbook.travel.save(text);
+      state.travelError = r.ok ? '' : r.error;
+      state.eventsFar = false;
+      render();
+    }
+    if (typeof file.size === 'number' && file.size > Nextbook.travel.MAX_BYTES) {
+      state.travelError = t('travelErrBig');
+      render();
+      return;
+    }
+    try {
+      if (typeof file.text === 'function') file.text().then(done, function () { done(''); });
+      else {
+        var reader = new window.FileReader();
+        reader.onload = function () { done(String(reader.result || '')); };
+        reader.onerror = function () { done(''); };
+        reader.readAsText(file);
+      }
+    } catch (e) { done(''); }
+  }
+
+  function travelFileField(label) {
+    return h('label', { class: 'nb-field' },
+      h('span', { class: 'nb-label' }, label),
+      h('input', {
+        type: 'file', accept: '.json,application/json', 'data-test': 'events-travel-file',
+        on: { change: function (ev) { readTravelFile(ev.target); } }
+      }));
+  }
+
+  function travelBlock(current, prefs) {
+    if (!Nextbook.travel) return null;
+    var box = h('div', { class: 'nb-travel', 'data-test': 'events-travel' });
+    if (state.travelError) box.appendChild(p(state.travelError, 'nb-message nb-message-warn', { 'data-test': 'events-travel-error' }));
+    var map = current.map;
+    if (!map) {
+      box.appendChild(p(t('travelHow'), 'nb-hint', { 'data-test': 'events-travel-how' }));
+      box.appendChild(travelFileField(t('travelAdd')));
+      return box;
+    }
+    var line = map.label ? t('travelFrom', { label: map.label }) : t('travelFromNone');
+    if (map.built) line += ' ' + t('travelBuilt', { date: map.built });
+    box.appendChild(p(line + ' ' + t('travelRough'), 'nb-hint', { 'data-test': 'events-travel-source' }));
+    if (map.built && Nextbook.eventlist) {
+      var age = Nextbook.eventlist.daysBetween(map.built, localToday());
+      if (age > 21) box.appendChild(p(t('travelOld'), 'nb-note', { 'data-test': 'events-travel-old' }));
+    }
+    var modeOptions = Nextbook.travel.MODES.map(function (m) { return { value: m, label: t('travelMode_' + m) }; });
+    var maxOptions = TRAVEL_MAXES.map(function (n) { return { value: String(n), label: t('travelMax', { n: n }) }; });
+    var controls = h('div', { class: 'nb-filters' });
+    controls.appendChild(h('label', { class: 'nb-field' }, h('span', { class: 'nb-label' }, t('travelModeLabel')),
+      selectField('events-travel-mode', modeOptions, prefs.mode, t('travelModeLabel'), function (v) {
+        setViewPref('mode', v); render();
+      })));
+    controls.appendChild(h('label', { class: 'nb-field' }, h('span', { class: 'nb-label' }, t('travelMaxLabel')),
+      selectField('events-travel-max', maxOptions, String(prefs.max), t('travelMaxLabel'), function (v) {
+        setViewPref('max', Number(v)); render();
+      })));
+    box.appendChild(controls);
+    if (current.source === 'browser') {
+      box.appendChild(h('div', { class: 'nb-live-row' },
+        button('events-travel-remove', t('travelRemove'), function () {
+          Nextbook.travel.remove();
+          state.travelError = '';
+          state.eventsFar = false;
+          render();
+        }, 'nb-button nb-button-quiet')));
+      box.appendChild(p(t('travelKept'), 'nb-note'));
+    } else {
+      box.appendChild(p(t('travelFolder'), 'nb-note', { 'data-test': 'events-travel-folder' }));
+    }
+    box.appendChild(travelFileField(t('travelReplace')));
+    return box;
+  }
+
   function eventsView() {
     var sec = h('section', {
       class: 'nb-screen', id: 'nb-events', 'data-screen': 'events', 'data-test': 'events-section'
     });
     sec.appendChild(h('h2', t('eventsHeading')));
 
-    var events = eventList();
+    var now = eventsNow();
+    var events = now.events;
+    var live = liveBlock(now);
     if (!events.length) {
       sec.appendChild(p(t('eventsNone'), 'nb-empty', { 'data-test': 'events-empty' }));
+      if (live) sec.appendChild(live);
       return sec;
     }
 
+    var branchCount = eventBranchCount(events);
     var branch = '';
     for (var i = 0; i < events.length && !branch; i++) {
       if (typeof events[i].branch === 'string' && events[i].branch) branch = events[i].branch;
     }
-    if (branch) sec.appendChild(p(t('eventsIntro', { branch: branch }), 'nb-hint'));
+    if (now.source === 'cache') sec.appendChild(p(t('eventsIntroAll'), 'nb-hint', { 'data-test': 'events-intro' }));
+    else if (branch) sec.appendChild(p(t('eventsIntro', { branch: branch }), 'nb-hint', { 'data-test': 'events-intro' }));
 
-    // The sentence the snapshot owes the person, near the top, before any event.
-    var data = eventSnapshot();
-    var taken = data ? timeParts(data.fetched) : null;
-    sec.appendChild(p(taken
-      ? t('eventSnapshot', {
-        date: t('eventDateLong', {
-          month: t(MONTH_KEYS[taken.m - 1]), day: taken.d, year: taken.y
-        })
-      })
-      : t('eventSnapshotNoDate'), 'nb-event-snapshot', { 'data-test': 'events-snapshot' }));
+    // The sentence the list owes the person, near the top, before any event: where it came from
+    // and what day it is from.
+    var taken = timeParts(now.fetched);
+    var when = taken ? t('eventDateLong', { month: t(MONTH_KEYS[taken.m - 1]), day: taken.d, year: taken.y }) : '';
+    var source = now.source === 'cache'
+      ? (taken ? t('eventLatest', { date: when }) : t('eventLatestNoDate'))
+      : (taken ? t('eventSnapshot', { date: when }) : t('eventSnapshotNoDate'));
+    sec.appendChild(p(source, 'nb-event-snapshot', { 'data-test': 'events-snapshot' }));
+    if (now.note) sec.appendChild(p(now.note, 'nb-note', { role: 'status', 'data-test': 'events-note' }));
+    if (live) sec.appendChild(live);
 
+    // Filters: only the ones that mean something for this list.
+    var prefs = viewPrefs();
+    var el = Nextbook.eventlist;
+    var today = localToday();
+    var travel = Nextbook.travel ? Nextbook.travel.current() : { map: null, source: null };
+    var filters = h('div', { class: 'nb-filters', 'data-test': 'events-filters' });
+    var branchList = el ? el.branches(events) : [];
+    var anyOnline = events.some(function (e) { return e.virtual === true || !e.branch; });
+    if (el && (branchList.length > 1 || (branchList.length && anyOnline))) {
+      var branchOptions = [{ value: '', label: t('filterAllBranches') }];
+      branchList.forEach(function (b) { branchOptions.push({ value: b.name, label: b.name }); });
+      if (anyOnline) branchOptions.push({ value: el.ONLINE, label: t('filterOnline') });
+      var known = branchOptions.some(function (o) { return o.value === prefs.branch; });
+      filters.appendChild(h('label', { class: 'nb-field' }, h('span', { class: 'nb-label' }, t('filterBranchLabel')),
+        selectField('events-branch', branchOptions, known ? prefs.branch : '', t('filterBranchLabel'), function (v) {
+          setViewPref('branch', v); render();
+        })));
+      if (!known) prefs.branch = '';
+    } else {
+      prefs.branch = '';
+    }
+    if (el) {
+      var weeks = h('div', { class: 'nb-weeks', role: 'group', 'aria-label': t('filterWhenLabel') });
+      ['this', 'next', 'all'].forEach(function (w) {
+        weeks.appendChild(h('button', {
+          type: 'button', class: 'nb-button nb-button-quiet', 'data-test': 'events-week-' + w,
+          'aria-pressed': prefs.when === w ? 'true' : 'false',
+          on: { click: function () { setViewPref('when', w); render(); } }
+        }, t(w === 'this' ? 'filterWeekThis' : w === 'next' ? 'filterWeekNext' : 'filterWeekAll')));
+      });
+      filters.appendChild(h('div', { class: 'nb-field' }, h('span', { class: 'nb-label' }, t('filterWhenLabel')), weeks));
+    }
+    sec.appendChild(filters);
+
+    var travelBox = travelBlock(travel, prefs);
+    if (travelBox) sec.appendChild(travelBox);
+
+    var shown = el ? el.filter(events, { branch: prefs.branch, when: prefs.when, today: today }) : events;
+
+    // Travel: each in-person event gets its time; the ones past the limit are hidden, with a count
+    // and a way to show them. An event with no known time stays, and says so.
+    var infoOf = {};
+    var far = 0;
+    if (travel.map) {
+      var kept = [];
+      shown.forEach(function (e) {
+        var info = Nextbook.travel.forEvent(travel.map, e, prefs.mode);
+        infoOf[String(e.id)] = info;
+        if (info.kind === 'known' && info.minutes > prefs.max) {
+          far += 1;
+          if (!state.eventsFar) return;
+        }
+        kept.push(e);
+      });
+      shown = kept;
+    }
+    if (far) {
+      var farRow = h('div', { class: 'nb-live-row', 'data-test': 'events-far' });
+      farRow.appendChild(p(t(far === 1 ? 'travelFarOne' : 'travelFar', { n: far, max: prefs.max }), 'nb-note', { 'data-test': 'events-far-count' }));
+      farRow.appendChild(button('events-far-toggle', t(state.eventsFar ? 'travelFarHide' : 'travelFarShow'), function () {
+        state.eventsFar = !state.eventsFar; state.eventsShown = 0; render();
+      }, 'nb-button nb-button-quiet'));
+      sec.appendChild(farRow);
+    }
+
+    if (!shown.length) {
+      sec.appendChild(p(t('eventsNoneMatch'), 'nb-empty', { 'data-test': 'events-none-match' }));
+      return sec;
+    }
+
+    var limit = state.eventsShown > 0 ? state.eventsShown : EVENTS_PAGE;
+    var days = eventDays(shown);
+    var drawn = 0;
+    var total = shown.length;
+    sec.appendChild(p(t(total === 1 ? 'eventsCountOne' : 'eventsCount', { shown: Math.min(limit, total), n: total }),
+      'nb-count', { 'data-test': 'events-count' }));
     var dayNo = 0, index = 0;
-    eventDays(events).forEach(function (day) {
+    days.forEach(function (day) {
+      if (drawn >= limit) return;
       dayNo += 1;
       sec.appendChild(h('h3', { class: 'nb-day', 'data-test': 'event-day-' + dayNo },
         dayHeadingWords(day.parts)));
       var list = h('ul', { class: 'nb-events', 'data-test': 'event-day-list-' + dayNo });
       day.events.forEach(function (e) {
+        if (drawn >= limit) return;
+        drawn += 1;
         index += 1;
-        list.appendChild(eventNode(e, index));
+        list.appendChild(eventNode(e, index, {
+          showPlace: branchCount > 1, travel: travel.map ? infoOf[String(e.id)] : null
+        }));
       });
       sec.appendChild(list);
     });
+    if (drawn < total) {
+      sec.appendChild(button('events-more', t('eventsMore'), function () {
+        state.eventsShown = limit + EVENTS_PAGE; render();
+      }));
+    }
     return sec;
   }
 
@@ -3838,6 +4141,8 @@
     } catch (e) { /* no router: the page still draws */ }
 
     render();
+    // A yes given earlier stands: bring the latest list up to date if it is more than 12 hours old.
+    if (liveOn()) startEventsRefresh(false);
     loadModes(function () {
       render();
       // A plain flag for tools that drive the page (tools/screens.py, tests/e2e): the modes are
@@ -4181,6 +4486,58 @@
     eventsHeading: 'Events at the library',
     eventsIntro: "These are the library's events at {branch}, in date order.",
     eventSnapshot: "Copied from the library on {date}. Check the library's page before you go.",
+    eventsIntroAll: "These are events at the library's branches, in date order.",
+    eventLatest: "The latest list, asked for on {date}. Check the library's page before you go.",
+    eventLatestNoDate: "This is the latest list. Check the library's page before you go.",
+    eventPlace: 'At {branch}',
+    eventOptionAt: '{day}: {title}, at {branch}',
+    inputEventsCapped: 'This list shows {shown} of {n} events. Choose a branch or a week on the Events screen to narrow it.',
+    eventsNoneMatch: 'No events match. Try another branch or week.',
+    eventsCount: 'Showing {shown} of {n} events.',
+    eventsCountOne: 'Showing 1 event.',
+    eventsMore: 'Show more events',
+    filterBranchLabel: 'Branch',
+    filterAllBranches: 'All branches',
+    filterOnline: 'Online events',
+    filterWhenLabel: 'When',
+    filterWeekThis: 'This week',
+    filterWeekNext: 'Next week',
+    filterWeekAll: 'All',
+    liveAsk: "This copy has a list of events for one branch, saved on a day shown above. You can ask an events service for the latest list from all branches. It sends nothing about your books. You can stop at any time.",
+    liveOn: 'Get the latest events from all branches',
+    liveRefresh: 'Get the list again',
+    liveOff: 'Stop getting the latest list',
+    liveBusy: 'Getting the latest events. This takes a few seconds.',
+    liveCannotKeep: 'This browser will not keep your choice, so nothing was asked.',
+    travelHow: "To see how long each trip takes, add your travel times. A file of them is made on your own computer with tools/distance-map.py, and it stays in this browser.",
+    travelAdd: 'Add your travel times',
+    travelReplace: 'Add a different travel times file',
+    travelFrom: 'Travel times from {label}.',
+    travelFromNone: 'Your travel times.',
+    travelBuilt: 'Made on {date}.',
+    travelRough: 'They are rough guides. Check a trip before you go.',
+    travelOld: 'This file is more than three weeks old, so bus and train times may be out of date.',
+    travelModeLabel: 'How you travel',
+    travelMode_any: 'Any way but a car',
+    travelMode_transit: 'Transit (bus, subway, train)',
+    travelMode_walk: 'Walking',
+    travelMode_bike: 'Bike',
+    travelMode_car: 'Car',
+    travelMaxLabel: 'Longest trip, one way',
+    travelMax: '{n} minutes',
+    travelVia_walk: 'walking',
+    travelVia_bike: 'by bike',
+    travelVia_car: 'by car',
+    travelVia_transit: 'by transit',
+    travelTime: '{n} min {via}',
+    travelUnknown: 'We do not have a travel time for this place.',
+    travelFar: '{n} events are more than {max} minutes away, so they are hidden.',
+    travelFarOne: '1 event is more than {max} minutes away, so it is hidden.',
+    travelFarShow: 'Show them',
+    travelFarHide: 'Hide them again',
+    travelRemove: 'Remove my travel times',
+    travelKept: 'Your travel times are saved in this browser only. They are never sent anywhere or included when you export a shelf.',
+    travelFolder: 'These times are in a file in the app folder. Delete app/data/distance.js to remove them.',
     eventSnapshotNoDate: "This snapshot has no date, so check the library's page before you go.",
     eventsNone: 'This copy has no library events, so there is nothing to show here.',
     eventDayHeading: '{weekday}, {month} {day}',

@@ -31,6 +31,7 @@ const REAL_EVENTS = read('data/events.json');
 const CORE = [
   'app/core/base.js', 'app/core/slice.js', 'app/core/score.js', 'app/core/reason.js',
   'app/core/links.js', 'app/core/contract.js', 'app/core/seam.js', 'app/core/store.js',
+  'app/core/net.js', 'app/core/eventlist.js', 'app/core/travel.js',
 ];
 
 const BRANCH = 'North York Central Library';
@@ -357,6 +358,8 @@ test('E10: an event input gets the event itself, and the page says which event',
 // The real snapshot, so the page is proved on the data it ships with and not only on fixtures.
 test('E9: the committed snapshot draws every event, under its own day', () => {
   const { doc } = openPage({ events: REAL_EVENTS, defs: [plainMode()] });
+  // The screen draws a page at a time, so press "Show more" until it is gone.
+  for (let guard = 0; guard < 50 && byTest(doc, 'events-more'); guard++) byTest(doc, 'events-more').click();
   assert.strictEqual(events(doc).length, REAL_EVENTS.events.length, 'every event on the page');
   const dayKeys = [...new Set(REAL_EVENTS.events.map((e) => e.start.slice(0, 10)))].sort();
   const headings = withPrefix(doc, 'event-day-').filter((el) => el.tagName === 'H3');

@@ -82,6 +82,10 @@ SHOTS = {
     # D43: a holds page brought in, then an empty one: the "No longer on hold" list.
     "shelf-own-unheld": ("shelf", OWN + "; " + HOLDS_TWICE),
     "selftest": ("selftest", None),
+    # The events screen with a made-up map of travel times, so the time lines and the limit show.
+    "events-travel": ("events", "Nextbook.travel.save({label: 'a test point', built: new Date().toISOString().slice(0, 10), "
+                                "branches: [{name: 'North York Central Library', walk_s: 3000, bike_s: 1300, car_s: 700, "
+                                "transit_weekday_s: 1500, transit_weekend_s: 1800}]}); Nextbook.shell.render()"),
 }
 
 

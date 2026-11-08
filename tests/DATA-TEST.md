@@ -15,7 +15,7 @@ number at the end changes, and it is always the control's place on the page, cou
 |---|---|---|
 | `nav-find` | Tab "Ways to choose" | Goes to `#find`. |
 | `nav-shelf` | Tab "Shelf" | Goes to `#shelf`. |
-| `nav-events` | Tab "Events" | Goes to `#events`. Drawn only when `app/data/events.js` has a snapshot; a copy without one has no tab. |
+| `nav-events` | Tab "Events" | Goes to `#events`. Drawn when there is a list of events (the snapshot in `app/data/events.js`, or the latest list), or when this copy may ask for the latest list; otherwise no tab. |
 | `nav-selftest` | Tab "Self-test" | Goes to `#selftest`. |
 
 The hash is the place: a reload keeps `#shelf` or `#selftest`, and no hash shows `#find`.
@@ -186,14 +186,44 @@ and pastes the answer back.
 
 ## The events screen
 
-Drawn from `app/data/events.js`, which is made ahead by the events snapshot; the page never
-fetches the feed. `N` is the event's place on the page, counted from 1 down the days; day
+Drawn from the snapshot in `app/data/events.js`, or from the latest list when the person asked for it
+(core/net.js, the only network code; never in a workshop copy). The screen draws a page of 50 events at a
+time. `N` is the event's place on the page, counted from 1 down the days; day
 headings are numbered from 1 on their own.
 
 | Name | What it is | What pressing it does |
 |---|---|---|
 | `events-section` | The screen (not pressed) | — |
-| `events-snapshot` | "Snapshot taken <date>. Check the library's page before you go." (not pressed) | — |
+| `events-snapshot` | The source line: "Copied from the library on <date>..." for the snapshot, or "The latest list, asked for on <date>..." (not pressed) | — |
+| `events-intro` | One line saying which branch, or that the list is from all branches (not pressed) | — |
+| `events-note` | One line when the last ask failed, or part of it did (not pressed) | — |
+| `events-live` | The block for the latest list (not pressed) | Not drawn in a workshop copy or when the slice names no events service. |
+| `events-live-ask` | One plain line: it asks an events service for the list and sends nothing about the books (not pressed) | — |
+| `events-live-on` | Button "Get the latest events from all branches" | Remembers the choice in this browser and asks the service. The only thing that does. |
+| `events-live-busy` | "Getting the latest events..." (not pressed) | — |
+| `events-live-refresh` | Button "Get the list again" | Asks again now. |
+| `events-live-off` | Button "Stop getting the latest list" | Forgets the choice and the saved list; the snapshot shows again. |
+| `events-filters` | The row of filters (not pressed) | — |
+| `events-branch` | Select: all branches, one branch, or online events | Narrows the list; remembered in this browser. Drawn only when the list has more than one place. |
+| `events-week-this`, `events-week-next`, `events-week-all` | Buttons "This week", "Next week", "All" (`aria-pressed`) | Narrows the list by date; remembered. |
+| `events-count` | "Showing 50 of 2400 events." (not pressed) | — |
+| `events-more` | Button "Show more events" | Draws 50 more. |
+| `events-none-match` | "No events match..." (not pressed) | Drawn when the filters leave nothing. |
+| `events-travel` | The block for the person's travel times (not pressed) | — |
+| `events-travel-how` | One line on how to get a travel times file (not pressed) | Drawn only with no map. |
+| `events-travel-file` | File input, "Add your travel times" | Reads the file as untrusted input, keeps the cleaned map in this browser only. Never in a shelf export. |
+| `events-travel-error` | Why a file was refused (not pressed) | — |
+| `events-travel-source` | "Travel times from <label>. Made on <date>. They are rough guides." (not pressed) | — |
+| `events-travel-old` | The file is more than three weeks old (not pressed) | — |
+| `events-travel-mode` | Select: how you travel (any way but a car, transit, walking, bike, car) | Changes each event's time; remembered. |
+| `events-travel-max` | Select: the longest trip, one way | Hides events beyond it; remembered. |
+| `events-travel-remove` | Button "Remove my travel times" | Forgets the map kept in this browser. Drawn only for a map kept in the browser. |
+| `events-travel-folder` | Says the map is a file in the app folder (not pressed) | Drawn instead of the remove button for `app/data/distance.js`. |
+| `events-far`, `events-far-count` | The row and the count of hidden far events (not pressed) | — |
+| `events-far-toggle` | Button "Show them" / "Hide them again" | Shows or hides the events beyond the limit, for this visit. |
+| `event-place-N` | "At <branch>" (not pressed) | Drawn when the list has more than one place, for an in-person event. |
+| `event-travel-N` | "25 min by transit", or "We do not have a travel time for this place." (not pressed) | Drawn only with a map, and not for an online event. |
+| `input-event-capped` | "This list shows 150 of 2400 events..." (not pressed) | Drawn under an event picker that had to be cut to a page of options. |
 | `events-empty` | The plain sentence in a copy with no events file (not pressed) | Drawn instead of the list; the tab is not drawn at all in such a copy. |
 | `event-day-N` | One day's heading, e.g. "Tuesday, November 3" (not pressed) | — |
 | `event-day-list-N` | That day's list of events (not pressed) | — |
