@@ -226,11 +226,16 @@ def refresh_branch_list(days, dry, path=None):
         return load_branches(path)
     if not found:
         raise Stop("The feed returned no branches, so data/branches.json was left as it was.")
-    old = {b["code"]: b for b in load_branches(path)} if Path(path or BRANCHES).exists() else {}
+    old_rows = load_branches(path) if Path(path or BRANCHES).exists() else []
+    old = {b["code"]: b for b in old_rows if b.get("code")}
     rows = sorted(found.values(), key=lambda b: b["name"])
     for row in rows:
         if old.get(row["code"], {}).get("aliases"):
             row["aliases"] = old[row["code"]]["aliases"]
+    # A branch added by hand (no feed code, because the feed leaves it out) is kept unless the feed now has it.
+    seen = {b["name"].lower() for b in rows}
+    rows += [b for b in old_rows if not b.get("code") and b["name"].lower() not in seen]
+    rows.sort(key=lambda b: b["name"])
     doc = {"fetched": str(date.today()), "source": feed_url("", "", 1).split("?")[0], "branches": rows}
     Path(path or BRANCHES).write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
     return rows
@@ -302,7 +307,7 @@ def transit_guides(origin, rows, cache_path, refresh, slots, dry=False):
     fp = origin_key(origin)
 
     def key(row, slot):
-        return f"{fp}|{row['code']}|{slot}|{slots[slot].date()}|w{MAX_WALK_S}"
+        return f"{fp}|{row.get('code') or row['name']}|{slot}|{slots[slot].date()}|w{MAX_WALK_S}"
 
     cache = {}
     if cache_path.exists() and not refresh:
@@ -419,7 +424,7 @@ def run(args):
     if same:
         rows = old["branches"]
         for r in rows:                       # a new alias in the branch list reaches an old map
-            match = next((b for b in branches if b["code"] == r["code"]), None)
+            match = next((b for b in branches if b["name"] == r["name"]), None)
             if match is not None:
                 r["aliases"] = match.get("aliases", [])
         print(f"Distances: {MAP_PATH.name} already holds this start point, keeping walk, bike and car")

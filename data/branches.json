@@ -31,6 +31,12 @@
    "lon": -79.5478411
   },
   {
+   "name": "Amesbury Park",
+   "street": "1565 Lawrence Avenue West",
+   "lat": 43.7064534,
+   "lon": -79.4857392
+  },
+  {
    "code": "AN",
    "name": "Annette Street",
    "street": "Annette Street",
@@ -106,6 +112,12 @@
    "street": "Progress Ave",
    "lat": 43.7939492,
    "lon": -79.23422219999999
+  },
+  {
+   "name": "Cedarbrae",
+   "street": "545 Markham Road",
+   "lat": 43.7574814,
+   "lon": -79.2239668
   },
   {
    "code": "CH",

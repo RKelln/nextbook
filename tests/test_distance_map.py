@@ -113,7 +113,7 @@ class DistanceMapTest(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertFalse(any("transitous" in c["url"] for c in self.net.calls))
         rows = json.loads(dm.MAP_PATH.read_text())["branches"]
-        self.assertEqual(len(rows), 92)
+        self.assertEqual(len(rows), 94)
         self.assertTrue(all(r["transit_weekday_s"] is None and r["transit_weekend_s"] is None for r in rows))
 
     def test_null_is_never_a_guess(self):
@@ -152,10 +152,10 @@ class DistanceMapTest(unittest.TestCase):
     def test_the_transit_cache_resumes_and_is_not_shared_between_start_points(self):
         self.run_tool("--origin", "43.7,-79.4")
         first = sum(1 for c in self.net.calls if "transitous" in c["url"])
-        self.assertEqual(first, 184)
+        self.assertEqual(first, 188)
         self.net.calls.clear()
         self.run_tool("--origin", "43.7,-79.4", "--refresh-transit")   # asks again
-        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 184)
+        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 188)
         self.net.calls.clear()
         self.run_tool("--origin", "43.7,-79.4")                          # everything is saved
         self.assertEqual(self.net.calls, [], "the same start point asks for nothing again")
@@ -173,14 +173,14 @@ class DistanceMapTest(unittest.TestCase):
         code, out, _ = self.run_tool("--origin", "43.7,-79.4")
         self.assertEqual(code, 0, out)
         cache = json.loads(dm.CACHE_PATH.read_text())
-        self.assertEqual(len(cache), 184 - 2, "the two queries that failed are not saved")
+        self.assertEqual(len(cache), 188 - 2, "the two queries that failed are not saved")
         self.assertIn("got no answer", out)
         # A rerun asks for exactly those two, and now they are saved.
         self.net.calls.clear()
         self.net.transit_fail = None
         self.run_tool("--origin", "43.7,-79.4", "--refresh-transit")
         self.run_tool("--origin", "43.7,-79.4")
-        self.assertEqual(len(json.loads(dm.CACHE_PATH.read_text())), 184)
+        self.assertEqual(len(json.loads(dm.CACHE_PATH.read_text())), 188)
 
     def test_a_missing_page_or_a_bad_request_is_not_cached_either(self):
         for code in (404, 400):
@@ -209,7 +209,7 @@ class DistanceMapTest(unittest.TestCase):
         self.net.transit_fail = None
         self.net.calls.clear()
         self.assertEqual(self.run_tool("--origin", "43.7,-79.4")[0], 0)
-        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 184 - 12)
+        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 188 - 12)
 
     def test_a_long_retry_after_is_capped(self):
         self.net.errors = [(429, "99999")]

@@ -151,8 +151,8 @@ test('V5: the real place names the events service sent (measured 2026-11-08) aga
     total += places[name];
     if (T.branchFor(map, name)) hit += places[name]; else missing.push(name);
   });
-  assert.deepStrictEqual(missing.sort(), ['Amesbury Park', 'Cedarbrae', 'Cedarbrae - Closed', 'Sanderson - Closed']);
-  assert.strictEqual(Object.keys(places).length - missing.length, 92, 'all 92 branches are matched, of 96 place names');
+  assert.deepStrictEqual(missing.sort(), ['Sanderson - Closed']);
+  assert.strictEqual(Object.keys(places).length - missing.length, 95, '95 of 96 place names (94 branches, and Cedarbrae twice)');
   assert.strictEqual(total, 2539);
-  assert.strictEqual(hit, 2469, '2469 of 2539 in-person events, 97.2%');
+  assert.strictEqual(hit, 2537, '2537 of 2539 in-person events, 99.9%');
 });

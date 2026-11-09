@@ -229,19 +229,24 @@ link**; the detail does, but a browser cannot afford one request per event, so `
 for an in-person event and the `VirtualLocation`'s `url` for an online one.
 
 The library appears under **three organiser ids** (duplicates that may be merged later, so one failing or empty must not
-sink the rest, and a repeat id is kept once). For 21 days from 2026-11-08 they gave 2400, 37 and 67 events: **2576 events
-after removing repeats, 96 distinct place names and no place at all for the online ones**, about 5 seconds in all (12 pages for the large one), and 37 of them
-online. Place names are mostly the plain branch name; the feed's old habits are handled anyway: a name that arrives as
+sink the rest, and a repeat id is kept once). Counted on 2026-11-08 for the 21 days to 2026-11-29: the large id gave 2470
+events (13 pages of 200), the second 37 and the third 69, which is **2576 in all**; no event was listed under two ids that
+day, so removing repeats took none out. (Earlier notes said about 2400, 37 and 67: the list grows as events are added,
+and the figures above are the 2026-11-08 count.) The whole list took about 5 seconds. There were **96 distinct place
+names, and 37 online events with no place at all**. Place names are mostly the plain branch name; the feed's old habits are handled anyway: a name that arrives as
 "MalvernEvent location: Malvern" keeps the part after the label, and a branch that is closed is written "<name> - Closed".
 Text can still be HTML-encoded and is decoded and shown as text. Descriptions can begin "More info: <address> ..."; that
 pointer is dropped from `summary`, and nothing else is cut from the front.
 
-**Matching places to branches** (`data/branches.json`, 92 branches with code, name, street and position): the place and the
+**Matching places to branches** (`data/branches.json`, 94 branches with name, street and position, and a feed code for 92 of them): the place and the
 branch name are lowercased, punctuation becomes a space, a trailing " - Closed" and a trailing "Library" are dropped, and
 the two must be equal (or equal to a listed `aliases` entry). Nothing is matched by similarity. Of the 2539 in-person
-events measured, **2469 (97.2%) matched**. The 70 that did not are at three places: Cedarbrae (24, and 25 more written
-"Cedarbrae - Closed"), Amesbury Park (19) and Sanderson - Closed (2); none is in the branch list (the feed the list was
-made from leaves closed branches out), so those events are kept and say they have no travel time.
+events measured, **2537 (99.9%) matched**: 95 of the 96 place names. The two that did not are at "Sanderson - Closed", a
+branch that is closed and in no list, so those events are kept and say they have no travel time. Cedarbrae (24 events,
+and 25 more written "Cedarbrae - Closed") and Amesbury Park (19) are not in the library's feed of branches (it leaves some
+out), so they were added by hand from the events service's own place records (name, street and position as it gave
+them, 2026-11-08) with **no code**, since the feed's code for them was not checked and none is invented. Before they were
+added the match was 2469 of 2539 (97.2%). Events at a place written "<name> - Closed" are still shown.
 
 ## A person's travel times (`data/distance-map.json`)
 

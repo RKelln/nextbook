@@ -13,14 +13,17 @@ class BranchesTest(unittest.TestCase):
     def test_shape(self):
         self.assertEqual(set(BRANCHES), {"fetched", "source", "branches"})
         rows = BRANCHES["branches"]
-        self.assertEqual(len(rows), 92)
+        self.assertEqual(len(rows), 94)
         for row in rows:
-            self.assertEqual(set(row) - {"aliases"}, {"code", "name", "street", "lat", "lon"})
+            self.assertEqual(set(row) - {"aliases", "code"}, {"name", "street", "lat", "lon"})
             self.assertTrue(43 < row["lat"] < 44.2 and -80 < row["lon"] < -78.8, row["name"])
 
     def test_codes_and_names_are_unique(self):
         rows = BRANCHES["branches"]
-        self.assertEqual(len({r["code"] for r in rows}), len(rows))
+        codes = [r["code"] for r in rows if "code" in r]
+        self.assertEqual(len(set(codes)), len(codes))
+        self.assertEqual([r["name"] for r in rows if "code" not in r], ["Amesbury Park", "Cedarbrae"],
+                         "the two added from the events service have no feed code and none is invented")
         self.assertEqual(len({r["name"] for r in rows}), len(rows))
 
 
