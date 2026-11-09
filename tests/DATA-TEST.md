@@ -209,7 +209,7 @@ headings are numbered from 1 on their own.
 | `events-count` | "Showing 50 of 2400 events." (not pressed) | — |
 | `events-more` | Button "Show more events" | Draws 50 more. |
 | `events-none-match` | "No events match..." (not pressed) | Drawn when the filters leave nothing. |
-| `events-travel` | The block for the person's travel times (not pressed) | — |
+| `events-travel` | The block for the person's travel times (not pressed) | Not drawn in a workshop copy. |
 | `events-travel-how` | One line on how to get a travel times file (not pressed) | Drawn only with no map. |
 | `events-travel-file` | File input, "Add your travel times" | Reads the file as untrusted input, keeps the cleaned map in this browser only. Never in a shelf export. |
 | `events-travel-error` | Why a file was refused (not pressed) | — |
@@ -229,7 +229,7 @@ headings are numbered from 1 on their own.
 | `event-day-list-N` | That day's list of events (not pressed) | — |
 | `event-N` | One event's box (`data-event="<event id>"`, not pressed) | — |
 | `event-link-N` | The event's title, a link | Opens the library's own page for the event. |
-| `event-open-N` | "Open the library's page" under the words, a link | The same page, for anyone who reads the words first. |
+| `event-open-N` | "Open the library's page" under the words, a link ("Open the event page" for the latest list, which links to the events service's page) | The same page, for anyone who reads the words first. |
 | `event-time-N` | "6:00 pm to 7:30 pm" (not pressed) | — |
 | `event-virtual-N` | "This event is online." (not pressed) | Drawn only for a virtual event. |
 | `event-summary-N` | The library's own words about the event, as text (not pressed) | — |

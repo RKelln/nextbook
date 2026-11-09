@@ -153,8 +153,11 @@ file. The screen's button turns it on; the choice is `nextbook1:events-live` in 
 per organiser id, one at a time, pages of 200 followed by `next_cursor`, repeats removed by id; one chain that fails does
 not sink the rest, and a partial result is used and re-asked next time. Each item becomes the snapshot's event shape:
 local wall-clock times, a tidied place name as `branch`, `summary` at most 300 characters with a leading "More info:"
-pointer dropped, `url` the event's own page on the service (the list carries no source link). Any failure shows the saved
-list, then the snapshot, with one plain line. `ctx.events` and the event picker read the same current list through the
+pointer dropped, `url` the event's own page on the service (the list carries no source link). "Stop" aborts the requests on their way and nothing fetched afterwards is saved. Today, the query window and the stamp
+use the library's time zone (`library.events.timeZone`). Event links must be on the events host (an online event's own page
+may be on one of the library's hosts named in the slice), also when read back from the saved list. Requests send no
+referrer and one refresh has a two-minute deadline. A chain cut short by a page or event cap is reported as partial.
+Any failure shows the saved list, then the snapshot, with one plain line. `ctx.events` and the event picker read the same current list through the
 shell; a mode gets `ctx.events` and nothing to ask with, and the contract check fails a mode that names the network module
 (it is a lint on honest code, not a sandbox). The picker lists what the screen is looking at (its branch and
 week), at most 150 options and always the chosen event (D35), and says when it is a part.
