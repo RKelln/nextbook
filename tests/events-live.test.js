@@ -53,11 +53,11 @@ function dayPlus(n) {
 // One service item. Place names are the library's own.
 function item(n, place, dayOffset, extra) {
   return Object.assign({
-    '@id': 'https://events.example.test/events/01EVENT' + String(n).padStart(5, '0'),
+    '@id': 'https://' + new URL(API).host + '/events/01EVENT' + String(n).padStart(5, '0'),
     name: 'Event ' + n, description: 'Words about event ' + n + '.', keywords: ['crafts'],
     startDate: dayPlus(dayOffset) + 'T' + pad(10 + (n % 8)) + ':00:00-05:00',
     endDate: dayPlus(dayOffset) + 'T' + pad(11 + (n % 8)) + ':00:00-05:00',
-    location: place ? { '@type': 'Place', name: place } : { '@type': 'VirtualLocation', url: 'https://tpl.example.test/events/v' + n },
+    location: place ? { '@type': 'Place', name: place } : { '@type': 'VirtualLocation', url: 'https://tpl.bibliocommons.com/events/v' + n },
   }, extra || {});
 }
 
@@ -134,7 +134,10 @@ function manyItems(n) {
 test('S1: nothing is asked until the button; then many branches appear; the choice is kept', async () => {
   const page = openPage({ items: manyItems(60) });
   assert.ok(byTest(page.doc, 'events-live-on'), 'the button is there');
-  assert.ok(byTest(page.doc, 'events-live-ask').textContent.indexOf('nothing about your books') !== -1, 'one plain line says what is sent');
+  const ask = byTest(page.doc, 'events-live-ask').textContent;
+  assert.ok(ask.indexOf('Nothing about your books is sent') !== -1, 'one plain line says what is sent');
+  assert.ok(ask.indexOf(new URL(API).host) !== -1, 'it names the service');
+  assert.ok(ask.indexOf('internet address') !== -1, 'and says its owners can see the visitor');
   assert.strictEqual(page.log.length, 0, 'drawing the page asks nothing');
   assert.match(byTest(page.doc, 'events-snapshot').textContent, /^Copied from the library on /);
 
@@ -354,4 +357,21 @@ test('S9: turning the latest list off goes back to the snapshot', async () => {
   assert.match(byTest(page.doc, 'events-snapshot').textContent, /^Copied from the library on /);
   assert.strictEqual(page.storage.getItem('nextbook1:events-live'), null);
   assert.strictEqual(page.storage.getItem('nextbook1:events'), null);
+});
+
+test('S10: a live event links to the event page in honest words; a snapshot event keeps the library wording', async () => {
+  const page = openPage({ items: manyItems(5) });
+  assert.strictEqual(byTest(page.doc, 'event-open-1').textContent, "Open the library's page", 'the snapshot links to the library');
+  await pressLive(page);
+  assert.strictEqual(byTest(page.doc, 'event-open-1').textContent, 'Open the event page');
+  assert.ok(!/library's page/.test(byTest(page.doc, 'events-snapshot').textContent), 'the source line makes no such claim either');
+  const href = byTest(page.doc, 'event-link-1').getAttribute('href');
+  assert.strictEqual(new URL(href).host, new URL(API).host, 'the title link goes where the words say');
+});
+
+test('S11: a workshop copy has no travel block, even when a map is in the folder', () => {
+  const page = openPage({ items: manyItems(3), workshop: true, distance: MAP });
+  assert.ok(!byTest(page.doc, 'events-travel'), 'no travel block');
+  assert.ok(!byTest(page.doc, 'events-travel-how'), 'and no pointer to a tool the folder lacks');
+  assert.strictEqual(withPrefix(page.doc, 'event-travel-').length, 0);
 });

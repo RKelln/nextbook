@@ -3365,9 +3365,10 @@
     state.eventsShown = 0;
   }
 
-  // Today as the person's own calendar says it, 'YYYY-MM-DD'. It only decides this week and next.
+  // Today by the library's own clock when the slice names its time zone, else the person's calendar, 'YYYY-MM-DD'. It only decides this week and next.
   function localToday() {
     try {
+      if (Nextbook.net && typeof Nextbook.net.today === 'function') return Nextbook.net.today();
       var d = new Date();
       return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate());
     } catch (e) { return ''; }
@@ -3461,8 +3462,9 @@
     }
 
     if (url) {
+      // The latest list links to the events service's page, not the library's, so it says so.
       li.appendChild(h('a', { class: 'nb-link-line', href: url, 'data-test': 'event-open-' + index },
-        t('modelLibraryLink')));
+        t(extra && extra.live ? 'eventOpenService' : 'modelLibraryLink')));
     }
 
     // Only when a mode with the id 'event-hook' is loaded (none ships today).
@@ -3530,7 +3532,9 @@
     var box = h('div', { class: 'nb-live', 'data-test': 'events-live' });
     if (!liveAvailable()) return null;
     if (!liveOn()) {
-      box.appendChild(p(t('liveAsk'), 'nb-hint', { 'data-test': 'events-live-ask' }));
+      var svc = '';
+      try { svc = Nextbook.net.config().host; } catch (e) { svc = ''; }
+      box.appendChild(p(t('liveAsk', { host: svc || t('liveHostNone') }), 'nb-hint', { 'data-test': 'events-live-ask' }));
       box.appendChild(button('events-live-on', t('liveOn'), function () {
         if (Nextbook.net.setEnabled(true)) startEventsRefresh(true);
         else { state.message = t('liveCannotKeep'); render(); }
@@ -3668,7 +3672,8 @@
     var prefs = viewPrefs();
     var el = Nextbook.eventlist;
     var today = localToday();
-    var travel = Nextbook.travel ? Nextbook.travel.current() : { map: null, source: null };
+    // A workshop copy has no travel times: the tool that makes them is not in the folder.
+    var travel = Nextbook.travel && !isWorkshop() ? Nextbook.travel.current() : { map: null, source: null };
     var filters = h('div', { class: 'nb-filters', 'data-test': 'events-filters' });
     var branchList = el ? el.branches(events) : [];
     var anyOnline = events.some(function (e) { return e.virtual === true || !e.branch; });
@@ -3698,14 +3703,14 @@
     }
     sec.appendChild(filters);
 
-    var travelBox = travelBlock(travel, prefs);
+    var travelBox = isWorkshop() ? null : travelBlock(travel, prefs);
     if (travelBox) sec.appendChild(travelBox);
 
     var shown = el ? el.filter(events, { branch: prefs.branch, when: prefs.when, today: today }) : events;
 
     // Travel: each in-person event gets its time; the ones past the limit are hidden, with a count
     // and a way to show them. An event with no known time stays, and says so.
-    var infoOf = {};
+    var infoOf = Object.create(null);
     var far = 0;
     if (travel.map) {
       var kept = [];
@@ -3752,7 +3757,8 @@
         drawn += 1;
         index += 1;
         list.appendChild(eventNode(e, index, {
-          showPlace: branchCount > 1, travel: travel.map ? infoOf[String(e.id)] : null
+          showPlace: branchCount > 1, travel: travel.map ? infoOf[String(e.id)] : null,
+          live: now.source === 'cache'
         }));
       });
       sec.appendChild(list);
@@ -4487,8 +4493,9 @@
     eventsIntro: "These are the library's events at {branch}, in date order.",
     eventSnapshot: "Copied from the library on {date}. Check the library's page before you go.",
     eventsIntroAll: "These are events at the library's branches, in date order.",
-    eventLatest: "The latest list, asked for on {date}. Check the library's page before you go.",
-    eventLatestNoDate: "This is the latest list. Check the library's page before you go.",
+    eventLatest: 'The latest list, asked for on {date}. Check the event page before you go.',
+    eventLatestNoDate: 'This is the latest list. Check the event page before you go.',
+    eventOpenService: 'Open the event page',
     eventPlace: 'At {branch}',
     eventOptionAt: '{day}: {title}, at {branch}',
     inputEventsCapped: 'This list shows {shown} of {n} events. Choose a branch or a week on the Events screen to narrow it.',
@@ -4503,7 +4510,8 @@
     filterWeekThis: 'This week',
     filterWeekNext: 'Next week',
     filterWeekAll: 'All',
-    liveAsk: "This copy has a list of events for one branch, saved on a day shown above. You can ask an events service for the latest list from all branches. It sends nothing about your books. You can stop at any time.",
+    liveAsk: 'This copy has a list of events for one branch, saved on the day shown above. You can ask {host}, an events service, for the latest list from all branches. Its owners can see your internet address, like any website you visit. Nothing about your books is sent. You can stop at any time.',
+    liveHostNone: 'the events service',
     liveOn: 'Get the latest events from all branches',
     liveRefresh: 'Get the list again',
     liveOff: 'Stop getting the latest list',
