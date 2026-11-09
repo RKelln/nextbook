@@ -22,7 +22,8 @@
         "01M51EX7S492R52H059SCZ80J7",
         "01M51EX88CM0ZH2E878T5XBNCC"
       ],
-      "days": 21
+      "days": 21,
+      "timeZone": "America/Toronto"
     }
   },
   "fetched": "2026-11-03",

@@ -16,7 +16,7 @@ const { load } = require('./_load.js');
 const plain = (value) => JSON.parse(JSON.stringify(value));
 const API = 'https://events.example.test/api/v1/events';
 const ORG = ['01AAAAAAAAAAAAAAAAAAAAAAAA', '01BBBBBBBBBBBBBBBBBBBBBBBB', '01CCCCCCCCCCCCCCCCCCCCCCCC'];
-const SLICE = { library: { name: 'Example Library', events: { service: 'togather', apiUrl: API, organizerIds: ORG, days: 21 } } };
+const SLICE = { library: { name: 'Example Library', recordIdUrl: 'https://tpl.example.test/record/{id}', events: { service: 'togather', apiUrl: API, organizerIds: ORG, days: 21 } } };
 
 function memoryStorage(opts) {
   const map = new Map();
@@ -221,4 +221,113 @@ test('N7: turning it off forgets the saved list and the choice', async () => {
   assert.ok(!p.storage.has(p.nb.net.CACHE_KEY) && !p.storage.has(p.nb.net.CHOICE_KEY));
   assert.strictEqual(plain(p.nb.net.current()).source, 'snapshot');
   assert.strictEqual(p.nb.net.enabled(), false);
+});
+
+// ---- the review's findings ------------------------------------------------------------------
+
+test('N8: pressing Stop mid-fetch stops it, and nothing is saved afterwards', async () => {
+  const gates = [];
+  const log = [];
+  const pagesOf = (n) => ({ items: [item(n)], next_cursor: 'more' });
+  const nb = load(['app/core/base.js', 'app/core/net.js'], {
+    fetch(url, init) {
+      log.push({ url, signal: init.signal });
+      return new Promise((resolve, reject) => {
+        gates.push(() => resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify(pagesOf(log.length))) }));
+        init.signal.addEventListener('abort', () => reject(new Error('aborted')));
+      });
+    },
+    localStorage: memoryStorage(), AbortController,
+  });
+  nb.data.put('slice', SLICE);
+  nb.net.setEnabled(true);
+  const running = nb.net.refresh({ force: true });
+  await new Promise((r) => setImmediate(r));
+  assert.strictEqual(log.length, 1, 'the first page is on its way');
+  nb.net.setEnabled(false);
+  assert.strictEqual(log[0].signal.aborted, true, 'the request on its way is aborted');
+  const r = plain(await running);
+  assert.strictEqual(r.source, 'snapshot');
+  assert.strictEqual(log.length, 1, 'no second request after Stop');
+  assert.strictEqual(nb.net.enabled(), false);
+  assert.strictEqual(nb.net.current().events.length, 0);
+});
+
+test('N8b: a page that arrives after Stop is not saved and does not bring the list back', async () => {
+  const storage = memoryStorage();
+  let release;
+  const nb = load(['app/core/base.js', 'app/core/net.js'], {
+    fetch: () => new Promise((resolve) => { release = () => resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify({ items: [item(1)], next_cursor: '' })) }); }),
+    localStorage: storage, AbortController,   // this fetch ignores the abort signal, as a stubborn one might
+  });
+  nb.data.put('slice', SLICE);
+  nb.net.setEnabled(true);
+  const running = nb.net.refresh({ force: true });
+  await new Promise((r) => setImmediate(r));
+  nb.net.setEnabled(false);
+  release();
+  await running;
+  assert.ok(!storage.has(nb.net.CACHE_KEY), 'nothing written after Stop');
+  assert.strictEqual(plain(nb.net.current()).events.length, 0);
+});
+
+test('N9: a chain cut short by a cap that still had more is said to be partial', async () => {
+  const log = [];
+  const fetch = (url) => {
+    log.push(url);
+    const n = log.length;
+    return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve(JSON.stringify({ items: [item(n)], next_cursor: 'c' + n })) });
+  };
+  const nb = load(['app/core/base.js', 'app/core/net.js'], { fetch, localStorage: memoryStorage(), AbortController });
+  nb.data.put('slice', Object.assign({}, SLICE, { library: Object.assign({}, SLICE.library, { events: Object.assign({}, SLICE.library.events, { organizerIds: [ORG[0]] }) }) }));
+  nb.net.setEnabled(true);
+  const r = plain(await nb.net.refresh({ force: true }));
+  assert.strictEqual(log.length, 20, 'twenty pages and no more');
+  assert.match(r.note, /Part of the latest list/);
+});
+
+test('N10: today and the stamp are the library\'s, whatever the browser thinks', () => {
+  const mk = (zone) => {
+    const nb = load(['app/core/base.js', 'app/core/net.js'], { localStorage: memoryStorage() });
+    nb.data.put('slice', { library: { events: Object.assign({}, SLICE.library.events, { timeZone: zone }) } });
+    return nb;
+  };
+  const late = Date.parse('2026-11-08T23:30:00-05:00');
+  assert.strictEqual(mk('America/Toronto').net.today(late), '2026-11-08');
+  assert.strictEqual(mk('Asia/Tokyo').net.today(late), '2026-11-09');
+  assert.strictEqual(mk('Not/AZone').net.today(late).length, 10, 'a bad zone falls back to the browser clock');
+});
+
+test('N10b: the query window starts on the library\'s today', async () => {
+  const log = [];
+  const nb = load(['app/core/base.js', 'app/core/net.js'], {
+    fetch(url, init) { log.push({ url, init }); return Promise.resolve({ ok: true, status: 200, text: () => Promise.resolve('{"items":[],"next_cursor":""}') }); },
+    localStorage: memoryStorage(), AbortController,
+  });
+  nb.data.put('slice', { library: { events: Object.assign({}, SLICE.library.events, { timeZone: 'Asia/Tokyo' }) } });
+  nb.net.setEnabled(true);
+  await nb.net.refresh({ force: true, now: Date.parse('2026-11-08T23:30:00-05:00') });
+  const u = new URL(log[0].url);
+  assert.strictEqual(u.searchParams.get('startDate'), '2026-11-09');
+  assert.strictEqual(u.searchParams.get('endDate'), '2026-11-30');
+  assert.strictEqual(log[0].init.referrerPolicy, 'no-referrer', 'no referrer is sent');
+});
+
+test('N11: links are locked to the events host, and a virtual one to the library\'s hosts', () => {
+  const { nb } = page();
+  assert.strictEqual(nb.net.normalise(item(1, { '@id': 'https://evil.example/events/01ABCDEF0001' })), null, 'a page elsewhere is not an event');
+  const online = (url) => plain(nb.net.normalise(item(2, { location: { '@type': 'VirtualLocation', url } })));
+  assert.strictEqual(online('https://tpl.example.test/events/abc123').url, 'https://tpl.example.test/events/abc123');
+  assert.strictEqual(online('https://evil.example/x/abc123').url, 'https://events.example.test/events/01ABCDEF0002', 'a foreign link falls back to the service page');
+  // From the saved list too.
+  const clean = plain(nb.net.cleanEvent({ id: 'a', title: 'T', start: '2026-11-09T10:00:00', end: '', branch: 'X', virtual: false, categories: [], summary: '', url: 'https://evil.example/e/1' }));
+  assert.strictEqual(clean.url, '', 'a saved link off the events host is dropped');
+});
+
+test('N12: one refresh has an overall deadline', async () => {
+  const p = page({ pages: { [ORG[0]]: [[item(1)]] }, snapshot: SNAP });
+  p.nb.net.setEnabled(true);
+  const r = plain(await p.nb.net.refresh({ force: true, deadlineMs: -1 }));
+  assert.strictEqual(p.log.length, 0, 'past the deadline, nothing more is asked');
+  assert.strictEqual(r.source, 'snapshot');
 });

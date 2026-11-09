@@ -13,11 +13,14 @@
 //     library's, and nothing about a person or their books.
 //   - It asks only after the person pressed the button on the events screen (`setEnabled`), and
 //     never in a workshop copy (`Nextbook.workshop()`), and never when the slice names no service.
-//   - Modes cannot reach it: they have no `window`, no `fetch`, and `ctx.events` is a copy.
+//   - A mode gets `ctx.events`, a copy, and is told by the contract check not to name this module.
+//     That check is a lint on honest code, not a sandbox.
 //
 //   Nextbook.net.available()           true when this copy may offer the button at all
 //   Nextbook.net.enabled()             true when the person said yes, and it is still allowed
-//   Nextbook.net.setEnabled(on)        remember the choice. Off forgets the saved list as well.
+//   Nextbook.net.setEnabled(on)        remember the choice. Off forgets the saved list as well, and
+//                                      stops a fetch already on its way: nothing is saved after it.
+//   Nextbook.net.today(now)            today's date ('YYYY-MM-DD') in the library's own time zone
 //   Nextbook.net.current()             what to show now, no network:
 //                                      { events, source: 'cache'|'snapshot', fetched, note }
 //   Nextbook.net.refresh({ force })    when enabled, fetch if the saved list is older than 12 hours
@@ -33,10 +36,13 @@
   var CHOICE_KEY = 'nextbook1:events-live';
   var FRESH_MS = 12 * 3600 * 1000;
   var PAGE = 200, MAX_PAGES = 20, MAX_EVENTS = 6000, TIMEOUT = 15000, MAX_BYTES = 5 * 1024 * 1024;
+  var DEADLINE = 120000;            // one refresh, all its requests together
   var DEFAULT_DAYS = 21;
   var SUMMARY_MAX = 300;
   var inflight = null, lastNote = '';
   var held = null;                  // the list just fetched, for a browser that would not keep it
+  var epoch = 0;                    // moves when the person turns it off or on, so an old fetch knows
+  var live = [];                    // the abort controllers of requests on their way
 
   function addStrings(table) {
     Nextbook.strings = Nextbook.strings || {};
@@ -57,13 +63,16 @@
     netErrStatus: 'The events service answered {status}.',
     netErrBig: 'The events answer was too big.',
     netErrForm: 'The events answer was not in the expected form.',
-    netErrDown: 'The events service did not answer.'
+    netErrDown: 'The events service did not answer.',
+    netErrStopped: 'The latest list was stopped.',
+    netErrDeadline: 'Getting the latest list took too long.'
   });
 
   function t(key, vars) {
     return typeof Nextbook.t === 'function' ? Nextbook.t(key, vars) : String(key);
   }
 
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
   function isObj(x) { return x !== null && typeof x === 'object' && !Array.isArray(x); }
   function has(o, k) { return !!o && Object.prototype.hasOwnProperty.call(o, k); }
 
@@ -129,9 +138,21 @@
     return cut.replace(/[ ,;:.!?-]+$/, '') + ' ...';
   }
 
+  // A link is kept only when it is on the events host, or (for an online event's own page) on one of
+  // the library's hosts named in the slice. Anything else, from the service or from a saved list, is
+  // dropped to '': a title with no link is better than a link the library never made.
+  function linkOn(url, virtual) {
+    var cfg = config();
+    var u = httpsUrl(url);
+    if (!cfg || !u) return '';
+    var host = hostOf(u).toLowerCase().replace(/:\d+$/, '');
+    if (host === cfg.host.replace(/:\d+$/, '')) return u;
+    return virtual && cfg.libraryHosts.indexOf(host) !== -1 ? u : '';
+  }
+
   function normalise(item) {
     if (!isObj(item)) return null;
-    var page = httpsUrl(item['@id']);
+    var page = linkOn(item['@id'], false);
     var id = page ? page.replace(/\/+$/, '').split('/').pop() : '';
     var title = tidy(item.name, 200), start = localTime(item.startDate);
     if (!/^[0-9A-Za-z]{6,40}$/.test(id) || !title || !start) return null;
@@ -147,7 +168,7 @@
     // A virtual place may carry the listing's own page; the list gives no such link for the rest
     // (the detail does, and a browser cannot afford one request per event), so those use the
     // service's own page for the event.
-    var url = virtual ? (httpsUrl(place.url) || page) : page;
+    var url = virtual ? (linkOn(place.url, true) || page) : page;
     return {
       id: id, title: title, start: start, end: end >= start ? end : '',
       branch: virtual ? '' : name, virtual: virtual, categories: cats.slice(0, 8),
@@ -168,7 +189,7 @@
       categories: (Array.isArray(e.categories) ? e.categories : []).filter(function (c) {
         return typeof c === 'string' && c;
       }).map(function (c) { return tidy(c, 40); }).slice(0, 8),
-      summary: summary, url: httpsUrl(e.url)
+      summary: summary, url: linkOn(e.url, e.virtual === true)
     };
   }
 
@@ -202,6 +223,38 @@
     return out.sort(byStart);
   }
 
+  // ---- The library's own clock ------------------------------------------------------------------
+  // "Today" and the time a list was asked for are the library's: a person abroad, or a browser with
+  // the wrong zone, still sees the library's week. With no usable zone the browser's own clock is used.
+  function validZone(name) {
+    try { new window.Intl.DateTimeFormat('en-CA', { timeZone: name }); return true; } catch (e) { return false; }
+  }
+
+  function zoneParts(ms) {
+    var cfg = config();
+    if (cfg && cfg.zone) {
+      try {
+        var f = new window.Intl.DateTimeFormat('en-CA', {
+          timeZone: cfg.zone, hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit',
+          hour: '2-digit', minute: '2-digit', second: '2-digit'
+        });
+        var o = {};
+        f.formatToParts(new Date(ms)).forEach(function (p) { o[p.type] = p.value; });
+        if (o.year && o.month && o.day && o.hour !== undefined) {
+          return { y: o.year, m: o.month, d: o.day, h: o.hour === '24' ? '00' : o.hour, mi: o.minute, s: o.second };
+        }
+      } catch (e) { /* the browser's own clock below */ }
+    }
+    var d = new Date(ms);
+    return { y: String(d.getFullYear()), m: pad(d.getMonth() + 1), d: pad(d.getDate()),
+      h: pad(d.getHours()), mi: pad(d.getMinutes()), s: pad(d.getSeconds()) };
+  }
+
+  function today(now) {
+    var p = zoneParts(now === undefined ? Date.now() : new Date(now).getTime());
+    return p.y + '-' + p.m + '-' + p.d;
+  }
+
   // ---- The address and the switches -----------------------------------------------------------
   function config() {
     var slice = null;
@@ -215,7 +268,17 @@
     });
     if (!api || !ids.length) return null;
     var days = typeof ev.days === 'number' && ev.days >= 1 && ev.days <= 60 ? Math.floor(ev.days) : DEFAULT_DAYS;
-    return { api: api, host: hostOf(api).toLowerCase(), organizerIds: ids, days: days };
+    var hosts = [];
+    (function walk(v, depth) {
+      if (typeof v === 'string') {
+        var h = hostOf(v).toLowerCase();
+        if (h && hosts.indexOf(h) === -1) hosts.push(h);
+      } else if (isObj(v) && depth < 4) {
+        Object.keys(v).forEach(function (k) { if (k !== 'events') walk(v[k], depth + 1); });
+      }
+    })(slice.library, 0);
+    var zone = typeof ev.timeZone === 'string' && validZone(ev.timeZone) ? ev.timeZone : '';
+    return { api: api, host: hostOf(api).toLowerCase(), organizerIds: ids, days: days, libraryHosts: hosts, zone: zone };
   }
 
   function storage() {
@@ -249,9 +312,22 @@
 
   function enabled() { return available() && readItem(CHOICE_KEY) === '1'; }
 
+  function stopLive() {
+    epoch += 1;                                       // every fetch on its way is now out of date
+    var list = live.slice();
+    live = [];
+    list.forEach(function (ctl) { try { ctl.abort(); } catch (e) { /* already done */ } });
+    inflight = null;
+  }
+
   function setEnabled(on) {
     if (on && !available()) return false;
-    if (on) return writeItem(CHOICE_KEY, '1');
+    if (on) {
+      var saved = writeItem(CHOICE_KEY, '1');
+      if (saved) epoch += 1;
+      return saved;
+    }
+    stopLive();                                       // a fetch under way must not save anything after this
     removeItem(CHOICE_KEY);
     removeItem(CACHE_KEY);
     lastNote = '';
@@ -260,21 +336,34 @@
   }
 
   // ---- GET ------------------------------------------------------------------------------------
+  // opts: timeout (ms, one request), deadline (a Date.now() value for the whole refresh).
   function get(url, opts) {
     var timeout = opts && typeof opts.timeout === 'number' && opts.timeout > 0 ? opts.timeout : TIMEOUT;
+    var deadline = opts && typeof opts.deadline === 'number' ? opts.deadline : 0;
     return new Promise(function (resolve, reject) {
       var cfg = config();
       if (!cfg || inWorkshop()) { reject(new Error(t('netErrNone'))); return; }
       var u = typeof url === 'string' ? url : '';
       if (!/^https:\/\//.test(u) || hostOf(u).toLowerCase() !== cfg.host) { reject(new Error(t('netErrHost'))); return; }
       if (typeof window.fetch !== 'function') { reject(new Error(t('netErrFetch'))); return; }
+      if (deadline) {
+        var left = deadline - Date.now();
+        if (left <= 0) { reject(new Error(t('netErrDeadline'))); return; }
+        if (left < timeout) timeout = left;
+      }
       var ctl = typeof window.AbortController === 'function' ? new window.AbortController() : null;
+      if (ctl) live.push(ctl);
+      function done() {
+        var i = live.indexOf(ctl);
+        if (i !== -1) live.splice(i, 1);
+      }
       var timer = setTimeout(function () {                           // one-shot, cleared below
         if (ctl) ctl.abort();
+        done();
         reject(new Error(t('netErrTime')));
       }, timeout);
       window.fetch(u, {
-        method: 'GET', credentials: 'omit', redirect: 'error', cache: 'no-store',
+        method: 'GET', credentials: 'omit', redirect: 'error', cache: 'no-store', referrerPolicy: 'no-referrer',
         headers: { Accept: 'application/json' }, signal: ctl ? ctl.signal : undefined
       })
         .then(function (res) {
@@ -285,17 +374,15 @@
           if (text.length > MAX_BYTES) throw new Error(t('netErrBig'));
           return JSON.parse(text);
         })
-        .then(function (data) { clearTimeout(timer); resolve(data); },
-          function (e) { clearTimeout(timer); reject(e instanceof Error ? e : new Error(t('netErrDown'))); });
+        .then(function (data) { clearTimeout(timer); done(); resolve(data); },
+          function (e) { clearTimeout(timer); done(); reject(e instanceof Error ? e : new Error(t('netErrDown'))); });
     });
   }
 
   // ---- The snapshot and the saved list --------------------------------------------------------
-  function pad(n) { return (n < 10 ? '0' : '') + n; }
-  function dayKey(d) { return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); }
   function stamp(ms) {
-    var d = new Date(ms);
-    return dayKey(d) + 'T' + pad(d.getHours()) + ':' + pad(d.getMinutes()) + ':' + pad(d.getSeconds());
+    var p = zoneParts(ms);
+    return p.y + '-' + p.m + '-' + p.d + 'T' + p.h + ':' + p.mi + ':' + p.s;
   }
 
   function snapshot() {
@@ -341,38 +428,46 @@
     }).join('&');
   }
 
-  function fetchOrganizer(cfg, organizer, startDay, endDay) {
+  // `go()` says whether this fetch is still wanted: the person may have pressed "Stop" meanwhile.
+  function fetchOrganizer(cfg, organizer, startDay, endDay, go, deadline) {
     var items = [];
     function page(n, cursor) {
-      return get(listUrl(cfg, organizer, startDay, endDay, cursor)).then(function (d) {
+      if (!go()) return Promise.reject(new Error(t('netErrStopped')));
+      return get(listUrl(cfg, organizer, startDay, endDay, cursor), { deadline: deadline }).then(function (d) {
         if (!isObj(d) || !Array.isArray(d.items)) throw new Error(t('netErrForm'));
         items = items.concat(d.items);
         var next = typeof d.next_cursor === 'string' ? d.next_cursor : '';
-        if (next && n < MAX_PAGES && items.length < MAX_EVENTS) return page(n + 1, next);
-        return items;
+        if (next && (n >= MAX_PAGES || items.length >= MAX_EVENTS)) return { items: items, truncated: true };
+        if (next) return page(n + 1, next);
+        return { items: items, truncated: false };
       });
     }
     return page(1, '');
   }
 
   // Each organiser is its own request chain, one at a time. The service lists the library under
-  // more than one id, and one that fails or is empty must not sink the rest.
-  function fetchAll(now) {
+  // more than one id, and one that fails or is empty must not sink the rest. A chain stopped by a
+  // cap while the service still had more is counted as partial, so the page says so.
+  function fetchAll(now, go, deadline) {
     var cfg = config();
-    var start = new Date(now), end = new Date(now);
-    end.setDate(end.getDate() + cfg.days);
+    var startDay = today(now), end = today(new Date(now).getTime() + cfg.days * 86400000);
     var responses = [], failed = 0, chain = Promise.resolve();
     cfg.organizerIds.forEach(function (organizer) {
       chain = chain
-        .then(function () { return fetchOrganizer(cfg, organizer, dayKey(start), dayKey(end)); })
-        .then(function (items) { responses.push(items); },
-          function (e) {
-            failed += 1;
-            if (typeof console !== 'undefined' && console.warn) console.warn('nextbook: one events list failed.', e);
-          });
+        .then(function () { return fetchOrganizer(cfg, organizer, startDay, end, go, deadline); })
+        .then(function (got) {
+          responses.push(got.items);
+          if (got.truncated) failed += 1;
+        }, function (e) {
+          if (!go()) throw e;                         // stopped: nothing more is asked
+          failed += 1;
+          if (typeof console !== 'undefined' && console.warn) console.warn('nextbook: one events list failed.', e);
+        });
     });
     return chain.then(function () {
-      return { events: normaliseAll(responses).slice(0, MAX_EVENTS), partial: failed > 0 };
+      var events = normaliseAll(responses);
+      var cut = events.length > MAX_EVENTS;
+      return { events: events.slice(0, MAX_EVENTS), partial: failed > 0 || cut };
     });
   }
 
@@ -385,7 +480,11 @@
       return Promise.resolve(current());
     }
     if (inflight) return inflight;
-    inflight = fetchAll(now).then(function (got) {
+    var mine = epoch;
+    function go() { return mine === epoch && enabled(); }
+    var deadline = Date.now() + (typeof opts.deadlineMs === 'number' ? opts.deadlineMs : DEADLINE);
+    var run = fetchAll(now, go, deadline).then(function (got) {
+      if (!go()) throw new Error(t('netErrStopped'));
       if (!got.events.length) throw new Error(t('netNoneBack'));
       writeCache(now, got.events, got.partial);
       lastNote = got.partial ? t('netNotePartial') : '';
@@ -398,12 +497,14 @@
       }
       return res;
     }).catch(function (e) {
+      if (mine !== epoch) return current();            // stopped by the person: say nothing, keep nothing
       if (typeof console !== 'undefined' && console.warn) console.warn('nextbook: the latest events failed.', e);
       held = null;
       lastNote = t(readCache() ? 'netNoteCache' : 'netNoteSnapshot');
       return current();
-    }).then(function (res) { inflight = null; return res; });
-    return inflight;
+    }).then(function (res) { if (inflight === run) inflight = null; return res; });
+    inflight = run;
+    return run;
   }
 
   function shown() {
@@ -418,6 +519,7 @@
   Nextbook.net.current = shown;
   Nextbook.net.refresh = refresh;
   Nextbook.net.get = get;
+  Nextbook.net.today = today;
   Nextbook.net.config = config;
   Nextbook.net.normalise = normalise;
   Nextbook.net.normaliseAll = normaliseAll;

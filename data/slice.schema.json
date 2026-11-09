@@ -36,7 +36,8 @@
             "service": { "type": "string", "enum": ["togather"] },
             "apiUrl": { "type": "string", "pattern": "^https://[^/\\s]+/" },
             "organizerIds": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[0-9A-Za-z]{10,40}$" } },
-            "days": { "type": "integer", "minimum": 1, "maximum": 60 }
+            "days": { "type": "integer", "minimum": 1, "maximum": 60 },
+            "timeZone": { "type": "string", "minLength": 3 }
           }
         }
       }
