@@ -155,7 +155,8 @@ not sink the rest, and a partial result is used and re-asked next time. Each ite
 local wall-clock times, a tidied place name as `branch`, `summary` at most 300 characters with a leading "More info:"
 pointer dropped, `url` the event's own page on the service (the list carries no source link). Any failure shows the saved
 list, then the snapshot, with one plain line. `ctx.events` and the event picker read the same current list through the
-shell; a mode has no network, so it cannot ask for anything. The picker lists what the screen is looking at (its branch and
+shell; a mode gets `ctx.events` and nothing to ask with, and the contract check fails a mode that names the network module
+(it is a lint on honest code, not a sandbox). The picker lists what the screen is looking at (its branch and
 week), at most 150 options and always the chosen event (D35), and says when it is a part.
 
 In a workshop copy `net.js` reports itself unavailable: the screen shows no button and nothing is ever requested. The

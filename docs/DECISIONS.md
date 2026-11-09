@@ -531,7 +531,9 @@ rule 7 ("works offline from a folder") by exactly one allowed use, and no more:
   fallback, and every failure ends there with one plain line.
 - The library's address and organiser ids are data (`library.events`), not code (D10 holds). The one-file build carries a
   Content-Security-Policy that allows its own scripts by hash and `connect-src` for that host only. A folder copy has none.
-- Modes still cannot touch the network. `ctx.events` is a copy of the current list (the latest, or the snapshot), and the
+- Modes are told not to touch the network, and the contract check fails one that names `Nextbook.net`, `Nextbook.travel`,
+  `fetch`, `navigator`, `Image`, `sendBeacon`, `globalThis` or `self`. That is a lint on honest code, not a sandbox: a mode runs
+  in the page, and a name built from pieces is not seen. `ctx.events` is a copy of the current list (the latest, or the snapshot), and the
   event picker is scoped to the screen's branch and week and capped at 150 options so 2,500 events stay usable (D35's
   behaviour is kept: the chosen event is always an option).
 - The screen draws a page of 50 at a time, with filters for branch and week, so it stays light at 2,500 events.

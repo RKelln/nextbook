@@ -179,6 +179,13 @@ const CODE = {
   'new Function': 'new Function("return 1")',
   'XMLHttpRequest': 'new XMLHttpRequest()',
   'import(': 'import("x")',
+  'Nextbook.net': 'Nextbook.net.setEnabled(true)',
+  'Nextbook.travel': 'Nextbook.travel.current()',
+  'globalThis': 'globalThis.navigator',
+  'self': 'self.postMessage(1)',
+  'navigator': 'navigator.sendBeacon("/x", "y")',
+  'Image': 'new Image()',
+  'sendBeacon': 'x.sendBeacon("/x", "y")',
 };
 
 test('the scan catches each banned token in code', () => {

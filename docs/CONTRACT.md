@@ -168,10 +168,12 @@ snapshot, a `shelf-book` input on an empty shelf), are both missing.
 
 1. **Talk to the app only through `ctx`.** No globals of your own, no other mode's code.
 2. **Never use** `innerHTML`, `outerHTML`, `insertAdjacentHTML`, `document.`, `window.`, `eval(`, `new Function`,
-   `fetch(`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(` or
-   `setInterval(`. The check reads every function in the mode as code, with comments and the words inside quotes
+   `fetch(`, `XMLHttpRequest`, `import(`, `localStorage`, `Math.random(`, `new Date`, `Date.now(`, `setTimeout(`,
+   `setInterval(`, `globalThis`, `self`, `navigator`, `Image`, `sendBeacon`, `Nextbook.net` or `Nextbook.travel`. The check reads every function in the mode as code, with comments and the words inside quotes
    left out, so a sentence like "The library could not fetch this." is fine. A failure names the word, where it is, and
-   what to use instead.
+   what to use instead. The last two are the app's one network module and a person's own travel times: a mode that
+   names them fails the check. Nothing but this check keeps a mode from them (a mode runs in the page, with the page's
+   globals); the check is how an honest mode is told, not a sandbox.
    **The check is a lint, not a wall.** It reads names as they are written, so a name built from pieces
    (`'fe' + 'tch'`), a name inside a template interpolation, or a call written `fetch?.(` is not seen. It is there to
    catch the accident, not to defend against a file written to get around it. Follow the rules rather than testing

@@ -82,6 +82,15 @@
     { word: 'eval(', core: BEFORE + 'eval\\s*\\(', advice: NO_CODE },
     { word: 'new Function', core: BEFORE + 'new\\s+Function' + AFTER, advice: NO_CODE },
     { word: 'XMLHttpRequest', core: BEFORE + 'XMLHttpRequest' + AFTER, advice: NO_NET },
+    { word: 'Nextbook.net', core: BEFORE + 'Nextbook\\s*\\.\\s*net' + AFTER,
+      advice: 'A mode has no network and cannot change the app\'s choices. Take the events from ctx.events.' },
+    { word: 'Nextbook.travel', core: BEFORE + 'Nextbook\\s*\\.\\s*travel' + AFTER,
+      advice: 'A person\'s travel times are theirs, not a mode\'s. A mode cannot read them.' },
+    { word: 'globalThis', core: BEFORE + 'globalThis' + AFTER, advice: NO_PAGE },
+    { word: 'self', core: '(^|[^A-Za-z0-9_$.])self' + AFTER, advice: NO_PAGE },
+    { word: 'navigator', core: BEFORE + 'navigator' + AFTER, advice: NO_NET },
+    { word: 'Image', core: BEFORE + 'Image' + AFTER, advice: NO_NET },
+    { word: 'sendBeacon', core: BEFORE + 'sendBeacon' + AFTER, advice: NO_NET },
     { word: 'import(', core: '(^|[^A-Za-z0-9_$.])import\\s*\\(',
       advice: 'A mode is one file. Use ctx and the functions the app already loads.' }
   ];

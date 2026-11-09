@@ -46,7 +46,9 @@ When two conflict, the earlier one wins.
    the library's settings (`library.events` in the slice), with no cookies and no redirects, a time limit and a size
    cap, and it sends nothing about the person or their books. It runs only after the person pressed the button on the
    events screen, the choice is remembered in their browser with a way to turn it off, and a workshop copy never shows
-   the button and never fetches. Modes cannot reach it. The one-file build carries a policy that lets the page connect
+   the button and never fetches. A mode is told not to reach it: the contract check fails a mode that names the network
+   module, the person's travel times or the browser's other ways out (`fetch`, `navigator`, `Image`, `sendBeacon`,
+   `globalThis`...). That check is a lint on honest code, not a sandbox. The one-file build carries a policy that lets the page connect
    to that host and nothing else. A different host, a POST, a second module that fetches, or a request that
    carries shelf data is a change to this rule, and needs a decision in `docs/DECISIONS.md` first.
 
