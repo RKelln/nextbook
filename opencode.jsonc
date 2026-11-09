@@ -1,0 +1,44 @@
+// OpenCode settings for this repo. OpenCode v2 allows everything by default: its resolved base
+// policy starts with { action: "*", resource: "*", effect: "allow" }, and the LAST matching rule
+// wins. So the order below matters. First everything that changes files, runs a command or
+// leaves this folder is set to "ask". Then narrow "allow" rules, which come after and so win
+// for exactly what they name: reading, the checks, the build, the local server, read-only git,
+// and edits to the files a mode is written in.
+// Nothing here is a "deny": a person's own fork is theirs, so even `git push` falls under the
+// shell "ask" and is theirs to approve. No model is set; choose your own.
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permissions": [
+    { "action": "edit", "resource": "*", "effect": "ask" },
+    { "action": "shell", "resource": "*", "effect": "ask" },
+    { "action": "external_directory", "resource": "*", "effect": "ask" },
+
+    // Run the checks.
+    { "action": "shell", "resource": "node --test *", "effect": "allow" },
+    { "action": "shell", "resource": "node tools/check-mode.js *", "effect": "allow" },
+    { "action": "shell", "resource": "bash tools/check.sh *", "effect": "allow" },
+    { "action": "shell", "resource": "python3 tools/coverage.py*", "effect": "allow" },
+    { "action": "shell", "resource": "python3 tools/build.py*", "effect": "allow" },
+    { "action": "shell", "resource": "python3 tools/serve.py*", "effect": "allow" },
+
+    // Look at git, never change it.
+    { "action": "shell", "resource": "git status*", "effect": "allow" },
+    { "action": "shell", "resource": "git diff*", "effect": "allow" },
+    { "action": "shell", "resource": "git log*", "effect": "allow" },
+
+    // A mode is written here, with its plan.
+    { "action": "edit", "resource": "app/modes/*", "effect": "allow" },
+    { "action": "edit", "resource": "app/PLAN.md", "effect": "allow" },
+    { "action": "edit", "resource": "app/README.md", "effect": "allow" }
+  ],
+  "watcher": {
+    // Built copies, screenshots and the generated data are never worth watching.
+    "ignore": [
+      "dist/**",
+      "screens/**",
+      "app/data/**",
+      "data/distance-map.json",
+      "data/distance-transit-cache.json"
+    ]
+  }
+}

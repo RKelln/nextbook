@@ -71,6 +71,8 @@ tools/                  build.py, distance-map.py (a person's travel times), ser
                         packets.py (a paste packet per brief), inbox.py (hand the page one change),
                         screens.py (screenshots of every screen, for design work; dev only)
 .claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
+opencode.jsonc           OpenCode's permissions for this repo: ask before edits, commands and outside folders; allow the checks, the
+                        build and read-only git; no model set
 tests/                  Node tests for the core and the screens, Python tests for the adapters and the tools,
                         fixtures in tests/fixtures/ (catalogue pages, saved shelf pages, two CSV exports)
 reference/modes/        finished demo modes. Never copied into the starter.

@@ -144,6 +144,12 @@ unbuilt — that is the work the app leaves to its reader. `docs/BUILD.md` is th
 Where `docs/` reports a measurement of a catalogue page it carries the date it was taken, and usually the URL, so it
 can be re-checked rather than believed; where it is a survey of sources it says so. `docs/RESEARCH.md` is the list.
 
+## OpenCode
+
+`opencode.jsonc` sets OpenCode's permissions for this folder. OpenCode allows everything by default and the last matching
+rule wins, so the file first sets "ask" for edits, shell commands and folders outside this one, then allows the checks, the
+build, the local server, read-only git and edits to a mode's own files. It sets no model and denies nothing.
+
 ## Licence
 
 MIT. See `LICENSE`. Ported patterns from [searchdesk](https://github.com/RKelln/searchdesk) are the same author and the
