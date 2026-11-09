@@ -44,10 +44,13 @@ function memoryStorage() {
 }
 
 const pad = (n) => String(n).padStart(2, '0');
+// Days count from today on the library's clock, as the screen does. The machine's own clock can
+// already be on tomorrow: a UTC runner is, every evening in Toronto.
 function dayPlus(n) {
-  const d = new Date();
-  d.setDate(d.getDate() + n);
-  return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate());
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/Toronto' }).format(new Date());
+  const [y, m, day] = today.split('-').map(Number);
+  const d = new Date(Date.UTC(y, m - 1, day + n));
+  return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate());
 }
 
 // One service item. Place names are the library's own.
