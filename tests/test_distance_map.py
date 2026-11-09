@@ -39,6 +39,7 @@ class Net:
 
     def __init__(self, walk_factor=3.0, errors=None):
         self.calls, self.sleeps, self.walk_factor, self.errors = [], [], walk_factor, list(errors or [])
+        self.transit_fail = None      # a function of the url: an HTTP status to answer with, or None
 
     def urlopen(self, req, timeout=0):
         url = req.full_url
@@ -50,6 +51,10 @@ class Net:
             n = len(url.split("destinations=")[1].split("&")[0].split(";"))
             base = 600 if "router.project-osrm.org" in url else int(600 * self.walk_factor)
             return FakeResponse({"code": "Ok", "durations": [[base + 10 * i for i in range(n)]]})
+        if "transitous" in url and self.transit_fail:
+            code = self.transit_fail(url)
+            if code:
+                raise urllib.error.HTTPError(url, code, "x", {}, io.BytesIO(b"x"))
         if "transitous" in url:
             to = url.split("toPlace=")[1].split("&")[0]
             if sum(map(ord, to)) % 2:
@@ -156,6 +161,81 @@ class DistanceMapTest(unittest.TestCase):
         self.assertEqual(self.net.calls, [], "the same start point asks for nothing again")
         self.run_tool("--origin", "43.8,-79.5")                          # another point
         self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 184, "its own cache")
+
+    def first_branch_to(self):
+        row = json.loads((REPO / "data" / "branches.json").read_text())["branches"][0]
+        return "toPlace=%s%%2C%s" % (row["lat"], row["lon"]), row
+
+    def test_a_failed_transit_request_is_not_cached_as_no_itinerary(self):
+        needle, _ = self.first_branch_to()
+        lat = needle.split("=")[1].split("%2C")[0]
+        self.net.transit_fail = lambda url: 503 if ("toPlace=" + lat) in url else None
+        code, out, _ = self.run_tool("--origin", "43.7,-79.4")
+        self.assertEqual(code, 0, out)
+        cache = json.loads(dm.CACHE_PATH.read_text())
+        self.assertEqual(len(cache), 184 - 2, "the two queries that failed are not saved")
+        self.assertIn("got no answer", out)
+        # A rerun asks for exactly those two, and now they are saved.
+        self.net.calls.clear()
+        self.net.transit_fail = None
+        self.run_tool("--origin", "43.7,-79.4", "--refresh-transit")
+        self.run_tool("--origin", "43.7,-79.4")
+        self.assertEqual(len(json.loads(dm.CACHE_PATH.read_text())), 184)
+
+    def test_a_missing_page_or_a_bad_request_is_not_cached_either(self):
+        for code in (404, 400):
+            dm.CACHE_PATH.unlink(missing_ok=True)
+            self.net.transit_fail = lambda url, c=code: c if "toPlace=43.7" in url else None
+            self.run_tool("--origin", "43.7,-79.4")
+            cache = json.loads(dm.CACHE_PATH.read_text())
+            self.assertTrue(all(v is None or "seconds" in v for v in cache.values()))
+            self.assertLess(len(cache), 184, "a %d is a failure, not an answer" % code)
+
+    def test_a_run_of_transit_failures_stops_the_run_and_keeps_what_was_saved(self):
+        seen = {"n": 0}
+
+        def fail(url):
+            seen["n"] += 1
+            return 503 if seen["n"] > 12 else None        # 12 requests answer, then every one fails
+        self.net.transit_fail = fail
+        code, _, err = self.run_tool("--origin", "43.7,-79.4")
+        self.assertEqual(code, 1)
+        self.assertIn("Transit failed 5 times", err)
+        self.assertIn("run the same command again", err)
+        cache = json.loads(dm.CACHE_PATH.read_text())
+        self.assertEqual(len(cache), 12, "what was saved is kept so a rerun resumes")
+        self.assertFalse(dm.MAP_PATH.exists(), "no half map is written")
+        # And a rerun carries on from there.
+        self.net.transit_fail = None
+        self.net.calls.clear()
+        self.assertEqual(self.run_tool("--origin", "43.7,-79.4")[0], 0)
+        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 184 - 12)
+
+    def test_a_long_retry_after_is_capped(self):
+        self.net.errors = [(429, "99999")]
+        self.run_tool("--origin", "43.7,-79.4", "--no-transit")
+        self.assertTrue(self.net.sleeps)
+        self.assertLessEqual(max(self.net.sleeps), dm.MAX_WAIT)
+
+    def test_a_router_that_keeps_saying_429_stops_the_run(self):
+        self.net.errors = [(429, "1")] * 10
+        code, _, err = self.run_tool("--origin", "43.7,-79.4", "--no-transit")
+        self.assertEqual(code, 1)
+        self.assertIn("HTTP 429", err)
+        self.assertFalse(dm.MAP_PATH.exists() or dm.PAGE_PATH.exists())
+
+    def test_the_page_file_has_no_straight_line_distances_and_the_run_says_where_the_label_goes(self):
+        code, out, _ = self.run_tool("--origin", "43.7,-79.4", "--label", "test point", "--no-transit")
+        self.assertIn("shown on the page", out)
+        self.assertIn("straight_km", dm.MAP_PATH.read_text())
+        self.assertNotIn("straight_km", dm.PAGE_PATH.read_text())
+        self.assertIn("test point", dm.PAGE_PATH.read_text())
+
+    def test_the_cache_for_another_start_point_is_dropped(self):
+        self.run_tool("--origin", "43.7,-79.4")
+        self.run_tool("--origin", "43.8,-79.5")
+        keys = json.loads(dm.CACHE_PATH.read_text()).keys()
+        self.assertEqual({k.split("|")[0] for k in keys}, {dm.origin_key((43.8, -79.5))})
 
     def test_a_missing_or_bad_origin_is_refused(self):
         with self.assertRaises(SystemExit):

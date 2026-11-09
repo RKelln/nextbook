@@ -255,7 +255,9 @@ times with no parking. Transit is one query at each of two times (a weekday at 1
 Transitous, `api.transitous.org`, which knows about three weeks ahead), so it is a rough guide and goes stale after about
 three weeks. The routers (checked 2026-10-23): `router.project-osrm.org` ignores its profile and answers with driving time,
 so it is used for the car only; `routing.openstreetmap.de/routed-foot` and `/routed-bike` give walking and cycling. The page
-file `app/data/distance.js` is the same without `origin`.
+file `app/data/distance.js` is the same without `origin` and `straight_km`. It still holds the label, which is the person's own words for
+the start point and is shown on the page, so it must not be a home address; and the times themselves say roughly where the point is.
+The transit cache keeps answers for one start point only. A failed request is never saved as "no itinerary"; only a real answer is.
 
 ## Fallback sources, for books the library does not hold
 

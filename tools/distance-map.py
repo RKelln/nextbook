@@ -17,7 +17,8 @@ intersection rather than a home address. Nothing else about you is sent.
 What it writes (all of it is yours, none of it is committed, none of it is ever packed into a
 one-file build, because times from one point show where that point is):
     data/distance-map.json            the map, with the rounded start point and your label
-    app/data/distance.js              the same times for the page, without the start point
+    app/data/distance.js              the same times for the page, without the start point's numbers
+                                      or the straight-line distances (the label is kept: the page shows it)
     data/distance-transit-cache.json  transit answers saved as they arrive, so an interrupted run resumes
 Delete those three files to remove every trace. The events screen can also take the map file
 with its "Add your travel times" control, and keeps it in that browser only.
@@ -101,6 +102,8 @@ FILL_WALK_S = 1200      # no transit itinerary and a walk this short or shorter:
 MAX_WALK_S = 1800       # walking to the first stop and from the last: 30 minutes each end
 MAX_PAGES = 90
 DECIMALS = 3
+MAX_WAIT = 120          # the longest wait for one retry, whatever a server asks for
+MAX_FAILS = 5           # transit requests that fail one after another before the run stops
 
 # Tests replace these, so no test reaches a network or waits.
 _urlopen = urllib.request.urlopen
@@ -126,9 +129,10 @@ def get(url, what, tries=4, fatal=True):
                     wait = int(e.headers.get("Retry-After") or wait)
                 except (TypeError, ValueError):
                     pass
+                wait = max(1, min(wait, MAX_WAIT))
                 print(f"  {what}: HTTP {e.code}, waiting {wait}s", file=sys.stderr)
                 _sleep(wait)
-                wait *= 2
+                wait = min(wait * 2, MAX_WAIT)
                 continue
             if not fatal:
                 print(f"  {what}: HTTP {e.code}, skipped", file=sys.stderr)
@@ -137,7 +141,7 @@ def get(url, what, tries=4, fatal=True):
         except (urllib.error.URLError, TimeoutError, OSError) as e:
             if attempt < tries - 1:
                 _sleep(wait)
-                wait *= 2
+                wait = min(wait * 2, MAX_WAIT)
                 continue
             if not fatal:
                 print(f"  {what}: {e}, skipped", file=sys.stderr)
@@ -306,37 +310,61 @@ def transit_guides(origin, rows, cache_path, refresh, slots, dry=False):
             cache = json.loads(cache_path.read_text(encoding="utf-8"))
         except ValueError:
             cache = {}
+    # Answers made for another start point are of no use here, and they are that point's data.
+    cache = {k: v for k, v in cache.items() if k.startswith(fp + "|")}
     todo = [(r, s) for r in rows for s in slots if key(r, s) not in cache]
     print("Transit: slots " + ", ".join(f"{k} {v:%a %b %d %H:%M}" for k, v in slots.items())
           + f"; {len(todo)} queries to send, {len(rows) * len(slots) - len(todo)} already saved, {TRANSIT_PAUSE}s apart")
     if dry:
         print(f"  (dry run: would send {len(todo)} queries to {urllib.parse.urlsplit(TRANSIT).netloc})")
         return
+    fails = 0
     for n, (r, s) in enumerate(todo, 1):
         q = urllib.parse.urlencode({
             "fromPlace": f"{origin[0]},{origin[1]}", "toPlace": f"{r['lat']},{r['lon']}",
             "time": slots[s].isoformat(), "numItineraries": 3,
             "maxPreTransitTime": MAX_WALK_S, "maxPostTransitTime": MAX_WALK_S}, safe=",:")
         raw = get(f"{TRANSIT}?{q}", f"transit {r['name']} {s}", fatal=False)
-        guide = None
-        if raw:
+        answer = None
+        if raw is not None:
             try:
-                its = json.loads(raw).get("itineraries") or []
-                if its:
-                    best = min(its, key=lambda i: i["duration"])
-                    legs = []
-                    for leg in best["legs"]:
-                        step = _leg_word(leg)
-                        if not legs or legs[-1] != step:
-                            legs.append(step)
-                    guide = {"seconds": best["duration"], "route": ", ".join(legs)}
-            except (ValueError, KeyError, TypeError):
-                guide = None                       # an odd answer is no answer, never a guess
-        cache[key(r, s)] = guide
+                answer = json.loads(raw)
+            except ValueError:
+                answer = None
+        if not isinstance(answer, dict):
+            # The request failed (a refusal, a timeout, a bad request) or the answer was not JSON. That
+            # is not "no itinerary": nothing is saved for it, so a rerun asks again, and a run of
+            # failures stops the run.
+            fails += 1
+            if fails >= MAX_FAILS:
+                cache_path.write_text(json.dumps(cache), encoding="utf-8")
+                raise Stop(f"Transit failed {fails} times in a row, so the run stopped. What was saved is kept: "
+                           "run the same command again to carry on from here.")
+            _sleep(TRANSIT_PAUSE)
+            continue
+        fails = 0
+        guide = None
+        try:
+            its = answer.get("itineraries") or []
+            if its:
+                best = min(its, key=lambda i: i["duration"])
+                legs = []
+                for leg in best["legs"]:
+                    step = _leg_word(leg)
+                    if not legs or legs[-1] != step:
+                        legs.append(step)
+                guide = {"seconds": best["duration"], "route": ", ".join(legs)}
+        except (KeyError, TypeError):
+            guide = None                           # an odd itinerary is no itinerary, never a guess
+        cache[key(r, s)] = guide                   # a real answer, even one with no itinerary
         if n % 10 == 0 or n == len(todo):
             cache_path.write_text(json.dumps(cache), encoding="utf-8")
             print(f"  {n}/{len(todo)}")
         _sleep(TRANSIT_PAUSE)
+    cache_path.write_text(json.dumps(cache), encoding="utf-8")
+    unasked = sum(1 for r in rows for s in slots if key(r, s) not in cache)
+    if unasked:
+        print(f"  {unasked} transit queries got no answer. They are saved as null for now and asked again next run.")
     for r in rows:
         for s in slots:
             g = cache.get(key(r, s))
@@ -356,7 +384,10 @@ def write_outputs(doc, map_path, page_path):
     """The map file (with the rounded start point, for resuming) and the page file (without it)."""
     map_path.parent.mkdir(parents=True, exist_ok=True)
     map_path.write_text(json.dumps(doc, indent=1, ensure_ascii=False) + "\n", encoding="utf-8")
+    # The page does not need the start point's numbers, or the straight-line distances that would
+    # let someone work them out. The label stays: it is what the page shows.
     page = {k: v for k, v in doc.items() if k != "origin"}
+    page["branches"] = [{k: v for k, v in row.items() if k != "straight_km"} for row in doc["branches"]]
     page_path.parent.mkdir(parents=True, exist_ok=True)
     page_path.write_text(gen_data.js_text("distance", page), encoding="utf-8")
 
@@ -365,6 +396,7 @@ def run(args):
     origin = parse_origin(args.origin)
     label = (args.label or "my start point").strip()[:80]
     print(f"Start point rounded to {origin[0]:.3f},{origin[1]:.3f} (about 100 m). That rounded point is what is sent.")
+    print(f'The label "{label}" is saved in the map and shown on the page, so keep any home address out of it.')
     print("It goes to public routing servers (router.project-osrm.org, routing.openstreetmap.de"
           + ("" if args.no_transit else ", api.transitous.org") + ").")
 
