@@ -288,16 +288,20 @@ def sha256_token(text):
     return "'sha256-" + base64.b64encode(hashlib.sha256(text.encode("utf-8")).digest()).decode("ascii") + "'"
 
 
-def make_csp(hashes, connect_origin):
+def make_csp(hashes, connect_origin, editable=False):
     """The page's Content-Security-Policy. Search Desk's pattern (MIT, same author).
 
     Every inline script is allowed by its hash and nothing else may run, so the browser itself
     refuses any code that was not packed. The page may connect to one origin, the library's events
     service named in the slice, and to nothing else; no events service in the data gives 'none'.
-    No frames, no images from the network, no base tag, no form that leaves the page."""
+    No frames, no images from the network, no base tag, no form that leaves the page.
+
+    A file built in a workshop folder is the person's to change by hand, or through a chat that only
+    sees the one file, and a hash would blank the page at the first edit. So `editable` allows
+    inline scripts and keeps every other line: no outside script, and the same one connection."""
     parts = [
         "default-src 'none'",
-        "script-src " + " ".join(hashes),
+        "script-src " + ("'unsafe-inline'" if editable else " ".join(hashes)),
         "style-src 'unsafe-inline'",
         "img-src data:",
         "connect-src " + (connect_origin or "'none'"),
@@ -393,11 +397,14 @@ def assemble(template, read, demo_modes=None):
     body = inline_tags(clean, style_tag, script_tag)
     # Every tag was read the same way, so this can only fail if the inliner missed one: say which.
     check_no_refs_left(body)
-    marker = "<!-- nextbook, one file. Built by tools/build.py: edit app/, never this file. -->"
+    # A workshop folder carries this flag. It is never packed, so read it here.
+    editable = (APP / WORKSHOP_DATA).is_file()
+    marker = ("<!-- nextbook, one file. Yours to change: this file, or app/ and then tools/build.py. -->" if editable
+              else "<!-- nextbook, one file. Built by tools/build.py: edit app/, never this file. -->")
     if "<meta charset" not in body:
         raise BuildError("app/index.html needs a <meta charset> in its head")
     origin = connect[0] if connect else None
-    csp = make_csp([sha256_token(s) for s in scripts], origin)
+    csp = make_csp([sha256_token(s) for s in scripts], origin, editable)
     meta = '<meta http-equiv="Content-Security-Policy" content="' + attr_escape(csp) + '">\n'
     body = re.sub(r"(<meta charset[^>]*>\s*)", lambda m: m.group(1) + marker + "\n" + meta, body, count=1)
     info = {"scripts": len(scripts), "blocks": blocks, "notes": notes,

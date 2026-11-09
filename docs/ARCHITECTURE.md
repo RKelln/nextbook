@@ -164,8 +164,9 @@ week), at most 150 options and always the chosen event (D35), and says when it i
 
 In a workshop copy `net.js` reports itself unavailable: the screen shows no button and nothing is ever requested. The
 one-file build carries a Content-Security-Policy (`tools/build.py`): each inline script by its hash, `connect-src` the
-events host from the slice (or `'none'`), no frames, no network images. A folder copy has none, because a policy for
-`file://` buys little and breaks easily.
+events host from the slice (or `'none'`), no frames, no network images. A file built in a workshop folder allows inline
+scripts instead of listing hashes, because a person changes that file by hand and a hash would blank the page at the first
+edit; the connection rule is the same. A folder copy has none, because a policy for `file://` buys little and breaks easily.
 
 ### Travel times (D45)
 

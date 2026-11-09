@@ -530,7 +530,8 @@ rule 7 ("works offline from a folder") by exactly one allowed use, and no more:
   button and never fetches. A copy still works fully offline from a folder: the snapshot is the offline list and the
   fallback, and every failure ends there with one plain line.
 - The library's address and organiser ids are data (`library.events`), not code (D10 holds). The one-file build carries a
-  Content-Security-Policy that allows its own scripts by hash and `connect-src` for that host only. A folder copy has none.
+  Content-Security-Policy that allows its own scripts by hash and `connect-src` for that host only. A file built in a workshop
+  folder allows inline scripts instead of hashes, since a person edits that file directly; its `connect-src` is the same. A folder copy has none.
 - Modes are told not to touch the network, and the contract check fails one that names `Nextbook.net`, `Nextbook.travel`,
   `fetch`, `navigator`, `Image`, `sendBeacon`, `globalThis` or `self`. That is a lint on honest code, not a sandbox: a mode runs
   in the page, and a name built from pieces is not seen. `ctx.events` is a copy of the current list (the latest, or the snapshot), and the

@@ -7,6 +7,7 @@ own template, carried as data in a JSON block; the page itself asks for nothing.
 """
 import json
 import re
+import subprocess
 import sys
 import tempfile
 import unittest
@@ -221,6 +222,22 @@ class PolicyTest(unittest.TestCase):
         host = re.match(r"https://[^/]+", slice_doc["library"]["events"]["apiUrl"]).group(0)
         self.assertEqual(self.policy(html)["connect-src"], host)
         self.assertEqual(info["connect"], host)
+
+    def test_a_file_built_in_a_workshop_folder_can_be_edited_and_keeps_its_one_connection(self):
+        # The take-home file is the person's to change, so a hash must not blank it at the first edit.
+        build.build_starter()
+        starter = build.DIST / "starter"
+        subprocess.run([sys.executable, str(starter / "tools" / "build.py")], check=True, cwd=starter,
+                       capture_output=True)
+        html = (starter / "dist" / "nextbook.html").read_text(encoding="utf-8")
+        hosted, _ = build.build_page()
+        policy = self.policy(html)
+        self.assertEqual(policy["script-src"], "'unsafe-inline'")
+        self.assertEqual(policy["connect-src"], self.policy(hosted)["connect-src"])
+        self.assertEqual(policy["default-src"], "'none'")
+        self.assertIn("Yours to change", html)
+        self.assertNotIn("Yours to change", hosted)
+        self.assertNotIn("unsafe-inline", self.policy(hosted)["script-src"])
 
     def test_a_library_with_no_events_service_gets_no_connection_at_all(self):
         self.assertEqual(build.make_csp(["'sha256-x'"], None).split("; ")[4], "connect-src 'none'")
