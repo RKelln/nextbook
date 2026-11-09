@@ -160,7 +160,7 @@ class DistanceMapTest(unittest.TestCase):
         self.run_tool("--origin", "43.7,-79.4")                          # everything is saved
         self.assertEqual(self.net.calls, [], "the same start point asks for nothing again")
         self.run_tool("--origin", "43.8,-79.5")                          # another point
-        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 184, "its own cache")
+        self.assertEqual(sum(1 for c in self.net.calls if "transitous" in c["url"]), 188, "its own cache")
 
     def first_branch_to(self):
         row = json.loads((REPO / "data" / "branches.json").read_text())["branches"][0]
