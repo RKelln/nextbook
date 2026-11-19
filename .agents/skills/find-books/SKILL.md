@@ -1,9 +1,9 @@
 ---
-description: Find books at the library for the person's words
-argument-hint: <the words to search for>
+name: find-books
+description: Find books at the library for the person's words by running one catalogue search and adding the results to the app. Use when a person asks to find or search for books.
 ---
 
-Find books for the person, using the words they gave: {{all}}
+Find books for the person, using the words they gave
 
 1. Use their words exactly as given. Do not add words, do not correct spelling, do not search a second thing.
 2. Show them the exact line before it runs. Write it in a code block, then run it in the same reply:
@@ -20,9 +20,12 @@ Find books for the person, using the words they gave: {{all}}
 5. Tell the person, in plain words and short sentences:
    - the search line you ran;
    - how many books were added, and the strongest subjects the library's records carried, if any;
+   - where they went: "They are in your library list as unshelved books, not on your shelf. Run a mode to see them in your picks."
    - this sentence: "The page will show these books the next time it is opened or reloaded."
    - if nothing was added, why: they were already in the list, or the library would not answer.
 6. If the page is being served by `python3 tools/serve.py`, it reloads itself when `app/data/found.js` changes, so
    the books appear on their own. Say that; do not tell them to press anything.
-7. Do not do these: fetch a second page, add a book the library did not return, edit `data/found.json` or
+7. Titles the library has only on order are left out on purpose (nobody can borrow them yet). Do not add
+   `--include-on-order` unless they ask for new, not-yet-arrived books.
+8. Do not do these: fetch a second page, add a book the library did not return, edit `data/found.json` or
    `app/data/found.js` by hand, or run `--clear` unless they ask to start over.

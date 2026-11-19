@@ -22,7 +22,7 @@ happened.
 - `python3 tools/build.py --starter` → `dist/starter/`: the app, the practice shelf, the contract, the mode briefs and
   the check tool, in a folder a beginner can open on a library machine with nothing installed.
 - An optional **agent connection**: `python3 tools/serve.py --workshop --mirror`,
-  `tools/read-shelf.py`, and `/use-nextbook`. The included skill gives the privacy notice before reads
+  `tools/read-shelf.py`, and the `use-nextbook` skill. The included skill gives the privacy notice before reads
   or writes; both expose the titles and details the agent handles to the AI. Sharing is off by default.
 - A **practice shelf** that fills with example books and clears in one click, so a shared machine can be tested and
   wiped without touching anything real.

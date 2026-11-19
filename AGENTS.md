@@ -19,7 +19,7 @@ a workshop is one way to do that, not a requirement. The menu is documentation f
 When two conflict, the earlier one wins.
 
 1. **The person's shelf stays in their browser by default.** Explicitly requested agent shelf work may use
-   `tools/serve.py --mirror` after the notice in `.claude/skills/use-nextbook/SKILL.md`; this is an opt-in local
+   `tools/serve.py --mirror` after the notice in the `use-nextbook` skill; this is an opt-in local
    copy, and reading it exposes the contents to the AI. Give the same notice before inbox writes.
    The ordinary app and its copy/paste prompt keep the protections below. No accounts, no remote shelf storage, no analytics, no telemetry. The
    model prompt carries the candidates' own titles and facet words — public catalogue data — and never a title from
@@ -70,7 +70,9 @@ adapters/pack/          a reading pack (books, genres, mood, pace, a note) and t
 tools/                  build.py, distance-map.py (a person's travel times), serve.py, check-mode.js + check.sh (a mode's checks), gen_data.py, find.py,
                         packets.py (a paste packet per brief), inbox.py (hand the page one change),
                         screens.py (screenshots of every screen, for design work; dev only)
-.claude/commands/       new-mode, check and find-books: slash commands an agent tab can run (sources in tools/commands/)
+.agents/skills/         the one source of the agent skills: check, distance-map, find-books, new-mode, use-nextbook.
+                        Edit them here, then run `python3 tools/sync-skills.py`; it rewrites .claude/skills/ (copies) and
+                        .claude/commands/ (thin wrappers, so /check works in Claude Code). `--check` fails on drift
 opencode.jsonc           OpenCode's permissions for this repo: ask before edits, commands and outside folders; allow the checks, the
                         build and read-only git; no model set
 tests/                  Node tests for the core and the screens, Python tests for the adapters and the tools,
@@ -172,4 +174,4 @@ Text from the catalogue, a model, an imported file or a person is shown as text.
 - Do not add a mode from the menu (`docs/modes/`) to `app/modes/` in this repository's own `main`. Those briefs stay
   unbuilt there so the next reader can write them; the reference builds in `reference/modes/` are finished examples,
   there to be read. **In a person's own copy or fork, building a mode is the point.** When they ask for one, build it
-  (`.claude/commands/new-mode.md` is the recipe), and never copy a reference build in as the answer.
+  (the `new-mode` skill is the recipe), and never copy a reference build in as the answer.

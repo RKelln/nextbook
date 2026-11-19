@@ -42,7 +42,7 @@ task's tick. With one worker, ignore the lanes and follow the order below.
 | **A, data** (Python) | `adapters/`, `data/*.json`, `data/*.schema.json`, `tools/gen_data.py`, `tools/find.py`, `app/data/`, `tests/test_*.py`, `tests/fixtures/tpl/` |
 | **B, core** (pure JS) | `app/core/` except `shell.js`; `tests/*.test.js`; `tests/_load.js`; `tests/fixtures/*.json` |
 | **C, page** | `app/index.html`, `app/core/shell.js`, `app/nextbook.css` |
-| **D, tools** | `tools/` except `gen_data.py` and `find.py`; `tools/commands/`; `.claude/commands/`; `.github/` |
+| **D, tools** | `tools/` except `gen_data.py` and `find.py`; `.agents/skills/`; `.claude/`; `.github/` |
 | **E, modes** | `app/modes/`, `reference/modes/` |
 
 A kickoff for a worker:
@@ -101,7 +101,7 @@ Anything built on the starter — a workshop kit, another app — may rely on th
   button press, and never in a workshop copy (D45).
 - `python3 tools/build.py` makes a one-file take-home copy.
 - Data in `app/data/` is generated, never hand-edited.
-- `/new-mode`, `/check` and `/find-books` exist in `.claude/commands/`.
+- `new-mode`, `check` and `find-books` exist as skills in `.agents/skills/` (and as `/new-mode` etc. in Claude Code).
 
 ---
 
@@ -373,7 +373,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   with its headings (the mode in a sentence, the output, the rule, two ways to test it, still broken), `data/` (no
   `found.json`), `docs/CONTRACT.md`, `docs/modes/`, `tools/check-mode.js`, `tools/check.sh`, `tools/build.py`,
   `tools/serve.py`, `tools/gen_data.py`, `tools/find.py`, `adapters/bibliocommons/` (fetch, parse, normalise,
-  `libraries/tpl.json`), `.claude/commands/`, `LICENSE`, and a short `README.md`. Not `reference/`, `research/`,
+  `libraries/tpl.json`), `.agents/skills/`, `.claude/`, `LICENSE`, and a short `README.md`. Not `reference/`, `research/`,
   `tests/`, `docs/BUILD.md` or `.cache/`.
   *Done when:* inside `dist/starter/`, `node tools/check-mode.js --all` and `bash tools/check.sh more-by` pass,
   `python3 tools/build.py` makes a working one-file copy, `grep -rl 'reference/' dist/starter/app` finds nothing, and
@@ -395,7 +395,7 @@ Checked by opening the page. Each task says what to click. All words go in the s
   *Done when:* `bash tools/check.sh more-by` passes on a clean machine in a standard account (T7.1).
 
 - [x] **T5.5b The commands** (D, S, H). Port: `searchdesk/tools/commands/new-feature.md` and `check.md` as
-  `tools/commands/new-mode.md` and `check.md`, plus `find-books.md`, copied into `.claude/commands/`.
+  `new-mode`, `check` and `find-books` skills in `.agents/skills/` (since moved there from `tools/commands/`; see `TODO.md`).
   - `new-mode` reads `AGENTS.md`, `docs/CONTRACT.md` and the chosen brief in `docs/modes/`; writes or updates
     `app/PLAN.md` first; builds `app/modes/<id>.js` and its check; adds the line to `list.js`; ends with the check run,
     in plain words.

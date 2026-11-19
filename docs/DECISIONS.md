@@ -513,7 +513,7 @@ reading and writing expose book titles to the AI. This supersedes D36's no-mirro
 data, to `nextbook-live.json` outside the served folder. It is off by default; normal and built apps
 remain offline. A per-run token and exact local Origin/Host protect the write route. The file is atomic,
 owner-only, ignored by git and excluded from builds. A visible notice identifies enabled sharing.
-`tools/read-shelf.py` filters the snapshot; `.claude/skills/use-nextbook/SKILL.md` explains disclosure,
+`tools/read-shelf.py` filters the snapshot; the `use-nextbook` skill explains disclosure,
 whole-entry writes, separate browser origins, multiple tabs, and the snapshot left after stopping.
 The model box's shelf-title exclusions are unchanged.
 

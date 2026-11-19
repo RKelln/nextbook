@@ -159,9 +159,9 @@ notes in `data/tags.json` are ours.
 ## Working with an AI agent
 
 For an agent to read the active shelf without manual exports, use `python3 tools/serve.py --mirror`
-and open its printed address. Add `--workshop` for practice data. `/use-nextbook` follows
-[the shelf skill](.claude/skills/use-nextbook/SKILL.md), including the notice that both reading and
-writing expose titles and related details to the AI. The local file itself is not sent to an AI service.
+and open its printed address. Add `--workshop` for practice data. The `use-nextbook` skill (`/use-nextbook` in Claude Code;
+[source](.agents/skills/use-nextbook/SKILL.md)) includes the notice that both reading and writing
+expose titles and related details to the AI. The local file itself is not sent to an AI service.
 Use `python3 tools/read-shelf.py --find 'Piranesi'` to read selected entries; writes use `tools/inbox.py`.
 The mirror is off by default, copies only the active shelf, and stays out of builds. Stopping the
 server stops updates but leaves the last `nextbook-live.json` snapshot on disk.

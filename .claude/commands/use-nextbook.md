@@ -1,6 +1,6 @@
 ---
-description: Read or update your Nextbook shelf with an AI agent
+description: Read or update a person's Nextbook shelf through the local mirror and inbox. Use for requests about their books, ratings, or reading status, not for developing app features.
 argument-hint: <what to read or change>
 ---
 
-Read `.claude/skills/use-nextbook/SKILL.md` and follow its privacy notice and read/write workflow for this request: $ARGUMENTS
+Follow the `use-nextbook` skill (`.agents/skills/use-nextbook/SKILL.md`) for this request: $ARGUMENTS

@@ -554,7 +554,7 @@ It contacts the library only when you ask. The optional agent connection below u
 
 ## Optional agent access
 
-Use `/use-nextbook`, or read `.claude/skills/use-nextbook/SKILL.md`. Before reading or writing, the
+Ask your agent to follow the `use-nextbook` skill (`/use-nextbook` in Claude Code). Before reading or writing, the
 agent warns that the book titles and details it handles become part of the AI conversation.
 
     python3 tools/serve.py --workshop --mirror
@@ -663,16 +663,15 @@ def build_starter():
         copy_into(out, "tools/serve.py")
     else:
         notes.append("tools/serve.py is not here yet, so the starter does not carry it")
-    if (ROOT / ".claude" / "commands").is_dir():
-        for path in sorted((ROOT / ".claude" / "commands").glob("*.md")):
-            if path.stem in NOT_IN_STARTER:
+    # The skills: .agents/skills/ is the source, .claude/skills/ and .claude/commands/ are generated
+    # from it by tools/sync-skills.py (the starter gets the same three folders).
+    for sub in (".agents/skills", ".claude/skills"):
+        for path in sorted((ROOT / sub).glob("*/SKILL.md")):
+            if path.parent.name in NOT_IN_STARTER:
                 continue
             copy_into(out, str(path.relative_to(ROOT)))
-    else:
-        notes.append(".claude/commands/ is not here yet, so the starter does not carry it")
-
-    for path in sorted((ROOT / ".claude" / "skills").glob("*/SKILL.md")):
-        if path.parent.name in NOT_IN_STARTER:
+    for path in sorted((ROOT / ".claude" / "commands").glob("*.md")):
+        if path.stem in NOT_IN_STARTER:
             continue
         copy_into(out, str(path.relative_to(ROOT)))
     write_lf(out / "README.md", README_MD)

@@ -285,6 +285,7 @@ class TravelTimesNeverShipTest(unittest.TestCase):
         starter = build.DIST / "starter"
         self.assertFalse((starter / ".claude/commands/distance-map.md").exists())
         self.assertFalse((starter / ".claude/skills/distance-map").exists())
+        self.assertFalse((starter / ".agents/skills/distance-map").exists())
         for path in starter.rglob("*"):
             if path.is_file():
                 self.assertNotIn("distance", path.name.replace("distance-map.py", ""), str(path))
@@ -314,6 +315,7 @@ class DistCleanTest(unittest.TestCase):
             build.build_starter()
         out = self.dist / "starter"
         for name in ["tools/read-shelf.py", "tools/serve.py", ".claude/skills/use-nextbook/SKILL.md",
+                     ".agents/skills/use-nextbook/SKILL.md", ".agents/skills/check/SKILL.md",
                      ".claude/commands/use-nextbook.md"]:
             self.assertTrue((out / name).is_file(), name)
         self.assertFalse((out / "nextbook-live.json").exists())
