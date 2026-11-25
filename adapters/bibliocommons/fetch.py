@@ -83,7 +83,7 @@ def load_library(name: str = "tpl") -> dict:
     host = f"https://{spec['subdomain']}.bibliocommons.com"
     library = dict(spec)
     library["host"] = host
-    for key in ("search_url", "new_titles_url", "record_url"):
+    for key in ("search_url", "fielded_search_url", "new_titles_url", "record_url"):
         if key in library:
             library[key] = library[key].replace("{host}", host)
     return library
@@ -93,6 +93,33 @@ def search_url(query: str, page: int = 1, library: str = "tpl") -> str:
     """The search address for a person's words, on page `page` (1-based)."""
     template = load_library(library)["search_url"]
     return template.format(query=urllib.parse.quote(str(query)), page=int(page))
+
+
+_NOT_FIELD_TEXT = re.compile(r"[^\w'\- ]+")
+
+
+def book_search_url(title: str, author: str = "", library: str = "tpl") -> str:
+    """One page of the catalogue's fielded search for a title and author.
+
+    A keyword search for a famous title ranks adaptations and studies above
+    the book (`Moby-Dick Herman Melville` does not return the novel on page 1);
+    `title:(...) AND contributor:(...)` does. Punctuation that the query
+    language would read is dropped. A library with no fielded search falls back
+    to a keyword search of the same words.
+    """
+    spec = load_library(library)
+    title = " ".join(_NOT_FIELD_TEXT.sub(" ", str(title or "")).split())
+    # Initials and particles ("K.", "Le") are left out: a record that spells the
+    # name without them should still match.
+    author = " ".join(word for word in _NOT_FIELD_TEXT.sub(" ", str(author or "")).split()
+                      if len(word) >= 3)
+    template = spec.get("fielded_search_url")
+    if not template or not title:
+        return search_url(" ".join(part for part in (title, author) if part), 1, library)
+    query = f"title:({title})"
+    if author:
+        query += f" AND contributor:({author})"
+    return template.format(query=urllib.parse.quote(query), page=1)
 
 
 def new_titles_url(page: int = 1, library: str = "tpl") -> str:

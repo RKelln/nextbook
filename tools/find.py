@@ -4,6 +4,7 @@
     python3 tools/find.py "birds toronto"
     python3 tools/find.py --title "The Left Hand of Darkness" --author "Le Guin"
     python3 tools/find.py --from-shelf my-shelf.json
+    python3 tools/find.py "quiet sea stories" --suggest suggestions.txt
     python3 tools/find.py --clear
 
 This is the one command in the repo that reaches the network without a build,
@@ -55,6 +56,7 @@ import subprocess
 import sys
 import unicodedata
 import urllib.error
+import urllib.parse
 from collections import Counter
 from pathlib import Path
 
@@ -767,6 +769,217 @@ def _inbox_records(entries, matched: dict) -> list:
     return out
 
 
+# --- suggested titles -------------------------------------------------------
+#
+# A person's words find books by keyword. An agent can also name titles it
+# remembers that fit those words, and the catalogue checks each one: a title
+# the library returns, with the same author, is added; anything else is said as
+# not found. The agent's memory proposes, the catalogue decides. Only the one
+# book that matches is kept from each search, never the rest of its page.
+
+MAX_SUGGESTIONS = 10
+_LIST_MARKER = re.compile(r"^\s*(?:[-*•]|\d+[.)])\s+")
+_SEPARATORS = (" | ", "|", "\t", " — ", " – ", " - ")
+
+
+def parse_suggestions(text: str) -> list:
+    """`[(title, author)]` from lines like `Circe | Madeline Miller`.
+
+    The pipe is the format to write. A tab, an em or en dash, ` - ` or ` by `
+    (the last one in the line) are read too, so a list in another shape still
+    works. Blank lines and lines starting with `#` are skipped,
+    and a leading `1.` or `-` is dropped. A line with no author is kept with an
+    empty author: it is searched by title and matched by title alone.
+    """
+    found = []
+    for raw in str(text or "").splitlines():
+        line = _LIST_MARKER.sub("", raw).strip()
+        if not line or line.startswith("#"):
+            continue
+        title, author = line, ""
+        for separator in _SEPARATORS:
+            if separator in line:
+                title, author = line.split(separator, 1)
+                break
+        else:
+            at = line.lower().rfind(" by ")
+            if at > 0:
+                title, author = line[:at], line[at + 4:]
+        title = title.strip().strip('"“”*_').strip()
+        author = author.strip().strip('"“”*_').strip()
+        if title:
+            found.append((title, author))
+    return found
+
+
+def _name_words(text) -> set:
+    """The words of a name worth matching on: three letters or more."""
+    return {word for word in norm_title(text).split() if len(word) >= 3}
+
+
+def _main_title(text) -> str:
+    """The title before any subtitle: `Circe: A Novel` -> `circe`."""
+    return norm_title(re.split(r"[:;(]", str(text or ""), maxsplit=1)[0])
+
+
+def is_suggested_book(work: dict, title: str, author: str) -> bool:
+    """Whether a catalogue work is the book that was suggested.
+
+    The main titles must be the same after normalising (case, accents,
+    punctuation, a leading article, any subtitle). When an author was given,
+    one of its longer words must be in the record's author: the catalogue
+    files "Le Guin, Ursula K." and "Guin, Ursula K. Le" for the same person.
+    """
+    wanted = _main_title(title)
+    if not wanted or _main_title(work.get("title")) != wanted:
+        return False
+    if not author:
+        return True
+    return bool(_name_words(author) & _name_words(work.get("author")))
+
+
+def _book_line(title: str, author: str) -> str:
+    return f'"{title}" by {author}' if author else f'"{title}"'
+
+
+def suggest(suggestions, *, data_dir=DATA_DIR, out_dir=OUT_DIR, getter=None,
+            cached=None, begin_search=None, now=None) -> dict:
+    """Check each suggested title at the library: one search each, one book kept.
+
+    `suggestions` is `[(title, author)]`, at most MAX_SUGGESTIONS of them (the
+    rest are dropped, and that is said). A title already in the person's list
+    costs no request. Each search is the catalogue's fielded search for that
+    title and author (`fetch.book_search_url`), one page, paced like any search; from that page only the work that `is_suggested_book`
+    accepts is merged, marked `"found": {"query": ..., "suggested": true}`.
+    The first page that does not come back stops the run: a dead connection
+    would otherwise cost a minute per title.
+    """
+    suggestions = [(t, a) for t, a in suggestions if str(t or "").strip()]
+    if not suggestions:
+        raise FindError("there are no suggested titles to check")
+    if len(suggestions) > MAX_SUGGESTIONS:
+        say(f"{len(suggestions)} suggestions given. Checking the first {MAX_SUGGESTIONS}.")
+        suggestions = suggestions[:MAX_SUGGESTIONS]
+
+    getter = getter or fetch.get
+    own_fetcher = getter is fetch.get
+    if cached is None:
+        cached = fetch.is_cached if own_fetcher else (lambda url: False)
+    if begin_search is None:
+        begin_search = fetch.begin_search if own_fetcher else (lambda: None)
+
+    data_dir = Path(data_dir)
+    out_dir = Path(out_dir)
+    found_path = data_dir / "found.json"
+    doc = load_found(found_path)
+    slice_doc = read_json(data_dir / "slice.json", default={})
+    slice_keys = slice_identities(slice_doc)
+    known: set = set()
+    listed = []  # every work the person already has, to check a title against
+    for work in doc.get("works") or []:
+        known.update(identities(work))
+        listed.append(work)
+    for work in (slice_doc or {}).get("works") or []:
+        if isinstance(work, dict):
+            listed.append(work)
+
+    total = len(suggestions)
+    say(f"Checking {total} suggested title{'' if total == 1 else 's'} at the library, "
+        "one search each, at least 5 seconds apart. Only a book with the same title "
+        "and author is kept.")
+
+    added_titles, already_titles, missing = [], [], []
+    wrote = False
+    stopped = False
+    for number, (title, author) in enumerate(suggestions, start=1):
+        line = _book_line(title, author)
+        if any(is_suggested_book(work, title, author) for work in listed):
+            say(f"{number} of {total}: {line}: already in your list.")
+            already_titles.append(line)
+            continue
+        address = fetch.book_search_url(title, author)
+        query = urllib.parse.parse_qs(urllib.parse.urlsplit(address).query).get("query", [""])[0]
+        say(f"{number} of {total}: {line}" + (" (cached)" if cached(address) else "")
+            + f". Search sent: {query}")
+        begin_search()
+        try:
+            html = getter(address, kind="on-demand")
+            briefs = parse.briefs(html)
+        except fetch.FetchError as err:
+            say(f"The library would not give that page: {err}")
+            stopped = True
+            break
+        except (urllib.error.URLError, OSError) as err:
+            say(f"Could not reach the library: {err}")
+            stopped = True
+            break
+        except parse.ParseError as err:
+            say(f"   That page was not a catalogue search page: {err}")
+            missing.append(line)
+            continue
+
+        match = next(((work, labels) for work, labels in works_with_labels(briefs)
+                      if is_suggested_book(work, title, author)
+                      and (INCLUDE_ON_ORDER or not is_on_order(work))), None)
+        if match is None:
+            say("   Not found: no book with that title and author came back.")
+            missing.append(line)
+            continue
+        page_added, page_already, _linked = merge(doc, known, [match], query, set(),
+                                                  slice_keys)
+        if page_added:
+            page_added[0]["found"]["suggested"] = True
+            doc["searches"].append({"query": query, "fetched": now or _now(),
+                                    "works": 1, "suggested": True})
+            _refuse_forbidden(doc)
+            _write_json(found_path, doc)
+            wrote = True
+            listed.append(page_added[0])
+            work = page_added[0]
+            say(f"   Found: {work.get('title')}"
+                + (f", {work['author']}" if work.get("author") else "") + ". Added.")
+            added_titles.append(line)
+        else:
+            say("   Found, and already in your list.")
+            already_titles.append(line)
+
+    if wrote:
+        regenerate(data_dir, out_dir)
+
+    checked = len(added_titles) + len(already_titles) + len(missing)
+    found_count = len(added_titles) + len(already_titles)
+    said = f"Suggested titles found at the library: {found_count} of {checked}"
+    if added_titles or already_titles:
+        said += f" ({len(added_titles)} added, {len(already_titles)} already in your list)"
+    say(said + ".")
+    if missing:
+        say("Not found: " + "; ".join(missing) + ".")
+        say("A title not found may be made up, remembered wrongly, or a book this "
+            "library does not have.")
+    if stopped:
+        say(f"Stopped after {checked} of {total}: the library did not answer.")
+    return {"ok": checked > 0,
+            "added": len(added_titles), "already": len(already_titles),
+            "missing": missing, "checked": checked, "stopped": stopped}
+
+
+def read_suggestions(source) -> list:
+    """The suggestion lines from a file, or from standard input for `-`."""
+    if str(source) == "-":
+        # Bytes, decoded here: a Mac shell with no UTF-8 locale would otherwise
+        # fail on a dash in `Title — Author`.
+        stream = getattr(sys.stdin, "buffer", None)
+        raw = stream.read() if stream is not None else sys.stdin.read()
+        if isinstance(raw, bytes):
+            raw = raw.decode("utf-8", errors="replace")
+        return parse_suggestions(raw)
+    path = Path(source)
+    try:
+        return parse_suggestions(path.read_text(encoding="utf-8"))
+    except OSError as err:
+        raise FindError(f"{path} could not be read: {err.strerror or err}")
+
+
 def _parse(argv):
     parser = argparse.ArgumentParser(
         prog="python3 tools/find.py",
@@ -784,6 +997,10 @@ def _parse(argv):
                         help=("with --from-shelf, also write app/data/inbox.js for the books "
                               "this run matched, so the page takes their new record ids "
                               "without another import"))
+    parser.add_argument("--suggest", metavar="FILE",
+                        help=("also check suggested titles, one 'Title | Author' per line "
+                              f"(at most {MAX_SUGGESTIONS}; '-' reads them from standard "
+                              "input): one search each, and only the matching book is kept"))
     parser.add_argument("--include-on-order", action="store_true",
                         help="also keep titles the library has only on order (left out by default)")
     parser.add_argument("--clear", action="store_true", help="empty data/found.json and stop")
@@ -825,23 +1042,37 @@ def main(argv=None) -> int:
             print(f"find: {err}", file=sys.stderr)
             return 2
         return 0 if result["ok"] else 1
+    if args.suggest and (args.title or args.author):
+        parser.error("--suggest goes with a person's words, not with --title or --author")
     if args.limit is not None:
         parser.error("--limit only works with --from-shelf")
     if args.words and (args.title or args.author):
         parser.error('give words, or --title and --author, not both')
-    if not args.words and not (args.title or args.author):
+    if not args.words and not (args.title or args.author) and not args.suggest:
         parser.error('give some words, or --title and --author')
     pages = 1 if args.pages is None else args.pages
     if pages < 1:
         parser.error("--pages must be 1 or more")
     try:
-        result = run(words=" ".join(args.words) if args.words else None,
-                     title=args.title, author=args.author, pages=pages,
-                     data_dir=args.data_dir, out_dir=args.out_dir)
+        # Read the suggestions first: a bad file stops the command before any request.
+        suggestions = read_suggestions(args.suggest) if args.suggest else None
+        if args.suggest and not suggestions:
+            raise FindError("there are no suggested titles to check")
+        ok = True
+        if args.words or args.title or args.author:
+            result = run(words=" ".join(args.words) if args.words else None,
+                         title=args.title, author=args.author, pages=pages,
+                         data_dir=args.data_dir, out_dir=args.out_dir)
+            ok = result["ok"]
+        if suggestions:
+            if args.words:
+                say("")
+            ok = suggest(suggestions, data_dir=args.data_dir,
+                         out_dir=args.out_dir)["ok"] and ok
     except (OSError, ValueError, FindError) as err:
         print(f"find: {err}", file=sys.stderr)
         return 2
-    return 0 if result["ok"] else 1
+    return 0 if ok else 1
 
 
 if __name__ == "__main__":
