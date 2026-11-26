@@ -62,7 +62,8 @@ test('a reason that names a shelf book gives a prompt without that title', () =>
   assert.ok(prompt.indexOf('Ursula K. Le Guin') !== -1);
   assert.ok(prompt.indexOf('1970') !== -1);
   assert.ok(prompt.indexOf('the Earthsea series') !== -1, 'facet labels, not a title');
-  assert.ok(/matches (books about|other books by)/.test(prompt), 'factsClause(), not reason()');
+  assert.ok(/matches books about/.test(prompt), 'factsClause(), not reason()');
+  assert.ok(!/matches other books by/.test(prompt), 'D46: never a shelf author as a fact');
   assert.ok(prompt.indexOf('fantasy') !== -1, "the profile's labels are there");
 });
 
@@ -320,8 +321,8 @@ test('every candidate on the shelf leaves a prompt with nothing to argue about',
   assert.match(made.text, /No books were offered, so there is nothing to argue about\./);
 });
 
-test('with nothing excluded the prompt is byte-identical to the one before D34', () => {
-  const BEFORE = "Two of these books could be this person's next read. Argue for the two you would pick.\n\nWhat their shelf adds up to: fantasy, quiet books, fantasy and myth, the Earthsea series, wizards\n\nid | title | author | year | subjects | why it fits\n- w2 | The Tombs of Atuan | Ursula K. Le Guin | 1970 | the Earthsea series, fantasy, fantasy and myth, dark books | matches other books by Ursula K. Le Guin\n- w5 | The Left Hand of Darkness | Ursula K. Le Guin | 1969 | gender, science fiction, science fiction, the science fiction shelves, quiet books | matches other books by Ursula K. Le Guin\n\nWrite exactly two lines, one for each book you pick, in this shape:\n<id>: <one sentence>\n\nAnswer with two lines. Do not change any files.";
+test('with nothing excluded the prompt is the D46 one: the shelf as numbers, no author or series', () => {
+  const BEFORE = "Two of these books could be this person's next read. Argue for the two you would pick.\n\nWhat their shelf adds up to (counts only: no titles, no authors):\n- Books on their shelf: 0.\n- Their ratings: none yet.\n- Fewer than 3 books are rated, so this gives only the counts.\n\nid | title | author | year | subjects | why it fits\n- w2 | The Tombs of Atuan | Ursula K. Le Guin | 1970 | the Earthsea series, fantasy, fantasy and myth, dark books | matches books about fantasy and fantasy and myth\n- w5 | The Left Hand of Darkness | Ursula K. Le Guin | 1969 | gender, science fiction, science fiction, the science fiction shelves, quiet books | matches books about quiet books\n\nWrite exactly two lines, one for each book you pick, in this shape:\n<id>: <one sentence>\n\nAnswer with two lines. Do not change any files.";
   const made = nb.seam.finalistsPrompt(result, profile, pool, []);
   assert.strictEqual(made.text, BEFORE);
   assert.deepStrictEqual(plain(made.excluded), []);

@@ -34,6 +34,10 @@ Build one mode for this app. The words you were given are the mode's id or the b
    - At most six picks, no repeats, and no pick that is already on the shelf unless the brief asks for it.
    - Fewer than six picks needs a `note`; no picks at all always needs a `note`.
    - The app's words go in `strings`, with `{name}` holes for values. Do not build a sentence in `why` by hand.
+   - **A mode that asks a chat** (the brief `ask-a-chat.md`, or an idea that needs judgement a rule cannot make)
+     returns `{ picks: [], ask: { question, books } }` instead: up to forty ids, none on the shelf, and a question
+     that names no book or author from the shelf. The app writes the prompt and reads the answer
+     (`docs/CONTRACT.md` section 9). Test the rule that picks the forty, not the chat.
    - Use only what `ctx` gives: `ctx.works`, `ctx.shelf`, `ctx.onShelf`, `ctx.profile`, `ctx.score`,
      `ctx.similar`, `ctx.reason`, `ctx.t`, `ctx.labelOf`, `ctx.tagsOf`. No `document`, `window`, `fetch`,
      `localStorage`, `Date`, `Math.random` or timers; the check fails the file if one appears.

@@ -21,10 +21,11 @@ When two conflict, the earlier one wins.
 1. **The person's shelf stays in their browser by default.** Explicitly requested agent shelf work may use
    `tools/serve.py --mirror` after the notice in the `use-nextbook` skill; this is an opt-in local
    copy, and reading it exposes the contents to the AI. Give the same notice before inbox writes.
-   The ordinary app and its copy/paste prompt keep the protections below. No accounts, no remote shelf storage, no analytics, no telemetry. The
-   model prompt carries the candidates' own titles and facet words — public catalogue data — and never a title from
-   the person's shelf: a candidate that is on the shelf is left out of the prompt before it is built, and the box says
-   how many it left out. The prompt is never built from a reason sentence, which may name one.
+   The ordinary app and its copy/paste prompts keep the protections below. No accounts, no remote shelf storage, no analytics, no telemetry. A
+   model prompt carries the candidates' own titles and facet words — public catalogue data — and the shelf only as
+   numbers (`seam.shelfSummary`, D46): never a title, an author or a series name from the person's shelf. A candidate
+   that is on the shelf is left out of the prompt before it is built, and the box says how many it left out. A prompt
+   is never built from a reason sentence, which may name one, and a mode's question that names one is refused.
 2. **Never read NoveList with code.** The record page's "You may also like" is licensed to the library. Link to the
    record page; never fetch, parse, cache or copy the list. The catalogue's `robots.txt` disallows
    `/item/read_alike_list/` too.

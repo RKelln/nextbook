@@ -222,8 +222,13 @@
   };
 
   function parseFinalists(answer, result, idPattern) {
-    var pattern = makePattern(idPattern);
     var picks = result && Array.isArray(result.picks) ? result.picks : [];
+    return readPicks(answer, picks, idPattern, MAX_KEPT_FINALISTS, FINALIST_SAID,
+      'The answer did not name any of the six books.');
+  }
+
+  function readPicks(answer, picks, idPattern, max, SAID, none) {
+    var pattern = makePattern(idPattern);
     var valid = Object.create(null), lower = Object.create(null);
     picks.forEach(function (p) {
       var id = p && typeof p.id === 'string' ? p.id : '';
@@ -244,10 +249,10 @@
     finalistCandidates(str(answer), pattern, known).forEach(function (c) {
       var raw = trimMarks(c.id);
       var id = realId(c.id);
-      if (!id) { dropped.push({ id: raw, why: 'not one of the six books', code: 'unknown' }); return; }
+      if (!id) { dropped.push({ id: raw, why: (SAID.words && SAID.words.unknown) || 'not one of the six books', code: 'unknown' }); return; }
       if (seen[id]) { dropped.push({ id: id, why: 'named twice', code: 'repeat' }); return; }
-      if (kept.length >= MAX_KEPT_FINALISTS) {
-        dropped.push({ id: id, why: 'more than the two lines asked for', code: 'third' });
+      if (kept.length >= max) {
+        dropped.push({ id: id, why: (SAID.words && SAID.words.third) || 'more than the two lines asked for', code: 'third' });
         return;
       }
       if (!c.why) {
@@ -260,10 +265,10 @@
 
     var bits = [];
     dropped.forEach(function (d) {
-      var said = FINALIST_SAID[d.code] || FINALIST_SAID.unknown;
+      var said = SAID[d.code] || SAID.unknown;
       bits.push(said(d.id || 'That pick'));
     });
-    if (!kept.length) bits.push('The answer did not name any of the six books.');
+    if (!kept.length) bits.push(none);
     return { kept: kept, dropped: dropped, reason: bits.join(' ') };
   }
 
@@ -423,6 +428,7 @@
     var out = [];
     for (var i = 0; i < list.length && out.length < (n || 5); i++) {
       if (!weights[list[i]]) continue;
+      if (list[i].indexOf('series:') === 0) continue;   // a series name points at the books (D46)
       out.push(labelFor(list[i], pool));
     }
     return out;
@@ -436,7 +442,11 @@
     var labels = workFacets(work).map(function (f) { return labelFor(f, pool); }).join(', ');
     var facts = '';
     if (typeof Nextbook.factsClause === 'function' && typeof Nextbook.score === 'function') {
-      var parts = Nextbook.score(work, profile || {}, (pool && pool.facets) || {}).parts;
+      // An author or a series part would name what is on the shelf (D46): left out.
+      var parts = Nextbook.score(work, profile || {}, (pool && pool.facets) || {}).parts.filter(function (part) {
+        var f = part && typeof part.facet === 'string' ? part.facet : '';
+        return f.indexOf('author:') !== 0 && f.indexOf('series:') !== 0;
+      });
       facts = Nextbook.factsClause(parts);
     }
     return '- ' + work.id + ' | ' + clean(work.title) + ' | ' + clean(work.author) + ' | ' +
@@ -506,7 +516,13 @@
         ? 'No books were offered, so there is nothing to argue about.'
         : 'Two of these books could be this person\'s next read. Argue for the two you would pick.');
     lines.push('');
-    lines.push('What their shelf adds up to: ' + (top.length ? top.join(', ') : 'nothing rated yet'));
+    if (Array.isArray(shelf)) {
+      // D46: the shelf as numbers, the same block a mode that asks a chat sends.
+      lines.push('What their shelf adds up to (counts only: no titles, no authors):');
+      shelfSummary(shelf, pool).lines.forEach(function (l) { lines.push('- ' + l); });
+    } else {
+      lines.push('What their shelf adds up to: ' + (top.length ? top.join(', ') : 'nothing rated yet'));
+    }
     lines.push('');
     lines.push(COLUMNS);
     lines = lines.concat(candidates);
@@ -562,6 +578,153 @@
     return lines.join('\n');
   }
 
+  // ---- What the shelf adds up to, in numbers (D46) ---------------------------------------------
+  // shelfSummary(shelf, pool) -> { lines, rated, small }
+  // Counts and the list's own subject words, and never a title, an author or a series name:
+  // those name a book. Below SUMMARY_MIN_RATED rated books even the subjects would point at one
+  // or two books, so only the counts are written and `small` is true.
+  var SUMMARY_MIN_RATED = 3;
+  var SUBJECT_KINDS = { topic: true, genre: true, bisac: true };
+  var FEEL_KINDS = { mood: true, pace: true };
+  var STATE_WORDS = [['read', 'read'], ['reading', 'reading now'], ['want', 'want to read'],
+    ['hold', 'on hold'], ['stopped', 'stopped']];
+  var RATING_WORDS = [['loved', 'loved'], ['liked', 'liked'], ['ok', 'OK'], ['not-for-me', 'not for me']];
+  var FORMAT_SAID = { BK: 'book', EBOOK: 'ebook', EAUDIOBOOK: 'audiobook', LPRINT: 'large print' };
+  var AUDIENCE_SAID = { ADULT: 'adult', TEEN: 'teen', CHILDREN: 'children', JUVENILE: 'children' };
+
+  function tally(map, key) { map[key] = (map[key] || 0) + 1; }
+
+  // The strongest n of a tally, most first, then by the words, so the same shelf says the same.
+  function topCounts(map, n, wordsOf) {
+    var keys = Object.keys(map);
+    var said = {};
+    keys.forEach(function (k) { said[k] = wordsOf ? wordsOf(k) : k; });
+    keys.sort(function (a, b) {
+      return (map[b] - map[a]) || (said[a] < said[b] ? -1 : said[a] > said[b] ? 1 : 0);
+    });
+    return keys.slice(0, n).map(function (k) { return said[k] + ' (' + map[k] + ')'; });
+  }
+
+  function facetTally(works, kinds) {
+    var out = {};
+    works.forEach(function (w) {
+      workFacets(w).forEach(function (f) {
+        var i = f.indexOf(':');
+        if (has(kinds, i >= 0 ? f.slice(0, i) : '')) tally(out, f);
+      });
+    });
+    return out;
+  }
+
+  function shelfSummary(shelf, pool) {
+    var entries = (Array.isArray(shelf) ? shelf : []).filter(function (e) { return e && typeof e === 'object'; });
+    var states = {}, ratings = {}, rated = 0;
+    entries.forEach(function (e) {
+      if (e.state) tally(states, str(e.state));
+      if (e.rating) { tally(ratings, str(e.rating)); rated += 1; }
+    });
+    var lines = [];
+    var stateBits = STATE_WORDS.filter(function (s) { return states[s[0]]; })
+      .map(function (s) { return states[s[0]] + ' ' + s[1]; });
+    lines.push('Books on their shelf: ' + entries.length + (stateBits.length ? ' (' + stateBits.join(', ') + ')' : '') + '.');
+    var ratingBits = RATING_WORDS.filter(function (r) { return ratings[r[0]]; })
+      .map(function (r) { return ratings[r[0]] + ' ' + r[1]; });
+    lines.push('Their ratings: ' + (ratingBits.length ? ratingBits.join(', ') : 'none yet') + '.');
+    if (rated < SUMMARY_MIN_RATED) {
+      lines.push('Fewer than ' + SUMMARY_MIN_RATED + ' books are rated, so this gives only the counts.');
+      return { lines: lines, rated: rated, small: true };
+    }
+    function worksWhere(test) {
+      return entries.filter(function (e) { return e.work && test(e); }).map(function (e) { return e.work; });
+    }
+    var good = worksWhere(function (e) { return e.rating === 'loved' || e.rating === 'liked'; });
+    var bad = worksWhere(function (e) { return e.rating === 'not-for-me'; });
+    var known = worksWhere(function (e) { return e.state !== 'want' && e.state !== 'hold'; });
+    function label(f) { return labelFor(f, pool); }
+    function add(heading, list) { if (list.length) lines.push(heading + ': ' + list.join(', ') + '.'); }
+
+    add('Subjects in books they loved or liked', topCounts(facetTally(good, SUBJECT_KINDS), 10, label));
+    add('Mood and pace of books they loved or liked, where the app has them',
+      topCounts(facetTally(good, FEEL_KINDS), 5, label));
+    add('Subjects in books they marked not for me', topCounts(facetTally(bad, SUBJECT_KINDS), 6, label));
+    var visited = facetTally(known, { section: true });
+    add('Parts of the library their books come from', topCounts(visited, 6, label));
+    var never = {};
+    (typeof Nextbook.sections === 'function' ? Nextbook.sections((pool && pool.works) || [], (pool && pool.facets) || {}) : [])
+      .forEach(function (s) { if (!has(visited, s.facet)) never[s.facet] = s.works.length; });
+    add('Parts of the library with none of their books', Object.keys(never).sort(function (a, b) {
+      return (never[b] - never[a]) || (a < b ? -1 : 1);
+    }).slice(0, 6).map(label));
+    var formats = {}, audiences = {}, decades = {};
+    known.forEach(function (w) {
+      (Array.isArray(w.formats) ? w.formats : []).forEach(function (code) {
+        tally(formats, FORMAT_SAID[str(code)] || str(code).toLowerCase());
+      });
+      if (w.audience) tally(audiences, AUDIENCE_SAID[str(w.audience)] || str(w.audience).toLowerCase());
+      if (typeof w.year === 'number' && isFinite(w.year)) tally(decades, (Math.floor(w.year / 10) * 10) + 's');
+    });
+    add('Formats', topCounts(formats, 4));
+    add('Readers the books are for', topCounts(audiences, 4));
+    add('When the books came out', topCounts(decades, 5));
+    return { lines: lines, rated: rated, small: false };
+  }
+
+  // ---- A mode that asks a chat (D46) -------------------------------------------------------------
+  // askPrompt(ask, shelf, pool) -> { text, summary }
+  // `ask` is the checked { question, books } from validate(). The books are the list's own words;
+  // the shelf goes in only as shelfSummary's numbers.
+  var ASK_MAX_KEPT = 6;
+  var END_ASK = 'Answer with up to six lines. Do not change any files.';
+
+  function askLine(work, pool) {
+    var labels = workFacets(work).filter(function (f) { return f.indexOf('series:') !== 0; })
+      .slice(0, 8).map(function (f) { return labelFor(f, pool); }).join(', ');
+    return '- ' + work.id + ' | ' + clean(work.title) + ' | ' + clean(work.author) + ' | ' +
+      str(work.year) + ' | ' + labels;
+  }
+
+  function askPrompt(ask, shelf, pool) {
+    var a = ask || {};
+    var summary = shelfSummary(shelf, pool);
+    var books = [];
+    (Array.isArray(a.books) ? a.books : []).forEach(function (id) {
+      var work = workOf(pool, id);
+      if (work) books.push(askLine(work, pool));
+    });
+    var lines = [];
+    lines.push(clean(a.question));
+    lines.push('');
+    lines.push('What their shelf adds up to (counts only: no titles, no authors):');
+    summary.lines.forEach(function (l) { lines.push('- ' + l); });
+    lines.push('');
+    lines.push('The books to choose from:');
+    lines.push('id | title | author | year | subjects');
+    lines = lines.concat(books);
+    lines.push('');
+    lines.push('Pick up to six of these books. Use only the ids in this list.');
+    lines.push('Write one line for each book you pick, in this shape:');
+    lines.push('<id>: <one sentence that says why, from what their shelf adds up to>');
+    lines.push('');
+    lines.push(END_ASK);
+    return { text: lines.join('\n'), summary: summary };
+  }
+
+  var ASK_SAID = {
+    unknown: function (id) { return id + ' is not one of the books offered.'; },
+    repeat: function (id) { return id + ' is named twice, so only the first was kept.'; },
+    third: function (id) { return id + ' is more than the six asked for.'; },
+    noSentence: function (id) { return id + ' has no sentence after it, so there was nothing to keep.'; },
+    words: { unknown: 'not one of the books offered', third: 'more than the six asked for' }
+  };
+
+  // parseAsk(answer, ask, idPattern) -> { kept, dropped, reason }: up to six of the offered ids,
+  // each with the chat's one sentence. The same reader as the finalists, with six for two.
+  function parseAsk(answer, ask, idPattern) {
+    var books = ask && Array.isArray(ask.books) ? ask.books : [];
+    return readPicks(answer, books.map(function (id) { return { id: id }; }), idPattern,
+      ASK_MAX_KEPT, ASK_SAID, 'The answer did not name any of the books offered.');
+  }
+
   Nextbook.seam = {
     available: false,          // no keys, no calls: the person carries the prompt
     end: END,
@@ -571,7 +734,12 @@
     parseFinalists: parseFinalists,
     labelsPrompt: labelsPrompt,
     parseLabels: parseLabels,
-    labelIndex: labelIndex
+    labelIndex: labelIndex,
+    shelfSummary: shelfSummary,
+    summaryMinRated: SUMMARY_MIN_RATED,
+    askPrompt: askPrompt,
+    parseAsk: parseAsk,
+    endAsk: END_ASK
   };
   Nextbook.finalistsPrompt = finalistsPrompt;
   Nextbook.parseFinalists = parseFinalists;

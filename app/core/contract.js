@@ -39,6 +39,13 @@
   if (!has(Nextbook.strings, 'foundNothing')) {
     Nextbook.strings.foundNothing = 'This way of choosing books found nothing and did not say why.';
   }
+  [
+    ['askBad', 'This way of choosing books asks a chat, but its ask is not { question, books }.'],
+    ['askNoQuestion', 'This way of choosing books asks a chat, but has no question for it.'],
+    ['askLong', 'The question for the chat is too long. Keep it under {n} characters.'],
+    ['askNamesShelf', 'The question for the chat names "{name}" from your shelf. A chat never sees a title or an author from your shelf.'],
+    ['askNoBooks', 'This way of choosing books asks a chat, but offers it no books and does not say why.']
+  ].forEach(function (pair) { if (!has(Nextbook.strings, pair[0])) Nextbook.strings[pair[0]] = pair[1]; });
   if (!has(Nextbook.strings, 'noList')) {
     Nextbook.strings.noList = 'The book list did not load, so the checks did not run.';
   }
@@ -252,7 +259,8 @@
     whyLong: 'reason too long',
     whyStock: 'not a reason',
     seventh: 'more than six',
-    bad: 'not a book'
+    bad: 'not a book',
+    askMany: 'more than forty for a chat'
   };
   var WHY = {
     unknown: 'That book is not in the pile.',
@@ -262,7 +270,8 @@
     whyLong: 'That reason is too long. Keep it under 200 characters.',
     whyStock: 'That is not a reason. Say what the book shares with your shelf.',
     seventh: 'Only six books are shown.',
-    bad: 'That pick is not a book with an id.'
+    bad: 'That pick is not a book with an id.',
+    askMany: 'A chat is offered at most forty books. Cut the list in the mode.'
   };
 
   // Which reason is wrong, in words that match: empty, over 200 characters, or the stock
@@ -324,8 +333,68 @@
       seen[id] = true;
       out.picks.push(pick);
     }
-    if (!out.picks.length && !note) out.error = Nextbook.t('foundNothing');
+    if (result.ask !== undefined && result.ask !== null) validateAsk(result.ask, c, out, drop, note);
+    if (!out.picks.length && !out.ask && !note && !out.error) out.error = Nextbook.t('foundNothing');
     return out;
+  }
+
+  // ---- A mode that asks a chat (D46) --------------------------------------------------------
+  // { ask: { question, books: [id...] } }: the app writes the prompt, with the shelf only as
+  // numbers (seam.shelfSummary). The mode writes the question and chooses up to ASK_MAX books.
+  // A book on the shelf is dropped even for an allowShelf mode, and a question that names a
+  // title or an author from the shelf is refused: a chat never sees either.
+  var ASK_MAX = 40;
+  var ASK_QUESTION_MAX = 500;
+
+  function shelfNames(c) {
+    var out = [];
+    function add(v) {
+      var n = typeof Nextbook.norm === 'function' ? Nextbook.norm(v) : str(v).toLowerCase().trim();
+      if (n && n.length >= 3 && out.indexOf(n) === -1) out.push(n);
+    }
+    (Array.isArray(c.shelf) ? c.shelf : []).forEach(function (e) {
+      if (!e || typeof e !== 'object') return;
+      add(e.title); add(e.author);
+      if (e.work) { add(e.work.title); add(e.work.author); }
+    });
+    return out;
+  }
+
+  function namesShelf(question, c) {
+    var q = ' ' + (typeof Nextbook.norm === 'function' ? Nextbook.norm(question) : str(question).toLowerCase()) + ' ';
+    var names = shelfNames(c);
+    for (var i = 0; i < names.length; i++) if (q.indexOf(' ' + names[i] + ' ') !== -1) return names[i];
+    return '';
+  }
+
+  function validateAsk(ask, c, out, drop, note) {
+    if (typeof ask !== 'object' || Array.isArray(ask)) {
+      out.error = Nextbook.t('askBad');
+      return;
+    }
+    var question = typeof ask.question === 'string' ? ask.question.replace(/\s+/g, ' ').trim() : '';
+    if (!question) { out.error = Nextbook.t('askNoQuestion'); return; }
+    if (question.length > ASK_QUESTION_MAX) { out.error = Nextbook.t('askLong', { n: ASK_QUESTION_MAX }); return; }
+    var named = namesShelf(question, c);
+    if (named) { out.error = Nextbook.t('askNamesShelf', { name: named }); return; }
+    var books = [], seen = Object.create(null), over = 0;
+    (Array.isArray(ask.books) ? ask.books : []).forEach(function (b) {
+      var raw = b && typeof b === 'object' ? b.id : b;
+      var id = typeof raw === 'string' ? raw : (typeof raw === 'number' ? String(raw) : '');
+      if (!id) { drop('', 'bad'); return; }
+      if (!(typeof c.work === 'function' && c.work(id))) { drop(id, 'unknown'); return; }
+      if (seen[id]) { drop(id, 'repeat'); return; }
+      if (typeof c.onShelf === 'function' && c.onShelf(id)) { drop(id, 'shelf'); return; }
+      seen[id] = true;
+      if (books.length >= ASK_MAX) { over += 1; return; }
+      books.push(id);
+    });
+    if (over) drop(String(over), 'askMany');
+    if (!books.length) {
+      if (!note) out.error = out.error || Nextbook.t('askNoBooks');
+      return;
+    }
+    out.ask = { question: question, books: books };
   }
 
   // ---- ctx ----------------------------------------------------------------------------------
@@ -717,7 +786,8 @@
         one.dropped = v.dropped;
         one.error = v.error;
         one.note = answer && typeof answer.note === 'string' ? answer.note : '';
-        one.answer = { picks: v.picks, note: one.note };
+        one.answer = { picks: v.picks, note: one.note, ask: v.ask || null };
+        one.ask = v.ask || null;
         if (v.error) {
           one.ok = false;
           one.message = label + ': ' + v.error;
@@ -727,9 +797,12 @@
             return (d.id || 'a pick') + ' (' + d.why + ')';
           }).join(', ');
         } else {
-          one.message = label + ': ' + (v.picks.length
-            ? v.picks.length + (v.picks.length === 1 ? ' book.' : ' books.')
-            : 'no books, and it said why.');
+          one.message = label + ': ' + (v.ask
+            ? 'asks a chat to choose from ' + v.ask.books.length + (v.ask.books.length === 1 ? ' book' : ' books') +
+              (v.picks.length ? ', and picks ' + v.picks.length + ' itself.' : '.')
+            : v.picks.length
+              ? v.picks.length + (v.picks.length === 1 ? ' book.' : ' books.')
+              : 'no books, and it said why.');
         }
       } catch (e) {
         one.ok = false;
@@ -797,7 +870,8 @@
     standardShelves: standardShelves,
     defaultInput: defaultInput,
     runModeChecks: runModeChecks,
-    dropCodes: DROP
+    dropCodes: DROP,
+    askMax: ASK_MAX,
   };
 
   Nextbook.banned = Nextbook.contract.banned;

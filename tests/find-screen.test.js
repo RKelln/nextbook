@@ -397,3 +397,61 @@ test('D35: with no snapshot the page says so, and choose is not called', () => {
   assert.strictEqual(lastEvent, null, 'choose was not called');
   assert.strictEqual(byTest(doc, 'pick-1'), null);
 });
+
+// D46: a mode that asks a chat. Its own box replaces the second-opinion box, the prompt carries
+// the shelf only as numbers, and the chat's picks become cards with the want and read buttons.
+function askMode() {
+  return {
+    id: 'ask-pick',
+    name: 'Ask a chat',
+    purpose: 'A chat chooses from ten books.',
+    shape: 'list',
+    inputs: [],
+    strings: {},
+    choose(ctx) {
+      const books = ctx.works.filter((w) => !ctx.onShelf(w.id)).slice(0, 10).map((w) => w.id);
+      return { picks: [], ask: { question: 'Choose the quietest books.', books } };
+    },
+  };
+}
+
+test('F9: an ask mode draws its own box, and the chat\'s picks become cards', () => {
+  const { nb, doc } = openFind({ defs: [askMode()] });
+  assert.ok(byTest(doc, 'ask-box'), 'the ask box is drawn');
+  assert.ok(!byTest(doc, 'model-box'), 'and no second-opinion box beside it');
+  assert.ok(!byTest(doc, 'find-error'), 'and no error');
+  const prompt = byTest(doc, 'ask-prompt').textContent;
+  assert.ok(prompt.indexOf('Choose the quietest books.') === 0, 'the prompt opens with the question');
+  const above = prompt.slice(0, prompt.indexOf('The books to choose from:'));
+  PRACTICE.entries.forEach((e) => {
+    assert.strictEqual(above.indexOf(e.title), -1, 'no shelf title above the books: ' + e.title);
+    assert.strictEqual(above.indexOf(e.author), -1, 'no shelf author above the books: ' + e.author);
+  });
+  assert.strictEqual(byTest(doc, 'ask-sees').textContent, nb.t('askSees'));
+
+  const ids = prompt.split('\n').filter((l) => /^- [a-z0-9-]+ \| /.test(l)).map((l) => l.slice(2, l.indexOf(' |')));
+  assert.strictEqual(ids.length, 10);
+  byTest(doc, 'ask-answer').value = ids[3] + ': Quiet and slow.\n' + ids[0] + ': Strange but gentle.\nmade-up: Not real.';
+  byTest(doc, 'ask-check').click();
+  const card = byTest(doc, 'ask-pick-1');
+  assert.ok(card, 'the first chat pick is a card');
+  assert.strictEqual(card.getAttribute('data-pick'), ids[3]);
+  assert.ok(card.textContent.indexOf(nb.t('modelFromChat')) !== -1, 'marked as the chat\'s');
+  assert.ok(card.textContent.indexOf('Quiet and slow.') !== -1, 'with the chat\'s sentence');
+  assert.ok(byTest(doc, 'ask-pick-2'), 'the second pick is a card');
+  assert.ok(!byTest(doc, 'ask-pick-3'), 'the made-up id is not');
+  assert.ok(byTest(doc, 'ask-dropped').textContent.indexOf('made-up is not one of the books offered.') !== -1);
+
+  // "Want to read" puts it on the shelf, and it leaves the cards; the other stays.
+  byTest(doc, 'ask-pick-want-1').click();
+  const left = byTest(doc, 'ask-pick-1');
+  assert.ok(left, 'one card is left');
+  assert.strictEqual(left.getAttribute('data-pick'), ids[0]);
+  assert.ok(!byTest(doc, 'ask-pick-2'));
+});
+
+test('F10: an ask mode on a shelf with too few ratings says the chat sees only the counts', () => {
+  const { nb, doc } = openFind({ defs: [askMode()], practice: TYPED_PRACTICE });
+  assert.strictEqual(byTest(doc, 'ask-sees').textContent, nb.t('askSeesSmall'));
+  assert.ok(byTest(doc, 'ask-prompt').textContent.indexOf('so this gives only the counts') !== -1);
+});

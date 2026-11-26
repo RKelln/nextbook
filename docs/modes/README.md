@@ -20,6 +20,7 @@ than an M one, and a small brief is not a warm-up for a large one.
 | [event-hook](event-hook.md) | a library event becomes the seed | S | subjects; a profile from the event's subjects, the shelf at half weight | yes: the event's own text, or its subjects picked by hand |
 | [news-diet](news-diet.md) | headlines become books | S | subjects; the same, plus a point for non-fiction and a warning in the note | yes |
 | [hold-next](hold-next.md) | from your want-to-read books, the ones to put on hold now, one click from Place hold | S | your shelf's "want" books, `allowShelf`; one ranking against the rest of the shelf, and a note that says how to hold | yes |
+| [ask-a-chat](ask-a-chat.md) | your rule picks up to forty books; a chat chooses up to six of them | S | any rule that narrows the pile, and a question; the app writes the prompt with the shelf as numbers and checks the answer | yes: the chat part is copy and paste |
 
 ## What the sizes mean
 

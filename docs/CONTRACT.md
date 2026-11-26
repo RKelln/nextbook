@@ -8,7 +8,8 @@ it can, so follow the rules rather than testing them.
 ## 1. What a mode is
 
 Every mode ends the same way: **up to six books, a reason for each, and a link to the library's page.** The mode
-decides the middle: which six, in what order, and why. The app does everything else. It draws the cards, builds the
+decides the middle: which six, in what order, and why, or which forty a chat chooses six from (section 9). The app
+does everything else. It draws the cards, builds the
 links, offers the model box, and checks your answer before showing it.
 
 A mode **does not draw anything and does not save anything**. It is a function from the shelf to a short list.
@@ -88,11 +89,12 @@ The file does nothing when it loads except call `Nextbook.mode`. That is what le
 | `why` | one sentence, at most 200 characters, that **names its evidence**: a subject, a book, an author, a part of the library, or the rule. "Similar to your taste" is not a reason. |
 | `group` | optional words to group cards under ("For you", "For your neighbour"). Swap uses it. |
 | `step` | optional words for a step in a path ("Week 1", "Step 3: the stretch"). Without one, the app writes "Step 1", "Step 2", and so on. |
-| `note` | a plain sentence shown above the cards: what the mode skipped, or why it found nothing. **Required when `picks` is empty.** |
+| `note` | a plain sentence shown above the cards: what the mode skipped, or why it found nothing. **Required when `picks` is empty**, unless the mode asks a chat. |
+| `ask` | optional: `{ question, books }`, for a mode that lets a chat choose (section 9). `books` is up to forty work ids from `ctx.works`; `question` is one or two sentences for the chat. |
 
 The app checks the answer before showing it. It **drops and names** any pick whose id is not in the list, any pick
 with no `why`, any repeat, any seventh pick, and any book already on the shelf (unless the mode sets
-`allowShelf: true`). An empty list with no `note` shows "This mode found nothing and did not say why." That is a
+`allowShelf: true`). An empty list with no `note` and no `ask` shows "This mode found nothing and did not say why." That is a
 failed check, not a result.
 
 `shape: 'list'` draws cards in a grid. `shape: 'path'` draws them in order with the `step` words and an arrow between
@@ -257,11 +259,51 @@ So a mode does not have to:
 
 ## 9. When a model is involved
 
-The app already has the model box: it writes a prompt with your candidates and asks a chat to argue for two of them,
-then reads the answer back and checks every id. A mode does not need to do anything for that to work.
+No mode calls a model, and the app holds no keys. A chat takes part only by copy and paste: the app writes the words,
+the person carries them to any chat, and pastes the answer back. Whatever a chat says is checked against books that
+exist before it is shown, and its sentence is marked as the chat's.
+
+**What a chat is told about the shelf** is the same in every prompt: what the shelf adds up to, in numbers. How many
+books, in which states and with which ratings; the subjects, moods and paces of the books rated loved or liked, with
+counts; the subjects of the "not for me" books; the parts of the library the shelf uses and the ones it never does; the
+formats, readers and decades. **Never a title, an author or a series name**: each of those names a book. With fewer
+than three rated books even the subjects would point at one or two books, so the prompt gives only the counts and the
+page says so. The words come from `Nextbook.seam.shelfSummary`.
+
+### A mode that asks a chat
+
+A mode can let a chat choose. Its rule narrows the pile to up to forty books and writes the question; `choose`
+returns them as `ask`, with no picks of its own:
+
+```js
+choose(ctx, input) {
+  const books = ctx.works.filter(w => !ctx.onShelf(w.id) && /* your rule */ true).slice(0, 40).map(w => w.id);
+  return { picks: [], ask: { question: 'Choose the books that would suit a long train ride.', books } };
+}
+```
+
+The app draws the box: the prompt (the question, the shelf in numbers, the forty books in the list's own words), a copy
+button, and a box for the answer. It keeps up to six of the offered ids from the answer, each with the chat's one
+sentence, and shows them as cards with "Want to read" and "Read it". Anything else in the answer is dropped and named.
+
+The check holds an `ask` to these rules: the question is a sentence of at most 500 characters and **names no title or
+author from the shelf** (the check refuses it and says which name it found); every book is a work in the list, not on
+the shelf (dropped and named, even for an `allowShelf` mode), and named once; at most forty. An `ask` whose books are
+all dropped is no answer, so it needs a `note`. The standard shelves still run: the mode's own part, the rule and the
+question, is what they test. What the chat will say cannot be tested, so the mode's check tests the rule.
+
+A mode may return picks and an `ask` together: its own cards come first, then the box. The worked example is
+`reference/modes/ask-chat.js`; the brief is `docs/modes/ask-a-chat.md`.
+
+### The model box, a second opinion
+
+The app also has the model box: it writes a prompt with your candidates and asks a chat to argue for two of them,
+then reads the answer back and checks every id. A mode does not need to do anything for that to work. A mode that
+returns only an `ask` has its own box instead.
 
 The prompt keeps each candidate's id, title, author, year and subjects, because that is what lets a chat curate the
-list rather than only restate the subject words. But **a candidate that is already on the person's shelf never goes
+list rather than only restate the subject words. Its "why it fits" column names shared subjects, never a shared author
+or series, and the shelf goes in as numbers, as above. But **a candidate that is already on the person's shelf never goes
 in**: it is dropped by work id, `groupKey`, `recordId` or normalised title, so a book typed in that never matched the
 slice is caught too. Under the copy box the page says so in words, for example "The chat sees five of the six. One is
 already on your shelf, so it stays out of this box." When nothing is dropped, it says nothing. A mode with

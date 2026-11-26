@@ -552,3 +552,26 @@ fetchers read `tpl.json`; a second copy would drift. (2) The staging instance of
 measurements were made against it; switching to production is one data line. (3) The three closed or missing places
 (Cedarbrae, Amesbury Park, Sanderson) are not added to the branch list on a guess; their events say they have no travel
 time. (4) Travel is "rough guides" everywhere on the page, and the transit times are marked stale after three weeks.
+
+## D46. A mode can ask a chat; the shelf goes to a chat only as numbers (2026-11-26, the maintainer's request)
+
+Testing the workshop showed that a mode "can't use AI", which rules out the ideas people most often bring. The maintainer
+asked for a mode that writes a prompt for a chat, and chose how the shelf is described: by statistics, never titles, with
+authors left out for now (it may become a setting later).
+
+- A mode may return `ask: { question, books }`: up to forty work ids from the pile and a question. The app writes the
+  prompt and the copy box, reads the answer with the finalists' reader (`seam.parseAsk`), keeps up to six offered ids, and
+  shows them as cards marked "From the chat", with the want and read buttons. Nothing is sent: copy and paste, as before.
+  Rule 5 holds: a chat only chooses among the offered books, and titles, authors, dates and links are the list's own.
+- The shelf goes into any prompt as `seam.shelfSummary`: counts by state and rating, the subjects, moods and paces of the
+  loved and liked books, the subjects of the "not for me" books, the parts of the library used and never used, formats,
+  readers and decades. Never a title, an author or a series name. Below three rated books it gives only the counts.
+- The check refuses an `ask` whose question names a title or an author from the shelf (normalised, whole words), drops a
+  shelf book from the forty even for an `allowShelf` mode, and drops repeats and unknown ids by name.
+- The model box (second opinion) uses the same summary instead of its five labels, and its "why it fits" column no longer
+  says "matches other books by" a shelf author or names a shelf series. Rule 1 is unchanged in spirit and now says so.
+- Subjects can still be personal (grief, an illness). The page says what the chat sees, next to the words to copy, and the
+  person reads the whole prompt before copying it. A shelf of one or two rated books gives only counts.
+- Not done: an agent route with no copy and paste (a `/suggest` skill writing picks the app shows). It is the next step if
+  this one holds up.
+

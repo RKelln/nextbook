@@ -334,7 +334,7 @@ Nextbook.mode({
                                  //   |'number'|'choice'|'event', label}]
   strings: { ... },
   logic: { ... },                // pure helpers, tested by the mode's check file
-  choose(ctx, input) { return { picks: [{ id, why, group?, step? }], note? }; }
+  choose(ctx, input) { return { picks: [{ id, why, group?, step? }], note?, ask?: { question, books } }; }
 });
 ```
 
@@ -435,8 +435,9 @@ prompt, paste it into any chat, paste the answer back. Two jobs, one guard.
 1. **Argue between finalists.** `finalistsPrompt(result, profile, pool, shelf)` writes the candidates as lines of
    `id | title | author | year | facet labels | facts`, where `facts` is `factsClause()`: the same evidence as the
    reason, in words that name no shelf book. **Never `reason()`**, which may name one ("Shares the Earthsea series
-   with A Wizard of Earthsea, which you loved"): the reason is for the person's eyes. Plus the profile's top five
-   facet labels. **A candidate that is on the person's shelf is dropped from the prompt** — matched by work id,
+   with A Wizard of Earthsea, which you loved"): the reason is for the person's eyes. Plus the
+   shelf as numbers (`shelfSummary()`, D46: counts, subjects, parts of the library, never a title, author or series;
+   the facts leave out author and series parts too). **A candidate that is on the person's shelf is dropped from the prompt** — matched by work id,
    `groupKey`, `recordId` and normalised title, so a typed book that never matched the slice is caught too — because
    a title that is not on the shelf is public catalogue data and a title that is, is the reading list. The call
    returns `{text, excluded}`, and the box says how many it left out. It asks for one line per candidate,
@@ -445,6 +446,10 @@ prompt, paste it into any chat, paste the answer back. Two jobs, one guard.
    your reading history into an AI" and the app tell the same truth.
 2. **Text to facets.** `labelsPrompt(text, facetLabels)` asks a model to choose up to four labels **from the slice's
    own facet list** for a piece of text (an event, a headline, a wish). Event hook and news diet use it.
+3. **Let a chat choose (D46).** A mode returns `ask: { question, books }` (up to forty ids). `askPrompt(ask, shelf, pool)`
+   writes the question, the shelf as `shelfSummary()` and the books in the list's own words; `parseAsk(answer, ask,
+   idPattern)` keeps up to six offered ids, each with the chat's sentence, and the shell shows them as cards marked as
+   the chat's. `contract.validate` refuses a question that names a shelf title or author.
 
 `parseFinalists(answer, result, idPattern)` and `parseLabels(answer, facets)` keep what matches and return
 `{ kept, dropped, reason }`. Anything that looks like an id but is not one of the six is dropped and named. An answer

@@ -57,6 +57,7 @@
     libraryTrip: false,   // a library link was pressed ({hold: work} for Sign in and hold); cleared on return
     messageAction: null,  // {message, label, test, run}: one button for the toast, for that message only
     model: blankModel(),  // the pasted answer, if there is one
+    ask: blankModel(),    // the pasted answer to a mode that asks a chat (D46)
     words: {}             // per facets input: the pasted words, the prompt and its answer
   };
 
@@ -2009,7 +2010,8 @@
     whyLong: 'dropWhyLong',
     whyStock: 'dropWhyStock',
     seventh: 'dropSeventh',
-    bad: 'dropBad'
+    bad: 'dropBad',
+    askMany: 'dropAskMany'
   };
 
   function blankModel() {
@@ -2023,6 +2025,7 @@
     state.bookQuery = {};
     state.seed = 1;
     state.model = blankModel();
+    state.ask = blankModel();
     state.words = {};
     if (!state.store) return;
     try {
@@ -2675,28 +2678,37 @@
     render();
   }
 
-  function pickCard(pick, index, ctx) {
+  // opts.fromChat: a chat chose this one (D46), so its sentence is shown as the chat's words.
+  // opts.prefix keeps those cards' test names apart from the mode's own.
+  function pickCard(pick, index, ctx, opts) {
+    var o = opts || {};
+    var pre = o.prefix || '';
     var work = ctx.work(pick.id) || {};
-    var card = h('article', { class: 'nb-card', 'data-test': 'pick-' + index, 'data-pick': pick.id });
+    var card = h('article', { class: 'nb-card', 'data-test': pre + 'pick-' + index, 'data-pick': pick.id });
     var head = h('div', { class: 'nb-card-head' });
     var link = linkFor(work);
     head.appendChild(link
-      ? h('a', { class: 'nb-book-title', href: link, 'data-test': 'pick-link-' + index }, work.title || t('untitledBook'))
+      ? h('a', { class: 'nb-book-title', href: link, 'data-test': pre + 'pick-link-' + index }, work.title || t('untitledBook'))
       : h('strong', { class: 'nb-book-title' }, work.title || t('untitledBook')));
     var line = byLine(work, null);
     if (line) head.appendChild(p(line, 'nb-by'));
     var formats = formatWords(work.formats);
     if (formats) head.appendChild(p(formats, 'nb-formats'));
     card.appendChild(head);
-    if (pick.why) card.appendChild(p(pick.why, 'nb-reason'));
+    if (o.fromChat) {
+      card.appendChild(p(t('modelFromChat'), 'nb-model-tag'));
+      card.appendChild(p(t('modelSaidLine', { sentence: pick.why }), 'nb-reason nb-model-words'));
+    } else if (pick.why) {
+      card.appendChild(p(pick.why, 'nb-reason'));
+    }
     var tags = null;
     try { tags = Nextbook.pool.tagsOf(work); } catch (e) { tags = null; }
     if (tags && tags.note) card.appendChild(p(t('ourNote', { note: tags.note }), 'nb-ournote'));
     if (work.found && work.found.query) card.appendChild(p(t('foundFor', { words: work.found.query }), 'nb-note'));
     card.appendChild(h('div', { class: 'nb-card-actions' },
-      button('pick-want-' + index, t('pickWant'), function () { addPickToShelf(work, 'want'); }, 'nb-button nb-button-small'),
-      button('pick-read-' + index, t('pickRead'), function () { addPickToShelf(work, 'read'); }, 'nb-button nb-button-small')));
-    var hold = holdLinkNode(work, 'pick-hold-' + index);
+      button(pre + 'pick-want-' + index, t('pickWant'), function () { addPickToShelf(work, 'want'); }, 'nb-button nb-button-small'),
+      button(pre + 'pick-read-' + index, t('pickRead'), function () { addPickToShelf(work, 'read'); }, 'nb-button nb-button-small')));
+    var hold = holdLinkNode(work, pre + 'pick-hold-' + index);
     if (hold) card.lastChild.appendChild(hold);
     return card;
   }
@@ -2741,6 +2753,7 @@
 
   function droppedLine(dropped) {
     var bits = dropped.map(function (d) {
+      if (d && d.code === 'askMany') return t('dropAskMany', { n: d.id });
       var id = d && d.id ? '"' + d.id + '"' : t('aPick');
       return id + ' ' + t(DROP_WORDS[d && d.code] || 'dropUnknown');
     });
@@ -2755,7 +2768,7 @@
       answer = def.choose.call(def, ctx, input);
     } catch (e) {
       wrap.appendChild(p(t('modeCrashed'), 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
-      return { node: wrap, picks: [], result: { picks: [] }, sig: '' };
+      return { node: wrap, picks: [], result: { picks: [] }, sig: '', ask: null };
     }
     var v = { picks: [], dropped: [], error: null };
     try {
@@ -2769,12 +2782,20 @@
     if (v.error) wrap.appendChild(p(v.error, 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
     if (v.dropped.length) wrap.appendChild(p(droppedLine(v.dropped), 'nb-dropped', { 'data-test': 'find-dropped' }));
     if (v.picks.length) wrap.appendChild(pickList(v.picks, ctx, def.shape === 'path' ? 'path' : 'list'));
+    var ask = v.ask || null;
+    var askSig = ask ? def.id + '|' + ask.question : '';
+    if (ask) {
+      if (state.ask.sig && state.ask.sig !== askSig) state.ask = blankModel();
+      wrap.appendChild(askBox(ask, ctx, askSig));
+    }
     // Thin or empty results: the mode only picks from the pile, so say where more books come from.
-    if (v.picks.length < 3) {
+    if (ask ? ask.books.length < 6 : v.picks.length < 3) {
       var total = pileWorks().length;
-      wrap.appendChild(p(v.picks.length
-        ? t('pileThin', { n: v.picks.length, total: total })
-        : t('pileThinNone'), 'nb-hint', { 'data-test': 'find-pile-hint' }));
+      wrap.appendChild(p(ask
+        ? t('askThin', { n: ask.books.length, total: total })
+        : v.picks.length
+          ? t('pileThin', { n: v.picks.length, total: total })
+          : t('pileThinNone'), 'nb-hint', { 'data-test': 'find-pile-hint' }));
     }
     // The one line the app promises under every result (base.js has the same words).
     wrap.appendChild(p(t('libraryLine'), 'nb-hint', { 'data-test': 'find-library-line' }));
@@ -2782,6 +2803,7 @@
       node: wrap,
       picks: v.picks,
       result: { picks: v.picks },
+      ask: ask,
       sig: v.picks.map(function (p) { return p.id; }).join(',')
     };
   }
@@ -2819,11 +2841,11 @@
     done(false);
   }
 
-  function copyPrompt(text) {
+  function copyPrompt(text, test) {
     writeClipboard(text, function (ok) {
       state.message = ok ? t('modelCopied') : t('modelCopyFailed');
       render();
-      if (!ok) selectTest('model-prompt');
+      if (!ok) selectTest(test || 'model-prompt');
     });
   }
 
@@ -2954,6 +2976,90 @@
     return sec;
   }
 
+  // ---- A mode that asks a chat (D46) ------------------------------------------------------------
+  // The mode chose the books and wrote the question; the app writes the prompt, with the shelf
+  // only as numbers (seam.shelfSummary), and reads the answer back against the books offered.
+  // The chat's picks become cards with the want and read buttons, each sentence marked as the
+  // chat's. Nothing is sent: the person copies and pastes, as in the model box.
+  function readAsk(answer, ask, sig) {
+    var text = String(answer || '').trim();
+    state.ask = blankModel();
+    state.message = '';
+    if (!text) {
+      state.message = t('modelNeedAnswer');
+      render();
+      return;
+    }
+    var parsed = null;
+    try { parsed = Nextbook.seam.parseAsk(text, ask, library().idPattern); } catch (e) { parsed = null; }
+    var model = blankModel();
+    model.answer = text;
+    model.sig = sig;
+    if (parsed) {
+      model.checked = true;
+      model.kept = Array.isArray(parsed.kept) ? parsed.kept : [];
+      model.dropped = Array.isArray(parsed.dropped) ? parsed.dropped : [];
+      model.reason = parsed.reason || '';
+    }
+    state.ask = model;
+    render();
+  }
+
+  function askBox(ask, ctx, sig) {
+    var sec = h('section', { class: 'nb-model nb-ask', 'data-test': 'ask-box' });
+    var made = null;
+    try { made = Nextbook.seam.askPrompt(ask, ctx.shelf, poolResult()); } catch (e) { made = null; }
+    var prompt = made && typeof made.text === 'string' ? made.text : '';
+    var small = !!(made && made.summary && made.summary.small);
+    var n = ask.books.length;
+    sec.appendChild(h('h3', null, t('askHeading')));
+    sec.appendChild(p(t(n === 1 ? 'askOfferedOne' : 'askOffered', { n: n }), 'nb-hint', { 'data-test': 'ask-offered' }));
+    sec.appendChild(p(t('modelNoSend'), 'nb-hint'));
+    sec.appendChild(p(t(small ? 'askSeesSmall' : 'askSees'), 'nb-hint', { 'data-test': 'ask-sees' }));
+
+    sec.appendChild(p(t('modelPromptLabel'), 'nb-label'));
+    sec.appendChild(h('textarea', {
+      class: 'nb-model-prompt', rows: 10, readonly: true,
+      'data-test': 'ask-prompt', 'aria-label': t('modelPromptLabel')
+    }, prompt));
+    sec.appendChild(h('div', { class: 'nb-model-actions' },
+      button('ask-copy', t('modelCopy'), function () { copyPrompt(prompt, 'ask-prompt'); }, 'nb-button nb-button-small')));
+
+    sec.appendChild(p(t('modelAnswerLabel'), 'nb-label'));
+    var answerBox = h('textarea', {
+      class: 'nb-model-answer', rows: 6,
+      placeholder: t('modelAnswerPlaceholder'),
+      'data-test': 'ask-answer', 'aria-label': t('modelAnswerLabel'),
+      on: { input: function (ev) { state.ask.answer = String(ev.target.value || ''); } }
+    }, state.ask.answer || '');
+    sec.appendChild(answerBox);
+    sec.appendChild(h('div', { class: 'nb-model-actions' },
+      button('ask-check', t('modelCheck'), function () {
+        readAsk(answerBox.value === undefined || answerBox.value === null ? '' : String(answerBox.value), ask, sig);
+      })));
+
+    var box = h('div', { class: 'nb-model-result', 'data-test': 'ask-result' });
+    var model = state.ask;
+    if (model && model.checked) {
+      // A book the person has just put on the shelf leaves the cards, as the mode's own do.
+      var kept = model.kept.filter(function (k) { return !ctx.onShelf(k.id); });
+      if (!model.kept.length) {
+        box.appendChild(p(t('modelNoPick'), 'nb-note', { 'data-test': 'ask-said' }));
+      } else if (kept.length) {
+        var ul = h('ul', { class: 'nb-picks' });
+        kept.forEach(function (k, i) {
+          ul.appendChild(h('li', null, pickCard(k, i + 1, ctx, { fromChat: true, prefix: 'ask-' })));
+        });
+        box.appendChild(ul);
+      }
+      if (model.dropped.length) {
+        box.appendChild(p(t('modelDropped', { said: model.reason }), 'nb-dropped', { 'data-test': 'ask-dropped' }));
+      }
+    }
+    sec.appendChild(box);
+    return sec;
+  }
+
   // ---- Running the chosen mode ----------------------------------------------------------------
   function shuffle() {
     var next = (typeof state.seed === 'number' && isFinite(state.seed) ? state.seed : 0) + 1;
@@ -3002,7 +3108,8 @@
     if (state.model.sig && state.model.sig !== out.sig) state.model = blankModel();
     // T3.3a: the box is under any result. With no picks it says there is nothing to argue
     // about; with an allowShelf mode it stays closed (a shelf title could be a candidate).
-    wrap.appendChild(modelBox(out.result, ctx, def));
+    // A mode that asks a chat already has its own box (D46), so there is no second one.
+    if (!(out.ask && !out.picks.length)) wrap.appendChild(modelBox(out.result, ctx, def));
     return wrap;
   }
 
@@ -4562,6 +4669,14 @@
     modelFromChat: 'From the chat',
     modelSaidLine: 'The chat said: "{sentence}"',
     modelLibraryLink: "Open the library's page",
+    // a mode that asks a chat (D46)
+    askHeading: 'Ask a chat to choose',
+    askOffered: 'This way of choosing books picked {n} books from the pile. Copy the words into any AI chat, and it chooses up to six of them.',
+    askOfferedOne: 'This way of choosing books picked one book from the pile. Copy the words into any AI chat to hear what it says.',
+    askSees: 'The chat sees what your shelf adds up to: counts and subjects, never a title or an author. Read the words before you copy them.',
+    askSeesSmall: 'Fewer than three books on your shelf are rated, so the chat sees only how many books there are. Rate a few to give it more to go on.',
+    askThin: 'The chat has only {n} of the {total} books in the pile to choose from. To get more, ask your helper to bring more books into the pile with find-books.',
+    dropAskMany: '{n} more books than the forty a chat is offered',
     // the facets input's "from some words" half
     wordsOpen: 'From some words',
     wordsHint: 'Paste an event, a headline or a wish about what you want to read. This page writes words you can copy into any chat.',
