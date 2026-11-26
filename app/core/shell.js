@@ -4,6 +4,7 @@
 //
 //   #find      the default screen: the ways of choosing books in this copy
 //   #shelf     the shelf in use, adding books, export, import, friends' shelves
+//   #pile      the books the modes can pick from (not on the shelf), with a filter
 //   #selftest  what this copy has, and the app's own checks run in the browser
 //
 // Every element is built with Nextbook.h, so catalogue text, an imported file and a typed
@@ -45,6 +46,8 @@
     seed: 1,
     // which of the shelf screen's folding panels are open, by name, for this visit only
     folds: {},
+    pileQuery: '',        // the pile screen's filter words, for this visit only
+    pileMore: false,      // true once the person asked for every row of a long pile
     shelfFilter: 'all',   // the shelf screen's filter: 'all' or one state
     eventsBusy: false,    // the latest list is being fetched
     eventsNote: '',       // a one-line note from the last fetch (it failed, or part of it did)
@@ -136,7 +139,7 @@
   // `events` is in the list even in a copy with no snapshot: a link to #events then reaches a
   // plain sentence instead of quietly landing on #find. The tab itself is drawn only when the
   // snapshot is there (see navBar).
-  var ROUTES = ['find', 'shelf', 'events', 'selftest'];
+  var ROUTES = ['find', 'shelf', 'pile', 'events', 'selftest'];
 
   function routeName() {
     var raw = '';
@@ -2766,6 +2769,13 @@
     if (v.error) wrap.appendChild(p(v.error, 'nb-message nb-message-warn', { 'data-test': 'find-error' }));
     if (v.dropped.length) wrap.appendChild(p(droppedLine(v.dropped), 'nb-dropped', { 'data-test': 'find-dropped' }));
     if (v.picks.length) wrap.appendChild(pickList(v.picks, ctx, def.shape === 'path' ? 'path' : 'list'));
+    // Thin or empty results: the mode only picks from the pile, so say where more books come from.
+    if (v.picks.length < 3) {
+      var total = pileWorks().length;
+      wrap.appendChild(p(v.picks.length
+        ? t('pileThin', { n: v.picks.length, total: total })
+        : t('pileThinNone'), 'nb-hint', { 'data-test': 'find-pile-hint' }));
+    }
     // The one line the app promises under every result (base.js has the same words).
     wrap.appendChild(p(t('libraryLine'), 'nb-hint', { 'data-test': 'find-library-line' }));
     return {
@@ -2996,24 +3006,119 @@
     return wrap;
   }
 
-  // Books in the library list that are not on the shelf: what the modes pick from.
-  function unshelvedLine() {
+  // The pile: the books the modes can pick from that are not on the shelf.
+  function pileWorks() {
     var pool = poolResult();
-    if (!pool || !Array.isArray(pool.works) || !pool.works.length) return null;
-    var onShelf = {};
-    var entries = [];
-    try { entries = state.store ? state.store.shelf() : []; } catch (e) { entries = []; }
-    entries.forEach(function (entry) {
-      var work = workFor(entry);
-      if (work) onShelf[keyForWork(work)] = true;
-    });
-    var n = 0;
-    pool.works.forEach(function (work) { if (!onShelf[keyForWork(work)]) n++; });
-    if (n < 1) return null;
+    if (!pool || !Array.isArray(pool.works)) return [];
+    return pool.works.filter(function (work) { return !onShelfWork(work); });
+  }
+
+  // How many books a helper's search added to the pile (books that came with the copy do not count).
+  function pileFoundCount() {
     var found = Nextbook.data.get('found');
-    var f = isObj(found) && Array.isArray(found.works) ? found.works.length : 0;
+    if (!isObj(found) || !Array.isArray(found.works)) return 0;
+    return found.works.filter(function (w) { return !(isObj(w) && isObj(w.found) && w.found.starter === true); }).length;
+  }
+
+  function unshelvedLine() {
+    var n = pileWorks().length;
+    if (n < 1) return null;
+    var f = pileFoundCount();
     var key = n === 1 ? 'unshelvedOne' : 'unshelved';
-    return p(t(key, { n: n }) + (f ? ' ' + t(f === 1 ? 'unshelvedFoundOne' : 'unshelvedFound', { f: f }) : ''), 'nb-count nb-unshelved');
+    return h('div', { class: 'nb-unshelved-wrap' },
+      p(t(key, { n: n }) + (f ? ' ' + t(f === 1 ? 'unshelvedFoundOne' : 'unshelvedFound', { f: f }) : ''), 'nb-count nb-unshelved'),
+      button('see-pile', t('seePile'), function () { go('pile'); }, 'nb-button nb-button-small nb-button-quiet'));
+  }
+
+  // ---- The pile screen --------------------------------------------------------------------------
+  // One screen that says what the pile is and lists it. The list is drawn in pieces of at most
+  // PILE_SHOWN rows, so a few hundred books stay light; typing in the filter narrows it.
+  var PILE_SHOWN = 60;
+
+  function pileRows(box, query) {
+    clear(box);
+    var all = pileWorks();
+    var shown = all;
+    var q = String(query || '').trim();
+    if (q) {
+      var hits = {};
+      var found = [];
+      try { found = Nextbook.pool.search(q) || []; } catch (e) { found = []; }
+      found.forEach(function (w) { hits[keyForWork(w)] = true; });
+      shown = all.filter(function (w) { return hits[keyForWork(w)]; });
+    }
+    if (!all.length) {
+      box.appendChild(p(t('pileEmpty'), 'nb-empty', { 'data-test': 'pile-empty' }));
+      return;
+    }
+    if (!shown.length) {
+      box.appendChild(p(t('pileNoMatch'), 'nb-hint', { 'data-test': 'pile-no-match' }));
+      return;
+    }
+    var limit = Math.min(shown.length, state.pileMore ? shown.length : PILE_SHOWN);
+    var list = h('ul', { class: 'nb-books nb-books-compact', 'data-test': 'pile-list' });
+    for (var i = 0; i < limit; i++) {
+      var work = shown[i];
+      var li = h('li', { class: 'nb-book', 'data-book': work.id || '', 'data-test': 'pile-row' });
+      var head = h('div', { class: 'nb-book-head' });
+      var link = linkFor(work);
+      head.appendChild(link
+        ? h('a', { class: 'nb-book-title', href: link }, work.title || t('untitledBook'))
+        : h('strong', { class: 'nb-book-title' }, work.title || t('untitledBook')));
+      var line = byLine(work, null);
+      if (line) head.appendChild(p(line, 'nb-by'));
+      var subjects = subjectsLine(work);
+      if (subjects) head.appendChild(p(subjects, 'nb-subjects'));
+      if (work.found && work.found.query && work.found.starter !== true) {
+        head.appendChild(p(t('pileFoundFor', { words: work.found.query }), 'nb-note', { 'data-test': 'pile-found' }));
+      }
+      li.appendChild(head);
+      list.appendChild(li);
+    }
+    box.appendChild(list);
+    if (shown.length > limit) {
+      box.appendChild(p(t('pileShowing', { shown: limit, n: shown.length }), 'nb-hint', { 'data-test': 'pile-showing' }));
+      box.appendChild(button('pile-more', t('pileShowAll'), function () {
+        state.pileMore = true;
+        pileRows(box, state.pileQuery);
+      }, 'nb-button nb-button-small nb-button-quiet'));
+    }
+  }
+
+  function pileView() {
+    var sec = h('section', { class: 'nb-screen', id: 'nb-pile', 'data-screen': 'pile', 'data-test': 'pile-section' });
+    sec.appendChild(h('h2', t('pileHeading')));
+    sec.appendChild(p(t('pileIntro'), 'nb-text', { 'data-test': 'pile-intro' }));
+    sec.appendChild(p(t('pileHow'), 'nb-hint', { 'data-test': 'pile-how' }));
+    var n = pileWorks().length;
+    var f = pileFoundCount();
+    sec.appendChild(p(t(n === 1 ? 'pileCountOne' : 'pileCount', { n: n }) +
+      (f ? ' ' + t(f === 1 ? 'unshelvedFoundOne' : 'unshelvedFound', { f: f }) : ''), 'nb-count', { 'data-test': 'pile-count' }));
+    var results = h('div', { class: 'nb-results', 'data-test': 'pile-results' });
+    if (n > 0) {
+      sec.appendChild(h('label', { class: 'nb-field' },
+        h('span', { class: 'nb-label' }, t('pileFilterLabel')),
+        h('input', {
+          id: 'nb-pile-filter',
+          class: 'nb-input nb-input-search',
+          type: 'search',
+          placeholder: t('pileFilterPlaceholder'),
+          'data-test': 'pile-filter',
+          autocomplete: 'off',
+          value: state.pileQuery,
+          on: {
+            input: function (ev) {
+              state.pileQuery = String(ev.target.value || '');
+              state.pileMore = false;
+              pileRows(results, state.pileQuery);
+            }
+          }
+        })));
+    }
+    pileRows(results, state.pileQuery);
+    sec.appendChild(results);
+    sec.appendChild(button('pile-to-find', t('pileToFind'), function () { go('find'); }, 'nb-button nb-button-quiet'));
+    return sec;
   }
 
   function findView() {
@@ -3801,7 +3906,7 @@
 
   function navBar(route) {
     var nav = h('nav', { class: 'nb-nav', 'aria-label': t('navLabel') });
-    var items = [['find', 'navFind', 'nav-find'], ['shelf', 'navShelf', 'nav-shelf']];
+    var items = [['find', 'navFind', 'nav-find'], ['shelf', 'navShelf', 'nav-shelf'], ['pile', 'navPile', 'nav-pile']];
     // The events tab is drawn only when the snapshot is there; a copy without one has no tab,
     // and #events still answers with a plain sentence.
     if (hasEvents()) items.push(['events', 'navEvents', 'nav-events']);
@@ -3865,6 +3970,7 @@
     }
 
     if (route === 'shelf') root.appendChild(shelfView());
+    else if (route === 'pile') root.appendChild(pileView());
     else if (route === 'events') root.appendChild(eventsView());
     else if (route === 'selftest') root.appendChild(selfTestView());
     else root.appendChild(findView());
@@ -4182,6 +4288,7 @@
     // nav
     navFind: 'Ways to choose',
     navShelf: 'Shelf',
+    navPile: 'Pile',
     navSelftest: 'Self-test',
     navLabel: 'Screens',
     messageClose: 'Close this note',
@@ -4193,10 +4300,10 @@
     shelfPracticeHeading: 'The practice shelf',
     shelfCount: '{n} books on this shelf.',
     shelfCountOne: '1 book on this shelf.',
-    unshelved: '{n} unshelved books in your library list, ready for the modes to pick from.',
-    unshelvedOne: '1 unshelved book in your library list, ready for the modes to pick from.',
-    unshelvedFound: '({f} found by your helper.)',
-    unshelvedFoundOne: '(1 found by your helper.)',
+    unshelved: '{n} books in the pile, ready for the modes to pick from.',
+    unshelvedOne: '1 book in the pile, ready for the modes to pick from.',
+    unshelvedFound: '({f} added by a search.)',
+    unshelvedFoundOne: '(1 added by a search.)',
     shelfEmpty: 'No books on this shelf yet. Add one below.',
     shelfBroken: 'The shelf did not open. Reload the page and try again.',
     resetButton: 'Reset practice shelf',
@@ -4207,22 +4314,22 @@
     ownNow: 'You are using your own shelf.',
     // add a book
     addHeading: 'Add a book',
-    addHelp: 'Type a title or an author. The list narrows as you type.',
+    addHelp: 'Type a title or an author. The pile narrows as you type.',
     addPlaceholder: 'Title or author',
-    addHint: 'Type a title or an author to search the list.',
-    addNoResults: 'No book in the list matches those words.',
-    addByName: 'Not in the list? Add it by name',
+    addHint: 'Type a title or an author to search the pile.',
+    addNoResults: 'No book in the pile matches those words.',
+    addByName: 'Not in the pile? Add it by name',
     addByNameHelp: 'Type the title. Add the author if you know it.',
     addTitle: 'Title',
     addAuthor: 'Author',
     addNameSubmit: 'Add this book',
     addNeedTitle: 'A book needs a title.',
     addButton: 'Add',
-    moreResults: '{n} more books match those words. Type more to narrow the list.',
+    moreResults: '{n} more books match those words. Type more to narrow the pile.',
     onShelf: 'On your shelf',
     addedBook: 'Added {title}.',
-    foundInList: 'It is in the list.',
-    addedTyped: 'Added {title}. It is not in the list, so the link searches the library.',
+    foundInList: 'It is in the pile.',
+    addedTyped: 'Added {title}. It is not in the pile, so the link searches the library.',
     alreadyThere: 'That book is already on your shelf.',
     untitledBook: 'A book with no title',
     // the shelf's books
@@ -4248,8 +4355,25 @@
     byLine: 'by {author}',
     byLineYear: 'by {author}, {year}',
     subjectsLine: 'Subjects: {list}.',
-    notInList: 'This book is not in the list. The link searches the library by its title and author.',
+    notInList: 'This book is not in the pile. The link searches the library by its title and author.',
     foundFor: 'Found for "{words}".',
+    // the pile screen
+    pileHeading: 'The pile',
+    pileIntro: 'The pile is the books Nextbook can suggest from. It does not search the library when you ask: it only picks from the pile.',
+    pileHow: 'Your helper adds books to the pile with find-books. They go in the pile, not on your shelf.',
+    pileCount: '{n} books in the pile.',
+    pileCountOne: '1 book in the pile.',
+    pileFilterLabel: 'Filter the pile',
+    pileFilterPlaceholder: 'Title, author or subject',
+    pileEmpty: 'The pile is empty, so there is nothing to suggest. Ask your helper to run find-books to bring books in.',
+    pileNoMatch: 'No book in the pile matches those words. Ask your helper to run find-books to bring some in.',
+    pileFoundFor: 'Added by a search for "{words}".',
+    pileShowing: 'Showing {shown} of {n} books. Type in the filter to narrow the pile.',
+    pileShowAll: 'Show them all',
+    pileToFind: 'Back to the ways to choose',
+    seePile: 'See the pile',
+    pileThin: 'Only {n} of the {total} books in the pile fit this way of choosing. To get more, ask your helper to bring more books into the pile with find-books. You can see the pile on the Pile screen.',
+    pileThinNone: 'Nothing in the pile fits this way of choosing. To get more, ask your helper to bring more books into the pile with find-books. You can see the pile on the Pile screen.',
     // export and import
     exportHeading: 'Save a copy',
     exportHelp: 'This makes a file you can keep, or give to a friend.',
@@ -4351,7 +4475,7 @@
     aFriend: 'A friend',
     // the found notice
     foundClear: 'OK',
-    foundCleared: 'Note hidden. The books stay in your list.',
+    foundCleared: 'Note hidden. The books stay in the pile.',
     // the find screen
     findHeading: 'Find a book',
     findIntro: 'Each way of choosing books offers up to six books and says why. The ones in this copy are listed here.',
@@ -4370,7 +4494,7 @@
     inputAny: 'Any',
     inputOptionalHint: 'Leave this empty for "{any}".',
     inputLabelShelfBook: 'Pick a book from your shelf',
-    inputLabelBook: 'Find a book in the list',
+    inputLabelBook: 'Find a book in the pile',
     inputLabelFacet: 'Pick a subject',
     inputLabelFacets: 'Pick up to four subjects',
     inputLabelText: 'Type some words',
@@ -4381,7 +4505,7 @@
     inputNoShelf: 'The shelf is empty. Add a book on the shelf screen first.',
     inputNoEvents: 'This copy has no library events, so there is nothing to pick here.',
     inputNoFacets: 'The book list has no subjects yet.',
-    inputSearchHint: 'Type a title or an author to search the list.',
+    inputSearchHint: 'Type a title or an author to search the pile.',
     inputUseBook: 'Use this book',
     inputChosen: 'Chosen: {title}, by {author}.',
     inputFacetsHint: 'Pick up to four.',

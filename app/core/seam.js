@@ -440,7 +440,7 @@
       facts = Nextbook.factsClause(parts);
     }
     return '- ' + work.id + ' | ' + clean(work.title) + ' | ' + clean(work.author) + ' | ' +
-      str(work.year) + ' | ' + labels + ' | ' + (facts || 'from the library list');
+      str(work.year) + ' | ' + labels + ' | ' + (facts || 'from the pile');
   }
 
   // A work is on the person's shelf when any of its handles, or its own normalised title,

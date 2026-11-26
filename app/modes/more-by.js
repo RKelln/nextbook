@@ -7,8 +7,8 @@ Nextbook.mode({
   inputs: [],
   strings: {
     noAuthors: 'Rate a book "loved" or "liked" first. This finds more by those authors.',
-    nothingMore: 'The library list has nothing else by the authors you rated well.',
-    fewBooks: 'The library list has {n} more by the authors you rated well.',
+    nothingMore: 'The pile has nothing else by the authors you rated well.',
+    fewBooks: 'The pile has {n} more by the authors you rated well.',
     why: 'You rated {author} well. You gave {book} a "{rating}".'
   },
   logic: {

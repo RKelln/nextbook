@@ -255,7 +255,7 @@
     bad: 'not a book'
   };
   var WHY = {
-    unknown: 'That book is not in the library list.',
+    unknown: 'That book is not in the pile.',
     shelf: 'That book is already on your shelf.',
     repeat: 'That book is on the list twice.',
     noWhy: 'That book has no reason with it.',

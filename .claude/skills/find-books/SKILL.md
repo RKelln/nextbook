@@ -26,7 +26,7 @@ many books; the library knows which ones are real and on its shelves. So you sug
 4. Wait for it to finish. Each search is one page, at least 5 seconds apart, so eleven searches take about a
    minute. Do not run it a second time while it is working.
 5. Read what it printed. The lines that matter:
-   - `Added N books.` (or `Added 1 book.`, or `Added no new books. ... already in the list.`)
+   - `Added N books.` (or `Added 1 book.`, or `Added no new books. ... already in the pile.`)
    - `Strongest subjects: ...`
    - `No page came back, so nothing was added and nothing was changed.`
    - `The library would not give that page: ...` or `Could not reach the library: ...`
@@ -34,13 +34,13 @@ many books; the library knows which ones are real and on its shelves. So you sug
 6. Tell the person, in plain words and short sentences:
    - the search line you ran;
    - how many books were added, and the strongest subjects the library's records carried, if any;
-   - where they went: "They are in your library list as unshelved books, not on your shelf. Run a mode to see them in your picks."
+   - where they went: "They went into the pile, not on your shelf. The pile is the books Nextbook can suggest from. You can see them on the Pile screen in the app, and a way of choosing can now pick them."
    - this sentence: "The page will show these books the next time it is opened or reloaded."
    - how many of your suggestions the library had, and which it did not, by name. Say plainly that a title not
      found may be one you made up or remembered wrongly, or one this library does not hold; do not argue for it.
-   - if nothing was added, why: they were already in the list, or the library would not answer.
+   - if nothing was added, why: they were already in the pile, or the library would not answer.
    - if the search failed (`Could not reach the library` or `The library would not give that page`): the error in
-     one line, as printed, and that the list still has the books it had, so the modes still work and they can
+     one line, as printed, and that the pile still has the books it had, so the modes still work and they can
      carry on without it (`python3 tools/coverage.py` gives the count; say "up to six" picks, never "six"). Try
      once more at most. Do not guess whether a fix is allowed or why the library refused: report what printed.
 7. If the page is being served by `python3 tools/serve.py`, it reloads itself when `app/data/found.js` changes, so

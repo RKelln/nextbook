@@ -352,7 +352,7 @@ def readme_text(root=REPO):
         "send it, and ask for the file it describes.",
         "",
         "The app checks every answer. It runs the mode against several shelves and drops anything",
-        "the mode invents: a pick that is not in the library list, a repeat, a seventh pick, or a",
+        "the mode invents: a pick that is not in the pile, a repeat, a seventh pick, or a",
         "book with no reason. A mode that is not in the list never reaches a person's screen.",
         "",
         "The packets:",

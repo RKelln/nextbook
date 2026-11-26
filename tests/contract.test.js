@@ -69,7 +69,7 @@ test('an unknown id is dropped and named', () => {
   assert.strictEqual(v.dropped.length, 1);
   assert.strictEqual(v.dropped[0].id, 'not-a-book', 'the dropped pick is named');
   assert.strictEqual(v.dropped[0].code, 'unknown');
-  assert.match(v.dropped[0].why, /not in the library list/);
+  assert.match(v.dropped[0].why, /not in the pile/);
   assert.strictEqual(v.error, null);
 });
 

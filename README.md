@@ -46,9 +46,10 @@ reading list.
 ## The shape in five lines
 
 1. The person keeps a shelf: what they have read, are reading, want, and how they rated it.
-2. A **mode** narrows the list to at most six candidates with a cheap, explainable rule, and says why for each.
+2. A **mode** narrows **the pile** (the books the app can suggest from; the Pile screen lists it, and it does not search the
+   library when you ask) to at most six candidates with a cheap, explainable rule, and says why for each.
 3. Optionally, a model argues for the picks, one sentence each, using only the candidates it was given. The answer is
-   checked against the list; anything invented is dropped and named.
+   checked against the pile; anything invented is dropped and named.
 4. The person decides.
 5. Every candidate links out to the library's own page for that book: its record page once the catalogue has matched
    the title, and its search page until then. Availability, formats, the hold button and the library's read-alike

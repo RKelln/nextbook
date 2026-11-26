@@ -33,8 +33,8 @@ Nextbook.mode({
   inputs: [],
   strings: {
     noAuthors: 'Rate a book "loved" or "liked" first. This finds more by those authors.',
-    nothingMore: 'The library list has nothing else by the authors you rated well.',
-    fewBooks: 'The library list has {n} more by the authors you rated well.',
+    nothingMore: 'The pile has nothing else by the authors you rated well.',
+    fewBooks: 'The pile has {n} more by the authors you rated well.',
     why: 'You rated {author} well. You gave {book} a "{rating}".'
   },
   logic: {
@@ -104,7 +104,7 @@ them, for journeys, ladders and seasons.
 
 | `ctx.` | What it is |
 |---|---|
-| `works` | every work in the library list: `{id, title, author, authorKey, year, formats, contentType, audience, callNumber, series, facets}`, plus any books the person's helper found on request, which also carry `found: {query}` |
+| `works` | every work in the pile (the books a mode can pick from): `{id, title, author, authorKey, year, formats, contentType, audience, callNumber, series, facets}`, plus any books the person's helper found on request, which also carry `found: {query}` |
 | `work(id)` | one work, or `null` |
 | `shelf` | the shelf entries: `{key, title, author, state, rating, work}`. `state` is `want`, `hold` (on hold at the library), `reading`, `read` or `stopped`. `work` is `null` for a book typed in that the list does not have |
 | `onShelf(id)` | whether a work is on the shelf |
@@ -129,7 +129,7 @@ A mode that needs something from the person lists it in `inputs`, and the app dr
 | `kind` | The control | `choose` receives |
 |---|---|---|
 | `shelf-book` | pick a book from the shelf | its entry |
-| `book` | search the library list | a work |
+| `book` | search the pile | a work |
 | `facet` | pick a subject from the list | a facet key |
 | `facets` | pick up to four subjects, by hand or "from some words" through the model box (section 9) | a list of facet keys |
 | `text` | a short text box | the text |

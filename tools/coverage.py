@@ -58,7 +58,7 @@ def main() -> int:
         ("our hand-written mood words", sum(1 for w in works if tagged(w, "mood"))),
         ("our hand-written one-line note", sum(1 for w in works if tagged(w, "note"))),
     ]
-    print(f"{total} books in the list ({len(slice_doc.get('works') or [])} starting pack, {len(found.get('works') or [])} from the library's catalogue).")
+    print(f"{total} books in the pile ({len(slice_doc.get('works') or [])} starting pack, {len(found.get('works') or [])} from the library's catalogue).")
     for label, n in rows:
         print(f"  {n:>4} of {total} have {label}")
     sections = {}

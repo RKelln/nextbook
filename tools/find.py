@@ -351,8 +351,8 @@ def _books(count: int) -> str:
 def _linked_clause(count: int) -> str:
     """The plain words for a book that was on the list and now has its record too."""
     if count == 1:
-        return "1 was already in your list and now has its page at the library."
-    return (f"{count} were already in your list and now have their page at the "
+        return "1 was already in the pile and now has its page at the library."
+    return (f"{count} were already in the pile and now have their page at the "
             "library.")
 
 
@@ -508,13 +508,13 @@ def run(*, words=None, title=None, author=None, pages: int = 1,
         said = f"Added {_books(len(added))}."
         if already:
             said += (f" {already} " + ("was" if already == 1 else "were")
-                     + " already in the list.")
+                     + " already in the pile.")
         if linked:
             said += " " + _linked_clause(linked)
         say(said)
     else:
         say(f"Added no new books. {already} " + ("was" if already == 1 else "were")
-            + " already in the list.")
+            + " already in the pile.")
 
     subjects = top_subjects(every_work, labels_seen)
     if subjects:
@@ -894,7 +894,7 @@ def suggest(suggestions, *, data_dir=DATA_DIR, out_dir=OUT_DIR, getter=None,
     for number, (title, author) in enumerate(suggestions, start=1):
         line = _book_line(title, author)
         if any(is_suggested_book(work, title, author) for work in listed):
-            say(f"{number} of {total}: {line}: already in your list.")
+            say(f"{number} of {total}: {line}: already in the pile.")
             already_titles.append(line)
             continue
         address = fetch.book_search_url(title, author)
@@ -940,7 +940,7 @@ def suggest(suggestions, *, data_dir=DATA_DIR, out_dir=OUT_DIR, getter=None,
                 + (f", {work['author']}" if work.get("author") else "") + ". Added.")
             added_titles.append(line)
         else:
-            say("   Found, and already in your list.")
+            say("   Found, and already in the pile.")
             already_titles.append(line)
 
     if wrote:
@@ -950,7 +950,7 @@ def suggest(suggestions, *, data_dir=DATA_DIR, out_dir=OUT_DIR, getter=None,
     found_count = len(added_titles) + len(already_titles)
     said = f"Suggested titles found at the library: {found_count} of {checked}"
     if added_titles or already_titles:
-        said += f" ({len(added_titles)} added, {len(already_titles)} already in your list)"
+        said += f" ({len(added_titles)} added, {len(already_titles)} already in the pile)"
     say(said + ".")
     if missing:
         say("Not found: " + "; ".join(missing) + ".")

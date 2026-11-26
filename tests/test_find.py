@@ -189,7 +189,7 @@ class ItAddsWorks(FindTestCase):
         self.assertEqual(result["added"], 11)
         self.assertEqual(result["linked"], 3)
         self.assertEqual(result["known"], 0)
-        self.assertIn("Added 11 books. 3 were already in your list and now have "
+        self.assertIn("Added 11 books. 3 were already in the pile and now have "
                       "their page at the library.", self.output)
 
     def test_the_three_strongest_subjects_are_printed(self):
@@ -366,9 +366,9 @@ class TheSmallPieces(unittest.TestCase):
 
     def test_the_linked_sentence_reads_for_one_book(self):
         self.assertEqual(find._linked_clause(1),
-                         "1 was already in your list and now has its page at the library.")
+                         "1 was already in the pile and now has its page at the library.")
         self.assertEqual(find._linked_clause(3),
-                         "3 were already in your list and now have their page at the library.")
+                         "3 were already in the pile and now have their page at the library.")
 
     @unittest.skipUnless((REPO / ".git").exists(), "not a git checkout (a downloaded ZIP), so there is no ignore rule to read")
     def test_the_found_file_is_gitignored(self):

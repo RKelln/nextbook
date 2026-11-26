@@ -9,6 +9,8 @@ Before the first shelf read or write in a session, say:
 
 If the person has already requested this work, give the warning and proceed within that request. Do not repeat the warning for every operation. Do not enable sharing just to build or test app features. Use practice data for workshops.
 
+The app has two lists. The **shelf** is the books the person knows. **The pile** is the books Nextbook can suggest from; it does not search the library when asked. Books added by `find-books` go in the pile, not on the shelf, and the Pile screen shows them.
+
 ## Read
 
 - **Reuse the running app first.** Before starting anything, check whether the app is already being served (the person's project may have a launcher for it, or the address may answer). Use that server and the browser tab already open on it. Never start a second server or open a second tab: a second copy is a separate, empty shelf and confuses people. Sharing is fixed when a server starts, so turning it on may need that one server restarted. Say so in one line first (the app restarts for a moment, and the open tab reloads itself once), restart on the same address and port, and do not start a new server beside it.

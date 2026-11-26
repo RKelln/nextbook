@@ -18,7 +18,7 @@ keeps the list but cannot answer that, because it does not know what you loved.
 4. Take the top six. The `why` says what it matches: "On your list, and it matches mysteries and memory on your
    shelf."
 5. The note says how to hold, and what it skipped: "Open a book and press Place hold on the library's page. You have
-   1 book on hold already. 2 books on your list are not in the library list, so they are not here."
+   1 book on hold already. 2 books on your list are not in the pile, so they are not here."
 6. No want-to-read books at all: no picks, and a note that says how to get some ("Press Want to read on a book in
    another way of choosing, or on the shelf").
 

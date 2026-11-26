@@ -380,7 +380,7 @@ test('agent snapshot follows active shelf and cannot mutate it', () => {
 
 test('P6: the shelf screen says how many library books are not on the shelf', () => {
   const { doc } = openPage({});
-  const line = doc.body.textContent.match(/(\d+) unshelved books? in your library list/);
+  const line = doc.body.textContent.match(/(\d+) books? in the pile/);
   assert.ok(line, 'the unshelved count is on the page');
   assert.ok(Number(line[1]) >= 1, 'and it counts the library books that are not shelved');
 });
@@ -392,4 +392,63 @@ test('P7: books that came with the copy are not announced as found by the helper
       facets: [], found: { query: 'horror novels', starter: true } }] };
   const { doc } = openPage({ found });
   assert.strictEqual(byTest(doc, 'found-notice'), null, 'no "your helper found" for books that shipped with the copy');
+});
+
+// ---- The pile screen -------------------------------------------------------------------------
+const foundRecord = (n, query) => ({ id: 'S1PILE' + n, groupKey: 'pile' + n, title: 'Pile Book ' + n, subtitle: null,
+  author: 'Pat Writer', authorKey: 'writer, p', year: 2000 + n, formats: ['BK'], contentType: 'FICTION', audience: 'ADULT',
+  language: 'eng', callNumber: 'FIC WRI', series: [], facets: [], found: { query } });
+const foundDoc = (works) => ({ schema: 'nextbook/found-1', searches: [], facets: {}, works });
+
+test('PILE1: the Pile tab sits after Shelf, and the screen explains the pile in plain words', () => {
+  const { doc } = openPage({ hash: '#pile' });
+  const tabs = ['nav-find', 'nav-shelf', 'nav-pile'].map((t) => byTest(doc, t));
+  assert.ok(tabs.every(Boolean), 'Ways to choose, Shelf and Pile tabs');
+  assert.strictEqual(tabs[2].textContent, 'Pile');
+  assert.match(byTest(doc, 'pile-intro').textContent, /The pile is the books Nextbook can suggest from\. It does not search the library when you ask/);
+  assert.match(byTest(doc, 'pile-how').textContent, /find-books.*not on your shelf/);
+  assert.match(byTest(doc, 'pile-count').textContent, /^\d+ books? in the pile\./);
+  assert.ok(withPrefix(doc, 'pile-row').length >= 1, 'lists books, each with a title');
+});
+
+test('PILE2: a search-added book is marked, a starter one is not, and the filter narrows', () => {
+  const found = foundDoc([foundRecord(1, 'quiet sea books'), Object.assign(foundRecord(2, 'x'), { found: { query: 'x', starter: true } })]);
+  const { doc } = openPage({ hash: '#pile', found });
+  const marks = withPrefix(doc, 'pile-found');
+  assert.strictEqual(marks.length, 1);
+  assert.match(marks[0].textContent, /Added by a search for "quiet sea books"\./);
+  assert.match(byTest(doc, 'pile-count').textContent, /\(1 added by a search\.\)/);
+  const input = byTest(doc, 'pile-filter');
+  input.value = 'zzzqqq nothing';
+  input.dispatch('input', { type: 'input', target: input });
+  assert.ok(byTest(doc, 'pile-no-match'), 'says nothing matches, and points at find-books');
+  assert.strictEqual(withPrefix(doc, 'pile-row').length, 0);
+  input.value = 'Pile Book 1';
+  input.dispatch('input', { type: 'input', target: input });
+  assert.strictEqual(withPrefix(doc, 'pile-row').length, 1);
+});
+
+test('PILE3: a few hundred books draw in pieces, and Show them all draws the rest', () => {
+  const works = []; for (let i = 1; i <= 300; i++) works.push(foundRecord(i, 'many'));
+  const { doc } = openPage({ hash: '#pile', found: foundDoc(works) });
+  assert.strictEqual(withPrefix(doc, 'pile-row').length, 60);
+  assert.match(byTest(doc, 'pile-showing').textContent, /Showing 60 of \d+ books/);
+  byTest(doc, 'pile-more').click();
+  assert.ok(withPrefix(doc, 'pile-row').length > 300);
+});
+
+test('PILE4: an empty pile says how books get in; a workshop copy still shows the pile', () => {
+  const empty = openPage({ hash: '#pile', slice: Object.assign({}, SLICE, { works: [] }) });
+  assert.match(byTest(empty.doc, 'pile-empty').textContent, /pile is empty.*find-books/);
+  const ws = openPage({ hash: '#pile', workshop: true });
+  assert.ok(byTest(ws.doc, 'nav-pile'), 'workshop copy keeps the tab');
+  assert.ok(withPrefix(ws.doc, 'pile-row').length >= 1);
+});
+
+test('PILE5: the Ways-to-choose screen links to the pile', () => {
+  const { doc, nb } = openPage({ hash: '#find' });
+  const see = byTest(doc, 'see-pile');
+  assert.ok(see, 'See the pile button');
+  see.click();
+  assert.strictEqual(nb.shell.route(), 'pile');
 });
