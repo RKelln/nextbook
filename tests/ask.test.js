@@ -144,3 +144,26 @@ test('A8: the reference ask-chat mode passes its checks', () => {
   assert.strictEqual(r.fail, 0, r.results.filter((x) => !x.ok).map((x) => x.msg).join('\n'));
   assert.ok(r.results.some((x) => /asks a chat to choose from \d+ books/.test(x.msg)));
 });
+
+test('A9: answers the way real chats write them are read', () => {
+  const ask = { question: 'Q', books: ['oryx', 'handmaid', 'beloved', 'station-eleven'] };
+  const P = '^[a-z0-9-]+$';
+  const kept = (text) => plain(nb.seam.parseAsk(text, ask, P)).kept.map((k) => k.id + '=' + k.why);
+  assert.deepStrictEqual(kept('oryx (Oryx and Crake): Speculative and dark.'), ['oryx=Speculative and dark.']);
+  assert.deepStrictEqual(kept('1. **oryx** (Oryx and Crake): A reason.'), ['oryx=A reason.']);
+  assert.deepStrictEqual(kept('- `station-eleven` [Station Eleven] - Hopeful.'), ['station-eleven=Hopeful.']);
+  assert.deepStrictEqual(kept('Here are my picks:\n\n**beloved**\nMemory and family.\n\nhandmaid: Tense.'),
+    ['beloved=Memory and family.', 'handmaid=Tense.']);
+  const table = plain(nb.seam.parseAsk('| id | why |\n|---|---|\n| oryx | Quiet. |\n| beloved | Sad. |', ask, P));
+  assert.deepStrictEqual(table.kept.map((k) => k.id), ['oryx', 'beloved']);
+  assert.deepStrictEqual(table.dropped, [], 'the header and rule rows are not books');
+});
+
+test('A10: part of a shelf name written as a name is refused; plain words are not', () => {
+  const free = practiceCtx.works.find((w) => !practiceCtx.onShelf(w.id)).id;
+  const err = (q) => nb.validate({ ask: { question: q, books: [free] } }, practiceCtx, ASK_MODE).error;
+  assert.match(String(err('Something like Le Guin, please.')), /"guin"/);
+  assert.match(String(err('Something like Earthsea.')), /"earthsea"/);
+  assert.strictEqual(err('A good book for a quiet night.'), null);
+  assert.strictEqual(err('Darkness and light: choose something strange.'), null);
+});

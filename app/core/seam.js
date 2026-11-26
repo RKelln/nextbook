@@ -169,7 +169,11 @@
     var out = [];
     var s = cleanLine(line);
     if (!s) return out;
-    var m = /^([^\s|:]{1,80})\s*(?::|\||\u2013|\u2014|\s-\s)\s*(.*)$/.exec(s);
+    // A table's header and rule rows ("id | why", "---|---") name no book.
+    if (/^[-:|\s]+$/.test(s) || /^id\s*[|:]/i.test(s)) return out;
+    // The id may carry the book's title in brackets before the separator, as chats like to
+    // write it: "oryx (Oryx and Crake): ...". The brackets are dropped, never read as an id.
+    var m = /^([^\s|:()\[\]]{1,80})\s*(?:[(\[][^)\]]{0,200}[)\]])?\s*(?::|\||\u2013|\u2014|\s-\s)\s*(.*)$/.exec(s);
     if (m) {
       var id = trimMarks(m[1]);
       // The id may be written with capitals ("W2", "Left-Hand"): the shape check is either
@@ -204,9 +208,20 @@
         got.forEach(function (e) { found.push(e); });
         cut = cut.slice(0, span.start) + span.text.replace(/[^\n]/g, ' ') + cut.slice(span.end);
       });
-      cut.split('\n').forEach(function (line) {
-        idEntries(line, pattern, known).forEach(function (e) { found.push(e); });
-      });
+      // A known id alone on its line, with its sentence on the next line, is one pick.
+      var rows = cut.split('\n');
+      for (var r = 0; r < rows.length; r++) {
+        var got = idEntries(rows[r], pattern, known);
+        if (got.length === 1 && !got[0].why) {
+          var n = r + 1;
+          while (n < rows.length && !cleanLine(rows[n])) n++;
+          if (n < rows.length && !idEntries(rows[n], pattern, known).length) {
+            got[0].why = cap(trimSentence(cleanLine(rows[n])), MAX_SENTENCE);
+            r = n;
+          }
+        }
+        got.forEach(function (e) { found.push(e); });
+      }
       if (found.length > best.length) best = found;
     });
     return best;

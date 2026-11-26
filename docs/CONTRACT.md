@@ -266,7 +266,9 @@ exist before it is shown, and its sentence is marked as the chat's.
 **What a chat is told about the shelf** is the same in every prompt: what the shelf adds up to, in numbers. How many
 books, in which states and with which ratings; the subjects, moods and paces of the books rated loved or liked, with
 counts; the subjects of the "not for me" books; the parts of the library the shelf uses and the ones it never does; the
-formats, readers and decades. **Never a title, an author or a series name**: each of those names a book. With fewer
+formats, readers and decades. **Never a title, an author or a series name from the shelf**: each of those names a
+book. (The books offered are catalogue entries with their own titles and authors, and one may share an author with the
+shelf; the chat is not told which.) With fewer
 than three rated books even the subjects would point at one or two books, so the prompt gives only the counts and the
 page says so. The words come from `Nextbook.seam.shelfSummary`.
 
@@ -287,12 +289,16 @@ button, and a box for the answer. It keeps up to six of the offered ids from the
 sentence, and shows them as cards with "Want to read" and "Read it". Anything else in the answer is dropped and named.
 
 The check holds an `ask` to these rules: the question is a sentence of at most 500 characters and **names no title or
-author from the shelf** (the check refuses it and says which name it found); every book is a work in the list, not on
+author from the shelf**, whole or in part: a surname or a word of a title written with a capital letter counts (the
+check refuses it and says which name it found; reword the question from what the summary says). The check is a floor,
+not a wall: a lower-case surname typed into a wish gets through, so a mode should not copy a typed wish about books on
+the shelf into its question; every book is a work in the list, not on
 the shelf (dropped and named, even for an `allowShelf` mode), and named once; at most forty. An `ask` whose books are
 all dropped is no answer, so it needs a `note`. The standard shelves still run: the mode's own part, the rule and the
 question, is what they test. What the chat will say cannot be tested, so the mode's check tests the rule.
 
-A mode may return picks and an `ask` together: its own cards come first, then the box. The worked example is
+A mode may return picks and an `ask` together: its own cards come first, then the box. The chat's cards are always
+a list, so an ask mode uses `shape: 'list'`. The worked example is
 `reference/modes/ask-chat.js`; the brief is `docs/modes/ask-a-chat.md`.
 
 ### The model box, a second opinion

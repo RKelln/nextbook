@@ -3041,8 +3041,9 @@
     var box = h('div', { class: 'nb-model-result', 'data-test': 'ask-result' });
     var model = state.ask;
     if (model && model.checked) {
-      // A book the person has just put on the shelf leaves the cards, as the mode's own do.
-      var kept = model.kept.filter(function (k) { return !ctx.onShelf(k.id); });
+      // Only books still offered stay: one the person has just put on the shelf leaves the
+      // cards, as the mode's own do, and so does one a Shuffle took out of the offer.
+      var kept = model.kept.filter(function (k) { return ask.books.indexOf(k.id) !== -1 && !ctx.onShelf(k.id); });
       if (!model.kept.length) {
         box.appendChild(p(t('modelNoPick'), 'nb-note', { 'data-test': 'ask-said' }));
       } else if (kept.length) {

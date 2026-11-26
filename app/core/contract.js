@@ -43,7 +43,7 @@
     ['askBad', 'This way of choosing books asks a chat, but its ask is not { question, books }.'],
     ['askNoQuestion', 'This way of choosing books asks a chat, but has no question for it.'],
     ['askLong', 'The question for the chat is too long. Keep it under {n} characters.'],
-    ['askNamesShelf', 'The question for the chat names "{name}" from your shelf. A chat never sees a title or an author from your shelf.'],
+    ['askNamesShelf', 'The question for the chat names "{name}", from a book or an author on your shelf. A chat never sees a title or an author from your shelf. Reword it without that name.'],
     ['askNoBooks', 'This way of choosing books asks a chat, but offers it no books and does not say why.']
   ].forEach(function (pair) { if (!has(Nextbook.strings, pair[0])) Nextbook.strings[pair[0]] = pair[1]; });
   if (!has(Nextbook.strings, 'noList')) {
@@ -360,10 +360,47 @@
     return out;
   }
 
+  // Part of a name counts too: a surname ("Le Guin", "Atwood") or a word of a title
+  // ("Earthsea"), when the question writes it with a capital letter in the middle of a
+  // sentence, the way a name is written. A plain word that happens to be in a title
+  // ("something quiet", "a good book") is left alone.
+  var NAME_SKIP = { the: 1, and: 1, of: 1, a: 1, an: 1, in: 1, on: 1, to: 1, for: 1, with: 1, from: 1, by: 1 };
+  function namePieces(c) {
+    var out = [];
+    function add(v, min) {
+      str(v).split(/[^A-Za-zÀ-ɏ']+/).forEach(function (w) {
+        var n = typeof Nextbook.norm === 'function' ? Nextbook.norm(w) : w.toLowerCase();
+        if (n && n.length >= min && !NAME_SKIP[n] && out.indexOf(n) === -1) out.push(n);
+      });
+    }
+    (Array.isArray(c.shelf) ? c.shelf : []).forEach(function (e) {
+      if (!e || typeof e !== 'object') return;
+      add(e.author, 3); add(e.title, 4);
+      if (e.work) { add(e.work.author, 3); add(e.work.title, 4); }
+    });
+    return out;
+  }
+
+  // Words written with a capital letter that do not start a sentence.
+  function capitalWords(question) {
+    var out = [];
+    var re = /(^|[.!?:;"]\s*|\s)([A-ZÀ-Þ][A-Za-zÀ-ɏ']*)/g, m;
+    while ((m = re.exec(question))) {
+      var startsSentence = m.index === 0 && m[1] === '' || /[.!?:;"]/.test(m[1]);
+      if (startsSentence) continue;
+      var n = typeof Nextbook.norm === 'function' ? Nextbook.norm(m[2]) : m[2].toLowerCase();
+      if (n) out.push(n);
+    }
+    return out;
+  }
+
   function namesShelf(question, c) {
     var q = ' ' + (typeof Nextbook.norm === 'function' ? Nextbook.norm(question) : str(question).toLowerCase()) + ' ';
     var names = shelfNames(c);
     for (var i = 0; i < names.length; i++) if (q.indexOf(' ' + names[i] + ' ') !== -1) return names[i];
+    var pieces = namePieces(c);
+    var caps = capitalWords(str(question));
+    for (var j = 0; j < caps.length; j++) if (pieces.indexOf(caps[j]) !== -1) return caps[j];
     return '';
   }
 

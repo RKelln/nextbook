@@ -37,7 +37,8 @@ Build one mode for this app. The words you were given are the mode's id or the b
    - **A mode that asks a chat** (the brief `ask-a-chat.md`, or an idea that needs judgement a rule cannot make)
      returns `{ picks: [], ask: { question, books } }` instead: up to forty ids, none on the shelf, and a question
      that names no book or author from the shelf. The app writes the prompt and reads the answer
-     (`docs/CONTRACT.md` section 9). Test the rule that picks the forty, not the chat.
+     (`docs/CONTRACT.md` section 9), use `shape: 'list'`, and test the rule that picks the forty, not the chat. If
+     the check says the question names a shelf book or author, reword the question without it; never weaken the check.
    - Use only what `ctx` gives: `ctx.works`, `ctx.shelf`, `ctx.onShelf`, `ctx.profile`, `ctx.score`,
      `ctx.similar`, `ctx.reason`, `ctx.t`, `ctx.labelOf`, `ctx.tagsOf`. No `document`, `window`, `fetch`,
      `localStorage`, `Date`, `Math.random` or timers; the check fails the file if one appears.

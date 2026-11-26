@@ -16,6 +16,17 @@ books that are really in the pile, and the app checks every one.
 3. Return `{ picks: [], ask: { question, books } }`. The app writes the rest of the prompt, with the shelf as numbers only
    (`CONTRACT.md` section 9), and reads the answer.
 4. When the rule finds no books, return a `note` that says why, and no `ask`.
+5. Use `shape: 'list'`: the chat's picks are shown as cards, never as a path.
+
+A mode can also give its own picks and an `ask` together, `{ picks: [...], ask: {...} }`: its cards come first, then the
+box. That suits "three by my rule, and let a chat choose three more".
+
+**Ideas people bring, and how they fit:**
+- "Something that feels like autumn": a `text` input, put into the question. Tell the person the wish goes to the chat.
+- "Like my favourite books": the chat already gets the shelf as numbers (subjects, moods, parts of the library). The
+  question says "like the books they loved"; it never names one.
+- "Short ones for the bus", "something for my book club": a `choice` input whose words go into the question, and a rule
+  that narrows the forty (formats, a part of the library) where the data has it.
 
 ## Done when
 
@@ -33,8 +44,8 @@ books that are really in the pile, and the app checks every one.
 
 ## Usually goes wrong
 
-- **The question names a shelf book** ("something like Piranesi"). The check stops it. Use what the summary already
-  says (subjects, moods) instead.
+- **The question names a shelf book or author** ("something like Piranesi", "more Le Guin"). The check stops it and
+  says which name. Reword from what the summary already says (subjects, moods, "the books they loved").
 - **The rule offers the whole pile.** Forty is the most; fewer, better-chosen books give the chat a real choice.
 - **Testing the chat instead of the rule.** What a chat says changes every time, so it cannot be in the check. Test the
   rule; then try the box by hand and say what the chat did in the plan's "Still broken" if it misbehaves.
