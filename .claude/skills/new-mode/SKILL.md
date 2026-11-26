@@ -52,3 +52,7 @@ Build one mode for this app. The words you were given are the mode's id or the b
    `tools/check.sh` or `docs/CONTRACT.md`.
 9. Finish by telling the person in plain words what the mode picks and why, then paste the last line of the check:
    `OK <id>: N passed, 0 failed`. If it does not end that way, say what still fails instead.
+10. If the mode has few books to pick from (`python3 tools/coverage.py` shows few for what the rule needs, or the
+    person sees fewer than six picks or the "nothing found" note), say the number and offer one `/find-books` search
+    in short, plain words that fit the gap (the `find-books` skill). Run it on a yes, then ask them to look at the
+    mode again. Offer more books before loosening the rule, and loosen it only if they ask.
