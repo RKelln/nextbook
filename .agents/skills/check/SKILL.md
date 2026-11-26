@@ -6,10 +6,11 @@ description: Run one mode's check and say what failed, then fix the mode until i
 Run the check for the mode the person names (written `<id>` below) and tell the person what it says. Work through these steps in order.
 
 1. Run this command from the project folder:
-   `node tools/check-mode.js <id>`
-2. If it says Node is missing or the command is not found: on a Mac, run `bash tools/check.sh <id>` instead (it prints
-   the same lines, so use the same steps below); on any other computer, say the check cannot run without Node, offer
-   to help install it (nodejs.org) and wait for a yes.
+   `bash tools/check.sh <id>`
+   It uses Node when Node is installed, and a Mac's own JavaScript when it is not; the lines are the same either way,
+   so do not mention which one ran. Where there is no `bash` (Windows), run `node tools/check-mode.js <id>` instead.
+2. If it stops with "This needs Node", or `node` is not found: say the check cannot run without Node, offer to help
+   install it (nodejs.org) and wait for a yes.
 3. Read the last line.
    - `OK <id>: N passed, 0 failed` — the check passed. Tell the person, in one sentence, what passed, and paste that
      line. Stop here.

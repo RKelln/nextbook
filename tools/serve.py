@@ -43,7 +43,7 @@ Moving the open tab to a screen
 
   A name is only ever a screen id and at most one slash (60 characters, no quotes or spaces); anything else
   in the file is ignored, because a typo must not become a route. A name that is not a screen falls back to
-  #find, which the app's own router already does.
+  #shelf, which the app's own router already does.
 
   The note is read, never written: saving the page or the files leaves .dev-go alone.
 
@@ -272,7 +272,7 @@ RELOAD_JS = r"""(function () {
     if (y > 0 && !typing()) window.scrollTo(0, y);
   }
   function show(route) {
-    // The app's own router, so a name that is not a screen lands on #find instead of breaking anything, and
+    // The app's own router, so a name that is not a screen lands on #shelf instead of breaking anything, and
     // going to the screen you are already on draws it again.
     if (!route) return false;
     try {

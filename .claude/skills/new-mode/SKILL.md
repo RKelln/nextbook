@@ -43,9 +43,10 @@ Build one mode for this app. The words you were given are the mode's id or the b
 6. Add the id to the one line in `app/modes/list.js`, keeping the modes already there:
    `Nextbook.modes = ['more-by', '<id>'];`
 7. Run the check now:
-   `node tools/check-mode.js <id>`
-   If the output says Node is missing or not found: on a Mac, run `bash tools/check.sh <id>` instead; on any other
-   computer, say the check cannot run without Node, offer to help install it (nodejs.org) and wait for a yes.
+   `bash tools/check.sh <id>`
+   It uses Node if it is installed and a Mac's own JavaScript if not, with the same lines; do not mention which ran.
+   Without `bash` (Windows), run `node tools/check-mode.js <id>`. If it says Node is needed, say the check cannot run
+   without Node, offer to help install it (nodejs.org) and wait for a yes.
 8. If a line starts with `FAIL`, fix `app/modes/<id>.js`, then run step 7 again. Fix the mode, not the check,
    unless the check asserts something the brief does not say. Never edit `tools/check-mode.js`,
    `tools/check.sh` or `docs/CONTRACT.md`.

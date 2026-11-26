@@ -93,9 +93,9 @@ in `<script type="application/json">` blocks. Nothing needs it to **run**; it ex
 ```sh
 node --test tests/*.test.js              # core unit tests (Node 22 refuses a bare folder: keep the glob)
 python3 -m unittest discover -s tests -p 'test_*.py'   # adapter tests
-node tools/check-mode.js <id>            # one mode: its own checks plus the standard shelves
-node tools/check-mode.js --all           # every loaded mode
-bash tools/check.sh <id>                 # the same, on a Mac with no Node (osascript)
+bash tools/check.sh <id>                 # one mode: its own checks plus the standard shelves (Node, or osascript on a Mac)
+bash tools/check.sh --all                # every loaded mode
+node tools/check-mode.js <id>            # the same, where there is no bash (Windows)
 python3 tools/serve.py --workshop        # serve app/ with live reload, for a workshop or a demo
 python3 tools/find.py "birds toronto"    # fetch one catalogue search a person asked for, add the books to the app
 python3 tools/find.py --from-shelf s.json --limit 40  # match a saved shelf's books, one query at a time

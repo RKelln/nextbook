@@ -64,7 +64,7 @@ A mode is one file that chooses up to six books and says why. `app/modes/more-by
 are in `docs/CONTRACT.md`; `docs/modes/` holds eleven more as briefs you can build. After every change:
 
 ```sh
-node tools/check-mode.js more-by        # or --all; on macOS, bash tools/check.sh more-by when there is no Node
+bash tools/check.sh more-by             # or --all; uses Node, or osascript on a Mac with no Node
 ```
 
 Only have a chat window? `python3 tools/packets.py` writes one self-contained packet per brief into `dist/packets/`:

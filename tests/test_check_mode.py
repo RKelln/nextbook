@@ -8,10 +8,11 @@ The mode fixtures are deliberately plain: a reason that names the book, no banne
 words, and a check file with one trivial assertion. The failing copies are made from
 that same text, so a failure names one thing at a time.
 
-`tools/check.sh` runs `tools/check-mode.js` through osascript, which only a Mac has.
-`test_check_sh_without_osascript_says_so` covers the honest fallback on this box;
-`test_check_sh_passes_the_same_exit_codes` puts a stub `osascript` on PATH that runs
-the runner with node, so the wrapper's arguments and exit codes are exercised here.
+`tools/check.sh` runs `tools/check-mode.js` with node when it is on PATH, and otherwise
+through osascript, which only a Mac has. The osascript tests use a PATH with no node:
+`test_check_sh_with_neither_says_to_install_node` covers a computer with neither;
+`test_check_sh_osascript_route_passes_the_same_exit_codes` puts a stub `osascript` there that
+runs the runner with node, so the wrapper's arguments and exit codes are exercised here.
 The JXA branch itself stays unverified until T7.1 on the Mac.
 """
 import os
@@ -27,6 +28,7 @@ RUNNER = REPO / "tools" / "check-mode.js"
 CHECK_SH = REPO / "tools" / "check.sh"
 NODE = shutil.which("node")
 OSASCRIPT = shutil.which("osascript")
+BASH = shutil.which("bash")
 
 # The runner's list, in the order app/index.html loads them (core/slice.js joined for
 # Nextbook.pool.load(), which runModeChecks needs). core/store.js and data/workshop.js are
@@ -441,15 +443,40 @@ class CheckShTest(unittest.TestCase):
                                 "probe.check.js": check_text("probe")}, ["probe"])
 
     def run_sh(self, root, *args, env=None):
-        return subprocess.run(["bash", "tools/check.sh", *args], cwd=str(root),
+        return subprocess.run([BASH, "tools/check.sh", *args], cwd=str(root),
                               capture_output=True, text=True, env=env, timeout=60)
 
-    @unittest.skipIf(OSASCRIPT, "this box has osascript, so the fallback cannot be seen")
-    def test_check_sh_without_osascript_says_so(self):
+    def no_node(self, root, osascript=None):
+        """An environment whose PATH has the tools check.sh uses, but no node and no real osascript.
+
+        `osascript` is the text of a stub to put there, or None for a computer with neither.
+        """
+        bin_dir = root / "bare-bin"
+        bin_dir.mkdir(exist_ok=True)
+        for tool in ("dirname", "grep"):
+            link = bin_dir / tool
+            if not link.exists():
+                link.symlink_to(shutil.which(tool))
+        stub = bin_dir / "osascript"
+        if osascript is None:
+            if stub.exists():
+                stub.unlink()
+        else:
+            stub.write_text(osascript, encoding="utf-8")
+            stub.chmod(0o755)
+        return dict(os.environ, PATH=str(bin_dir))
+
+    def test_check_sh_uses_node_when_it_is_there(self):
         result = self.run_sh(self.make(), "probe")
+        self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
+        self.assertIn("OK probe: ", result.stdout)
+
+    def test_check_sh_with_neither_says_to_install_node(self):
+        root = self.make()
+        result = self.run_sh(root, "probe", env=self.no_node(root))
         self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
-        self.assertIn("STOP: This needs osascript, which only a Mac has.", result.stdout)
-        self.assertIn("node tools/check-mode.js probe", result.stdout)
+        self.assertIn("STOP: This needs Node, and it is not installed on this computer.", result.stdout)
+        self.assertIn("nodejs.org", result.stdout)
 
     def test_check_sh_still_stops_on_a_bad_id(self):
         result = self.run_sh(self.make(), "Probe")
@@ -471,27 +498,17 @@ class CheckShTest(unittest.TestCase):
 
     def test_check_sh_maps_a_launcher_failure_to_a_stop(self):
         root = self.make()
-        stub = root / "bin" / "osascript"
-        stub.parent.mkdir()
         for status in ("127", "143"):
             with self.subTest(status=status):
-                stub.write_text("#!/bin/sh\nexit %s\n" % status, encoding="utf-8")
-                stub.chmod(0o755)
-                env = dict(os.environ, PATH="%s:%s" % (stub.parent, os.environ.get("PATH", "")))
+                env = self.no_node(root, "#!/bin/sh\nexit %s\n" % status)
                 result = self.run_sh(root, "probe", env=env)
                 self.assertEqual(result.returncode, 2, result.stdout + result.stderr)
 
-    def test_check_sh_passes_the_same_exit_codes(self):
-        # A stub osascript that runs the runner with node: this checks the wrapper's
-        # arguments and exit codes, never the JXA branch itself.
+    def test_check_sh_osascript_route_passes_the_same_exit_codes(self):
+        # No node on PATH, and a stub osascript that runs the runner with node by its full path:
+        # this checks the wrapper's arguments and exit codes, never the JXA branch itself.
         root = self.make()
-        env = None
-        if not OSASCRIPT:
-            stub = root / "bin" / "osascript"
-            stub.parent.mkdir()
-            stub.write_text("#!/bin/sh\nshift 2\nexec node \"$@\"\n", encoding="utf-8")
-            stub.chmod(0o755)
-            env = dict(os.environ, PATH="%s:%s" % (stub.parent, os.environ.get("PATH", "")))
+        env = self.no_node(root, "#!/bin/sh\nshift 2\nexec %s \"$@\"\n" % NODE)
         result = self.run_sh(root, "probe", env=env)
         self.assertEqual(result.returncode, 0, result.stdout + result.stderr)
         self.assertIn("OK probe: ", result.stdout)
@@ -503,6 +520,9 @@ class CheckShTest(unittest.TestCase):
         failing = self.run_sh(root, "empty", env=env)
         self.assertEqual(failing.returncode, 1, failing.stdout + failing.stderr)
         self.assertIn("FAILED empty: ", failing.stdout)
+        with_node = self.run_sh(root, "empty")
+        self.assertEqual(with_node.returncode, 1, with_node.stdout + with_node.stderr)
+        self.assertIn("FAILED empty: ", with_node.stdout)
 
 
 if __name__ == "__main__":

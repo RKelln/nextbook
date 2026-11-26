@@ -232,8 +232,9 @@ point of `optional: true`: a filter can be left off, so the mode has to work wit
 
 ## 7. Running the checks
 
-- With Node: `node tools/check-mode.js <id>`. About a second. Run it after every change.
-- On a Mac with no Node: `bash tools/check.sh <id>`. The same checks, through the Mac's own JavaScript.
+- `bash tools/check.sh <id>`. About a second. Run it after every change. It uses Node when it is installed, and on a
+  Mac with no Node the Mac's own JavaScript: the same checks and the same lines.
+- Without bash (Windows): `node tools/check-mode.js <id>`.
 - In the browser: open the app, go to `#selftest`, press Run. The same checks again, with no tools at all.
 
 If a check fails, fix the mode. Do not change the check to make it pass, unless the behaviour itself was meant to

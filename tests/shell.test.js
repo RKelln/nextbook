@@ -400,10 +400,18 @@ const foundRecord = (n, query) => ({ id: 'S1PILE' + n, groupKey: 'pile' + n, tit
   language: 'eng', callNumber: 'FIC WRI', series: [], facets: [], found: { query } });
 const foundDoc = (works) => ({ schema: 'nextbook/found-1', searches: [], facets: {}, works });
 
-test('PILE1: the Pile tab sits after Shelf, and the screen explains the pile in plain words', () => {
+test('NAV1: the tabs run Shelf, Suggestions, Pile, and the page opens on the Shelf', () => {
+  const { doc, nb } = openPage({ hash: '' });
+  assert.strictEqual(nb.shell.route(), 'shelf');
+  const order = withPrefix(doc, 'nav-').map((el) => el.getAttribute('data-test'));
+  assert.deepStrictEqual(order.slice(0, 3), ['nav-shelf', 'nav-find', 'nav-pile']);
+  assert.strictEqual(byTest(doc, 'nav-find').textContent, 'Suggestions');
+});
+
+test('PILE1: the Pile tab sits after Suggestions, and the screen explains the pile in plain words', () => {
   const { doc } = openPage({ hash: '#pile' });
-  const tabs = ['nav-find', 'nav-shelf', 'nav-pile'].map((t) => byTest(doc, t));
-  assert.ok(tabs.every(Boolean), 'Ways to choose, Shelf and Pile tabs');
+  const tabs = ['nav-shelf', 'nav-find', 'nav-pile'].map((t) => byTest(doc, t));
+  assert.ok(tabs.every(Boolean), 'Shelf, Suggestions and Pile tabs');
   assert.strictEqual(tabs[2].textContent, 'Pile');
   assert.match(byTest(doc, 'pile-intro').textContent, /The pile is the books Nextbook can suggest from\. It does not search the library when you ask/);
   assert.match(byTest(doc, 'pile-how').textContent, /find-books.*not on your shelf/);
@@ -445,7 +453,7 @@ test('PILE4: an empty pile says how books get in; a workshop copy still shows th
   assert.ok(withPrefix(ws.doc, 'pile-row').length >= 1);
 });
 
-test('PILE5: the Ways-to-choose screen links to the pile', () => {
+test('PILE5: the Suggestions screen links to the pile', () => {
   const { doc, nb } = openPage({ hash: '#find' });
   const see = byTest(doc, 'see-pile');
   assert.ok(see, 'See the pile button');

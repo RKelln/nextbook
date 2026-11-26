@@ -17,7 +17,7 @@
     shelfLoaded: 'The book list is loaded.',
     missingData: 'The book list did not load. The rest of the app still works.',
     missingMode: 'A way of choosing books did not load. The rest of the app still works.',
-    modesLoaded: 'Ways to choose: ',
+    modesLoaded: 'Suggestions: ',
     noModes: 'No ways of choosing books are loaded yet.',
     notSaving: 'This browser is not saving. Download a copy of your shelf before you close it.',
     libraryPage: "the library's page",

@@ -2,8 +2,8 @@
 // The shell: the hash router, the find screen (T3.2, T3.3a), the shelf screen (T3.1) and the
 // self-test screen (T3.4).
 //
-//   #find      the default screen: the ways of choosing books in this copy
-//   #shelf     the shelf in use, adding books, export, import, friends' shelves
+//   #shelf     the default screen: the shelf in use, adding books, export, import, friends' shelves
+//   #find      Suggestions: the ways of choosing books in this copy
 //   #pile      the books the modes can pick from (not on the shelf), with a filter
 //   #selftest  what this copy has, and the app's own checks run in the browser
 //
@@ -137,19 +137,19 @@
 
   // ---- The hash router -----------------------------------------------------------------------
   // `events` is in the list even in a copy with no snapshot: a link to #events then reaches a
-  // plain sentence instead of quietly landing on #find. The tab itself is drawn only when the
+  // plain sentence instead of quietly landing on #shelf. The tab itself is drawn only when the
   // snapshot is there (see navBar).
-  var ROUTES = ['find', 'shelf', 'pile', 'events', 'selftest'];
+  var ROUTES = ['shelf', 'find', 'pile', 'events', 'selftest'];
 
   function routeName() {
     var raw = '';
     try { raw = String(window.location.hash || ''); } catch (e) { raw = ''; }
     var name = raw.replace(/^#/, '').split('?')[0].toLowerCase();
-    return ROUTES.indexOf(name) === -1 ? 'find' : name;
+    return ROUTES.indexOf(name) === -1 ? 'shelf' : name;
   }
 
   function go(name) {
-    var route = ROUTES.indexOf(name) === -1 ? 'find' : name;
+    var route = ROUTES.indexOf(name) === -1 ? 'shelf' : name;
     try {
       window.location.hash = '#' + route;
       if (routeName() === route) render();
@@ -3906,7 +3906,7 @@
 
   function navBar(route) {
     var nav = h('nav', { class: 'nb-nav', 'aria-label': t('navLabel') });
-    var items = [['find', 'navFind', 'nav-find'], ['shelf', 'navShelf', 'nav-shelf'], ['pile', 'navPile', 'nav-pile']];
+    var items = [['shelf', 'navShelf', 'nav-shelf'], ['find', 'navFind', 'nav-find'], ['pile', 'navPile', 'nav-pile']];
     // The events tab is drawn only when the snapshot is there; a copy without one has no tab,
     // and #events still answers with a plain sentence.
     if (hasEvents()) items.push(['events', 'navEvents', 'nav-events']);
@@ -4286,7 +4286,7 @@
 
   addStrings({
     // nav
-    navFind: 'Ways to choose',
+    navFind: 'Suggestions',
     navShelf: 'Shelf',
     navPile: 'Pile',
     navSelftest: 'Self-test',
@@ -4370,7 +4370,7 @@
     pileFoundFor: 'Added by a search for "{words}".',
     pileShowing: 'Showing {shown} of {n} books. Type in the filter to narrow the pile.',
     pileShowAll: 'Show them all',
-    pileToFind: 'Back to the ways to choose',
+    pileToFind: 'Back to Suggestions',
     seePile: 'See the pile',
     pileThin: 'Only {n} of the {total} books in the pile fit this way of choosing. To get more, ask your helper to bring more books into the pile with find-books. You can see the pile on the Pile screen.',
     pileThinNone: 'Nothing in the pile fits this way of choosing. To get more, ask your helper to bring more books into the pile with find-books. You can see the pile on the Pile screen.',

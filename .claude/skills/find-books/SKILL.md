@@ -35,7 +35,7 @@ many books; the library knows which ones are real and on its shelves. So you sug
    - the search line you ran;
    - how many books were added, and the strongest subjects the library's records carried, if any;
    - where they went: "They went into the pile, not on your shelf. The pile is the books Nextbook can suggest from. You can see them on the Pile screen in the app, and a way of choosing can now pick them."
-   - this sentence: "The page will show these books the next time it is opened or reloaded."
+   - when they will see them, in one sentence that fits how the app is open (step 7);
    - how many of your suggestions the library had, and which it did not, by name. Say plainly that a title not
      found may be one you made up or remembered wrongly, or one this library does not hold; do not argue for it.
    - if nothing was added, why: they were already in the pile, or the library would not answer.
@@ -43,8 +43,14 @@ many books; the library knows which ones are real and on its shelves. So you sug
      one line, as printed, and that the pile still has the books it had, so the modes still work and they can
      carry on without it (`python3 tools/coverage.py` gives the count; say "up to six" picks, never "six"). Try
      once more at most. Do not guess whether a fix is allowed or why the library refused: report what printed.
-7. If the page is being served by `python3 tools/serve.py`, it reloads itself when `app/data/found.js` changes, so
-   the books appear on their own. Say that; do not tell them to press anything.
+7. How the new books reach the page depends on how it is open. Say the one sentence that fits, never two:
+   - **Served by `python3 tools/serve.py`** (or a script that runs it), at an http address: it reloads itself when
+     `app/data/found.js` changes. Say "Your app page reloads by itself and shows them." Do not tell them to press
+     anything.
+   - **`app/index.html` opened as a file:** say "Reload the page and they will be there."
+   - **`dist/nextbook.html`:** it holds the books it was built with. Run `python3 tools/build.py`, then say "Reload
+     the page and they will be there."
+   - Not sure how they opened it: ask what the address bar starts with, `http` or `file`.
 8. Titles the library has only on order are left out on purpose (nobody can borrow them yet). Do not add
    `--include-on-order` unless they ask for new, not-yet-arrived books.
 9. Do not do these: fetch a second page of the search, add a book the library did not return, suggest more than

@@ -13,7 +13,7 @@ number at the end changes, and it is always the control's place on the page, cou
 
 | Name | What it is | What pressing it does |
 |---|---|---|
-| `nav-find` | Tab "Ways to choose" | Goes to `#find`. |
+| `nav-find` | Tab "Suggestions" | Goes to `#find`. |
 | `nav-shelf` | Tab "Shelf" | Goes to `#shelf`. |
 | `nav-events` | Tab "Events" | Goes to `#events`. Drawn when there is a list of events (the snapshot in `app/data/events.js`, or the latest list), or when this copy may ask for the latest list; otherwise no tab. |
 | `nav-selftest` | Tab "Self-test" | Goes to `#selftest`. |
