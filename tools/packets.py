@@ -365,7 +365,8 @@ def readme_text(root=REPO):
     lines.append("  " + (EXAMPLE_ID + ".txt").ljust(22) + words)
     lines += [
         "",
-        "Ten briefs and one worked example: eleven packets. The briefs are deliberately unbuilt;",
+        "%s briefs and one worked example: %s packets. The briefs are deliberately unbuilt;"
+        % (count_word(len(ids)).capitalize(), count_word(len(ids) + 1)),
         "writing one is the work the app leaves to its reader. The example is there to be read.",
         "",
         "If you have no repo and no one to run the check, the packet still works: the chat writes",
@@ -374,6 +375,15 @@ def readme_text(root=REPO):
         "",
     ]
     return "\n".join(lines)
+
+
+_COUNT_WORDS = ("zero one two three four five six seven eight nine ten eleven twelve thirteen fourteen "
+                "fifteen sixteen seventeen eighteen nineteen twenty").split()
+
+
+def count_word(n):
+    """A count in words up to twenty, then in digits."""
+    return _COUNT_WORDS[n] if 0 <= n < len(_COUNT_WORDS) else str(n)
 
 
 def write_all(root=REPO, out=DEFAULT_OUT):
